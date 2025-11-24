@@ -1,136 +1,157 @@
-
--- SQL Schema for Tech E-commerce Platform
-
+-- USERS
 CREATE TABLE users (
     id VARCHAR(36) PRIMARY KEY,
-    full_name VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    password_hash VARCHAR(255),
-    role ENUM('user','admin'),
-    created_at DATETIME,
-    updated_at DATETIME
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('user','admin') NOT NULL DEFAULT 'user',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- BRANDS
 CREATE TABLE brands (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255),
-    slug VARCHAR(255)
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE
 );
 
+-- CATEGORIES
 CREATE TABLE categories (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255),
-    slug VARCHAR(255)
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE
 );
 
+-- PRODUCTS
 CREATE TABLE products (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255),
-    brand_id VARCHAR(36),
-    category_id VARCHAR(36),
+    name VARCHAR(255) NOT NULL,
+    brand_id VARCHAR(36) NOT NULL,
+    category_id VARCHAR(36) NOT NULL,
     description TEXT,
-    price DECIMAL(10,2),
-    stock INT,
-    rating_avg DECIMAL(3,2),
-    total_reviews INT,
-    created_at DATETIME,
-    updated_at DATETIME,
-    FOREIGN KEY (brand_id) REFERENCES brands(id),
-    FOREIGN KEY (category_id) REFERENCES categories(id)
+    price DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    rating_avg DECIMAL(3,2) NOT NULL DEFAULT 0.0,
+    total_reviews INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
+-- PRODUCT MEDIA
 CREATE TABLE product_media (
     id VARCHAR(36) PRIMARY KEY,
-    product_id VARCHAR(36),
-    url VARCHAR(500),
-    type ENUM('image','video'),
-    created_at DATETIME,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    product_id VARCHAR(36) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    type ENUM('image','video') NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- REVIEWS
 CREATE TABLE reviews (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36),
-    product_id VARCHAR(36),
-    rating INT,
+    user_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    rating INT NOT NULL,
     comment TEXT,
-    created_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- WISHLIST
 CREATE TABLE wishlist (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36),
-    product_id VARCHAR(36),
-    created_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    user_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- ORDERS
 CREATE TABLE orders (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36),
-    status ENUM('pending','paid','shipping','completed','cancelled'),
-    total_price DECIMAL(10,2),
-    discount_amount DECIMAL(10,2),
-    created_at DATETIME,
-    updated_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    user_id VARCHAR(36) NOT NULL,
+    status ENUM('pending','paid','shipping','completed','cancelled') 
+        NOT NULL DEFAULT 'pending',
+    total_price DECIMAL(10,2) NOT NULL,
+    discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- ORDER ITEMS
 CREATE TABLE order_items (
     id VARCHAR(36) PRIMARY KEY,
-    order_id VARCHAR(36),
-    product_id VARCHAR(36),
-    quantity INT,
-    price DECIMAL(10,2),
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    order_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- PAYMENTS
 CREATE TABLE payments (
     id VARCHAR(36) PRIMARY KEY,
-    order_id VARCHAR(36),
-    method ENUM('card','wallet','cod'),
-    status ENUM('success','failed','pending'),
+    order_id VARCHAR(36) NOT NULL,
+    method ENUM('card','wallet','cod') NOT NULL,
+    status ENUM('success','failed','pending') NOT NULL DEFAULT 'pending',
     transaction_id VARCHAR(255),
-    created_at DATETIME,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- COUPONS
 CREATE TABLE coupons (
     id VARCHAR(36) PRIMARY KEY,
-    code VARCHAR(255),
-    discount_percent INT,
-    start_at DATETIME,
-    end_at DATETIME,
-    quantity INT
+    code VARCHAR(255) NOT NULL UNIQUE,
+    discount_percent INT NOT NULL,
+    start_at DATETIME NOT NULL,
+    end_at DATETIME NOT NULL,
+    quantity INT NOT NULL DEFAULT 0
 );
 
+-- FLASH SALES
 CREATE TABLE flash_sales (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255),
-    start_at DATETIME,
-    end_at DATETIME
+    name VARCHAR(255) NOT NULL,
+    start_at DATETIME NOT NULL,
+    end_at DATETIME NOT NULL
 );
 
+-- FLASH SALE ITEMS
 CREATE TABLE flash_sale_items (
     id VARCHAR(36) PRIMARY KEY,
-    flash_sale_id VARCHAR(36),
-    product_id VARCHAR(36),
-    sale_price DECIMAL(10,2),
-    FOREIGN KEY (flash_sale_id) REFERENCES flash_sales(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    flash_sale_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    sale_price DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY (flash_sale_id) REFERENCES flash_sales(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- CHAT MESSAGES
 CREATE TABLE chat_messages (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36),
+    user_id VARCHAR(36) NOT NULL,
     admin_id VARCHAR(36),
-    message TEXT,
-    sender ENUM('user','admin'),
-    created_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (admin_id) REFERENCES users(id)
+    message TEXT NOT NULL,
+    sender ENUM('user','admin') NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
 );
