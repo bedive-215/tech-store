@@ -6,15 +6,16 @@ CREATE TABLE orders (
     total_price DECIMAL(10,2) NOT NULL,
     discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 );
 
 CREATE TABLE order_items (
     id VARCHAR(36) PRIMARY KEY,
     order_id VARCHAR(36) NOT NULL,
-    product_id VARCHAR(36) NOT NULL, -- from catalog service
+    product_id VARCHAR(36) NOT NULL, -- from product service
     quantity INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL
+    price DECIMAL(10,2) NOT NULL,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
 CREATE TABLE payments (
@@ -23,7 +24,8 @@ CREATE TABLE payments (
     method ENUM('card','wallet','cod') NOT NULL,
     status ENUM('success','failed','pending') NOT NULL DEFAULT 'pending',
     transaction_id VARCHAR(255),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
 CREATE TABLE coupons (
