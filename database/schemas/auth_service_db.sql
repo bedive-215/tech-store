@@ -3,10 +3,21 @@ CREATE TABLE users (
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    avatar VARCHAR(255) DEFAULT NULL,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
     role ENUM('user','admin') NOT NULL DEFAULT 'user',
+    date_of_birth DATE,
+    email_verified BOOLEAN DEFAULT FALSE,
+    verification_code VARCHAR(6) DEFAULT NULL,
+    verification_code_expires_at DATETIME DEFAULT NULL,
+    refresh_token VARCHAR(255) DEFAULT NULL,
+    refresh_token_expires_at DATETIME DEFAULT NULL,
+    password_reset_token VARCHAR(255) DEFAULT NULL,
+    password_reset_token_expires_at DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE reviews (
     id VARCHAR(36) PRIMARY KEY,
@@ -19,10 +30,10 @@ CREATE TABLE reviews (
 );
 
 CREATE TABLE wishlist (
-    id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
     product_id VARCHAR(36) NOT NULL, -- product_id from product service
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, product_id),
     CONSTRAINT fk_wishlist_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -36,3 +47,14 @@ CREATE TABLE chat_messages (
     CONSTRAINT fk_chat_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_chat_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
 );
+
+-- event scheduler for database
+
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT delete_expired_tokens
+ON SCHEDULE EVERY 5 MINUTE
+DO
+  DELETE FROM users
+  WHERE (verification_code_expires_at < NOW() AND verification_code IS NOT NULL)
+     OR (password_reset_token_expires_at < NOW() AND password_reset_token IS NOT NULL);
