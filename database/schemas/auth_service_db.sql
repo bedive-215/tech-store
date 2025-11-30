@@ -10,10 +10,11 @@ CREATE TABLE users (
     email_verified BOOLEAN DEFAULT FALSE,
     verification_code VARCHAR(6) DEFAULT NULL,
     verification_code_expires_at DATETIME DEFAULT NULL,
+    last_verification_code_sent_at DATETIME DEFAULT NULL,
     refresh_token VARCHAR(255) DEFAULT NULL,
     refresh_token_expires_at DATETIME DEFAULT NULL,
-    password_reset_token VARCHAR(255) DEFAULT NULL,
-    password_reset_token_expires_at DATETIME DEFAULT NULL,
+    password_reset_code VARCHAR(6) DEFAULT NULL,
+    password_reset_code_expires_at DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
