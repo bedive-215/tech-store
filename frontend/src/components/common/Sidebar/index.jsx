@@ -5,33 +5,30 @@ import { ROUTERS } from "@/utils/constants";
 // Icons
 import {
   Home,
-  Zap,
-  BarChart3,
   CreditCard,
-  ScanLine,
-  FileText,
   Coins,
   Users,
   Settings,
 } from "lucide-react";
 
-export default function Sidebar({ active = true, mode = "user" }) {
+export default function Sidebar({ active = true, mode = "staff" }) {
   const [expanded, setExpanded] = useState(active);
 
-  const USER_ITEMS = [
+  // USER (staff)
+  const STAFF_ITEMS = [
     { key: "dashboard", label: "Trang Chủ", to: ROUTERS.USER.DASHBOARD, icon: <Home size={20} /> },
-    { key: "payments", label: "Quản lý", to: ROUTERS.USER.PAYMENTS, icon: <CreditCard size={20} /> },
-    { key: "reports", label: "Báo cáo", to: ROUTERS.USER.INCIDENT_REPORT, icon: <FileText size={20} /> },
+    { key: "payments", label: "Thanh toán", to: ROUTERS.USER.PAYMENTS, icon: <CreditCard size={20} /> },
   ];
 
+  // ADMIN
   const ADMIN_ITEMS = [
     { key: "dashboard", label: "Trang chủ", to: ROUTERS.ADMIN.DASHBOARD, icon: <Home size={20} /> },
     { key: "subscriptions", label: "Quản lý dịch vụ", to: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, icon: <Coins size={20} /> },
     { key: "users", label: "Người dùng", to: ROUTERS.ADMIN.USER_MANAGEMENT, icon: <Users size={20} /> },
   ];
 
-  const items = mode === "admin" ? ADMIN_ITEMS : USER_ITEMS;
-  const titleLabel = mode === "admin" ? "Admin" : "user";
+  const items = mode === "admin" ? ADMIN_ITEMS : STAFF_ITEMS;
+  const titleLabel = mode === "admin" ? "Admin" : "Staff";
 
   return (
     <aside
@@ -49,7 +46,7 @@ export default function Sidebar({ active = true, mode = "user" }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 select-none">
           <div className="text-2xl w-11 h-11 grid place-items-center rounded-xl bg-[rgba(255,255,255,0.05)]">
-            <Zap size={22} />
+            <Home size={22} />
           </div>
 
           {expanded && (
@@ -105,37 +102,17 @@ export default function Sidebar({ active = true, mode = "user" }) {
             }
           >
             <span className="w-9 h-9 grid place-items-center text-white">{i.icon}</span>
-
-            {expanded && (
-              <>
-                <span className="text-[14px] font-semibold text-white">{i.label}</span>
-                <span className="ml-auto text-[18px] text-white/40">›</span>
-              </>
-            )}
-
-            {!expanded && (
-              <span className="absolute left-[90px] top-1/2 -translate-y-1/2 bg-[rgba(7,16,30,0.98)] text-white px-3 py-2 rounded-lg text-[13px] shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-150 whitespace-nowrap z-50">
-                {i.label}
-              </span>
-            )}
+            {expanded && <span className="text-[14px] font-semibold text-white">{i.label}</span>}
           </NavLink>
         ))}
       </nav>
 
       {/* FOOTER */}
       <div className="flex items-center justify-between pt-2 border-t border-dashed border-[rgba(255,255,255,0.03)]">
-        {expanded ? (
-          <>
-            <div className="text-[12px] text-white/45">v1.0.0</div>
-            <div className="opacity-90 text-lg cursor-pointer">
-              <Settings size={20} />
-            </div>
-          </>
-        ) : (
-          <div className="opacity-90 text-lg cursor-pointer">
-            <Settings size={20} />
-          </div>
-        )}
+        <div className="text-[12px] text-white/45">{expanded ? "v1.0.0" : ""}</div>
+        <div className="opacity-90 text-lg cursor-pointer">
+          <Settings size={20} />
+        </div>
       </div>
     </aside>
   );
