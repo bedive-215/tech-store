@@ -2,9 +2,9 @@ CREATE TABLE users (
     id VARCHAR(36) PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) DEFAULT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
-    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    phone_number VARCHAR(20) UNIQUE DEFAULT NULL,
     role ENUM('user','admin') NOT NULL DEFAULT 'user',
     date_of_birth DATE,
     email_verified BOOLEAN DEFAULT FALSE,
@@ -18,6 +18,18 @@ CREATE TABLE users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE user_oauth_providers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    provider_uid VARCHAR(255) NOT NULL, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE (provider_uid),
+    UNIQUE (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX (provider_uid),
+    INDEX (user_id)
+);
 
 CREATE TABLE reviews (
     id VARCHAR(36) PRIMARY KEY,
