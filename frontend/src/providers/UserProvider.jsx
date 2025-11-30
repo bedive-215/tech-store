@@ -3,14 +3,12 @@ import React, { createContext, useState } from "react";
 // Tạo context
 export const UserContext = createContext();
 
-// Provider cơ bản
-const UserProvider = ({ children }) => {
-  // State cơ bản
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+// Provider
+export const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);          // Lưu thông tin user
+  const [loading, setLoading] = useState(false);   // Trạng thái loading
+  const [error, setError] = useState(null);        // Trạng thái lỗi
 
-  // Value cung cấp ra context
   const value = {
     user,
     loading,
@@ -27,4 +25,5 @@ const UserProvider = ({ children }) => {
   );
 };
 
+// Export default để không bị lỗi "does not provide an export named 'default'"
 export default UserProvider;

@@ -1,9 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Routes
-import PrivateRoute from "@/routes/PrivateRoute";
-import PublicRoute from "@/routes/PublicRoute";
-
 // Layouts
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
@@ -31,21 +27,21 @@ import Forbidden from "@/pages/error/Forbidden";
 import { ROUTERS } from "@/utils/constants";
 
 const routeConfig = [
-  // ===== PUBLIC ROUTES =====
+  // PUBLIC
   { path: ROUTERS.PUBLIC.LOGIN, element: Login, layout: AuthLayout },
   { path: ROUTERS.PUBLIC.REGISTER, element: Register, layout: AuthLayout },
   { path: ROUTERS.PUBLIC.FORGOT_PASSWORD, element: ForgotPassword, layout: AuthLayout },
 
-  // ===== STAFF ROUTES =====
-  { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout, roles: ["user"] },
-  { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout, roles: ["user"] },
+  // USER
+  { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout },
+  { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout },
 
-  // ===== ADMIN ROUTES =====
-  { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout, roles: ["admin"] },
-  { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout, roles: ["admin"] },
-  { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout, roles: ["admin"] },
+  // ADMIN
+  { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
+  { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout },
+  { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout },
 
-  // ===== ERROR ROUTES =====
+  // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },
   { path: ROUTERS.PUBLIC.NOT_FOUND, element: NotFound },
 ];
@@ -54,34 +50,17 @@ const AppRouter = () => {
   return (
     <Routes>
       {routeConfig.map((route) => {
-        // Wrap with layout if exists
-        const Content = route.layout
+        const Page = route.element;
+
+        const Wrapped = route.layout
           ? () => (
               <route.layout>
-                <route.element />
+                <Page />
               </route.layout>
             )
-          : route.element;
+          : Page;
 
-        let element = <Content />;
-
-        // Private route → requires login
-        if (route.roles) {
-          element = (
-            <PrivateRoute roles={route.roles}>
-              {element}
-            </PrivateRoute>
-          );
-        } else {
-          // Public route → block access when user already logged in
-          element = (
-            <PublicRoute>
-              {element}
-            </PublicRoute>
-          );
-        }
-
-        return <Route key={route.path} path={route.path} element={element} />;
+        return <Route key={route.path} path={route.path} element={<Wrapped />} />;
       })}
 
       {/* Default redirect */}
