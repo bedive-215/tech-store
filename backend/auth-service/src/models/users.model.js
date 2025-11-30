@@ -58,11 +58,15 @@ export default (sequelize) => {
             type: DataTypes.DATE,
             allowNull: true,
         },
-        password_reset_token: {
-            type: DataTypes.STRING(255),
+        last_verification_code_sent_at: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        password_reset_code: {
+            type: DataTypes.STRING(6),
             allowNull: true,
         },
-        password_reset_token_expires_at: {
+        password_reset_code_expires_at: {
             type: DataTypes.DATE,
             allowNull: true,
         },

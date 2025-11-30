@@ -112,3 +112,36 @@ export const oauthLogin = async (req, res, next) => {
     next(err);
   }
 };
+
+export const sendResetPasswordCode = async (req, res, next) => {
+  try {
+    const data = await AuthService.sendResetPasswordCode(req.body.email);
+    return res.status(200).json({ status: "success", ...data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const verifyResetCode = async (req, res, next) => {
+  try {
+    const data = await AuthService.verifyResetPasswordCode(
+      req.body.email,
+      req.body.code
+    );
+    return res.status(200).json({ status: "success", ...data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const data = await AuthService.resetPassword(
+      req.body.email,
+      req.body.newPassword
+    );
+    return res.status(200).json({ status: "success", ...data });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -8,6 +8,3 @@ export const generateAccessToken = (payload) =>
 
 export const generateRefreshToken = (payload) => 
     signToken(payload, process.env.REFRESH_TOKEN_SECRET, process.env.REFRESH_TOKEN_EXPIRES_IN);
-
-export const generateResetToken = (payload) =>
-    signToken(payload, process.env.RESET_PASSWORD_TOKEN_SECRET, '30m');
