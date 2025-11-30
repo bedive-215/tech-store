@@ -80,5 +80,35 @@ export const logout = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }  
+};
+
+export const oauthLogin = async (req, res, next) => {
+  try {
+    const { token, phone_number, date_of_birth } = req.body;
+
+    const data = await AuthService.oauthLogin({
+      token,
+      phone_number,
+      date_of_birth,
+    });
+
+    // set cookie refresh token
+    res.cookie("refreshToken", data.refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: data.message,
+      accessToken: data.accessToken,
+      user: data.user,
+    });
+  } catch (err) {
+    next(err);
   }
 };
