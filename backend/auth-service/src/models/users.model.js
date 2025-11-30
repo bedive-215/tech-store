@@ -18,7 +18,7 @@ export default (sequelize) => {
         },
         password_hash: {
             type: DataTypes.STRING(255),
-            allowNull: false,
+            allowNull: true,
         },
         avatar: {
             type: DataTypes.STRING(255),

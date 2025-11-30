@@ -1,10 +1,11 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/sendMail.js';
 import models from '../models/index.js';
 import { AppError } from '../middlewares/errorHandler.middleware.js';
 import 'dotenv/config';
+import { generateAccessToken, generateRefreshToken, generateResetToken } from '../utils/token.js';
+import axios from 'axios';
 
 class AuthService {
   constructor() {
@@ -77,8 +78,8 @@ class AuthService {
     if (!valid) throw new AppError('Invalid email or password', 401);
 
     const payload = { user_id: user.id, email: user.email, role: user.role, full_name: user.full_name, phone_number: user.phone_number };
-    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET || 'secret', process.env.ACCESS_TOKEN_EXPIRES_IN);
-    const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET || 'refresh-secret', process.env.REFRESH_TOKEN_EXPIRES_IN);
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
     const refreshTokenExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     user.refresh_token = refreshToken;
@@ -233,6 +234,145 @@ class AuthService {
     return {
       success: true,
       message: 'Logged out successfully'
+    };
+  }
+
+  async verifyGoogleToken(token) {
+    let response;
+    let userData = null;
+
+    try {
+      console.log('Trying ID token verification...');
+      response = await axios.get(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`
+      );
+
+      if (response.data && response.data.email) {
+        console.log('ID token verification successful!');
+        userData = {
+          email: response.data.email,
+          provider_uid: response.data.sub,
+          name: response.data.name || response.data.email.split('@')[0],
+        };
+      }
+    } catch (err) {
+      console.log('ID token verification failed, trying access token...');
+    }
+
+    if (!userData) {
+      try {
+        response = await axios.get(
+          `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
+        );
+
+        if (response.data && response.data.email) {
+          console.log('Access token verification successful!');
+          userData = {
+            email: response.data.email,
+            provider_uid: response.data.sub || response.data.user_id,
+            name: response.data.name || response.data.email.split('@')[0],
+          };
+        }
+      } catch (err) {
+        console.log('Access token failed, trying user info API...');
+      }
+    }
+
+    if (!userData) {
+      try {
+        response = await axios.get(
+          `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${token}`
+        );
+
+        if (response.data && response.data.email) {
+          console.log('User info API verification successful!');
+          userData = {
+            email: response.data.email,
+            provider_uid: response.data.id,
+            name: response.data.name || response.data.email.split('@')[0],
+          };
+        }
+      } catch (err) {
+        console.error('All Google token verification failed', err.response?.data || err.message);
+        throw new AppError('Invalid Google token', 401);
+      }
+    }
+
+    if (!userData) {
+      throw new AppError('Unable to get user data from Google token', 401);
+    }
+
+    console.log('Google token verified:', userData);
+
+    return userData;
+  }
+
+  async oauthLogin({ token, phone_number, date_of_birth }) {
+    if (!token) throw new AppError('Token is required', 400);
+
+    const googleData = await this.verifyGoogleToken(token);
+    const { email, provider_uid, name } = googleData;
+
+    // 1. Tìm user theo email
+    let user = await this.User.findOne({ where: { email } });
+
+    if (!user) {
+      user = await this.User.create({
+        email,
+        full_name: name,
+        email_verified: true,
+        password_hash: null,
+        phone_number: phone_number || null,
+        date_of_birth: date_of_birth || null,
+      });
+    }
+
+    // 2. Tìm info OAuth
+    let oauth = await this.UserOAuth.findOne({
+      where: { provider_uid }
+    });
+
+    if (!oauth) {
+      await this.UserOAuth.create({
+        user_id: user.id,
+        provider_uid,
+      });
+    }
+
+    let updated = false;
+
+    if (!user.phone_number && phone_number) {
+      user.phone_number = phone_number;
+      updated = true;
+    }
+
+    if (!user.date_of_birth && date_of_birth) {
+      user.date_of_birth = date_of_birth;
+      updated = true;
+    }
+
+    if (updated) await user.save();
+
+    // 4. Tạo JWT
+    const payload = {
+      user_id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+    };
+
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+
+    user.refresh_token = refreshToken;
+    user.refreshTokenExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await user.save();
+
+    return {
+      message: "OAuth login successful",
+      accessToken,
+      refreshToken,
+      user,
     };
   }
 }

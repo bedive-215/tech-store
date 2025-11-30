@@ -1,4 +1,6 @@
-import { register, login, verifyEmail, resendVerifyCode } from "../controllers/auth.controller.js";
+import { register, login, verifyEmail, resendVerifyCode, checkAuth, logout } from "../controllers/auth.controller.js";
+import authMiddlewareInstance from "../middlewares/auth.middleware.js";
+
 import { Router } from 'express';
 
 const route = Router();
@@ -6,6 +8,8 @@ const route = Router();
 route.post('/register', register);
 route.post('/login', login);
 route.post('/verify', verifyEmail);
-route.post('/resend-verification-code', resendVerifyCode);
+route.post('/verification-code/resend', resendVerifyCode);
+route.post('/refresh-token', authMiddlewareInstance.checkAuth, checkAuth);
+route.post('/logout', authMiddlewareInstance.auth, logout);
 
 export default route;
