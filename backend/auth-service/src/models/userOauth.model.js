@@ -1,9 +1,11 @@
+import { DataTypes } from "sequelize";
+
 export default (sequelize) => {
   const UserOAuth = sequelize.define("UserOAuth", {
     id: {
-      type: DataTypes.BIGINT,
-      autoIncrement: true,
+      type: DataTypes.UUID,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
     },
     user_id: {
       type: DataTypes.UUID,
@@ -18,11 +20,9 @@ export default (sequelize) => {
     timestamps: true,
     underscored: true,
     indexes: [
-      { unique: true, fields: ["provider_uid"] },
-      { unique: true, fields: ["user_id"] },
-      { fields: ["provider_uid"] },
-      { fields: ["user_id"] },
-    ]
+      { unique: true, fields: ["provider_uid"], name: "uniq_provider_uid" },
+      { fields: ["user_id"], name: "idx_user_id" },
+    ],
   });
 
   return UserOAuth;

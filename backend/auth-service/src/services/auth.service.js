@@ -18,7 +18,7 @@ class AuthService {
     return code;
   }
 
-  async register({ email, password, full_name, date_of_birth }) {
+  async register({ email, password, full_name, date_of_birth, phone_number }) {
 
     const existing = await this.User.findOne({ where: { email } });
     if (existing) throw new AppError('Email already registered', 400);
@@ -30,6 +30,7 @@ class AuthService {
       password_hash,
       full_name,
       date_of_birth,
+      phone_number,
       email_verified: false,
     });
 

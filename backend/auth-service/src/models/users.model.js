@@ -1,11 +1,11 @@
-import { DataTypes, UUIDV4 } from "sequelize";
+import { DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const User = sequelize.define("User", {
         id: {
             type: DataTypes.UUID,
             primaryKey: true,
-            defaultValue: UUIDV4,
+            defaultValue: DataTypes.UUIDV4,
         },
         full_name: {
             type: DataTypes.STRING(255),
@@ -43,7 +43,7 @@ export default (sequelize) => {
             defaultValue: false,
         },
         refresh_token: {
-            type: DataTypes.STRING(255),
+            type: DataTypes.STRING(500),
             allowNull: true
         },
         refresh_token_expires_at: {
