@@ -22,7 +22,7 @@ CREATE TABLE users (
 CREATE TABLE user_oauth_providers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
-    provider_uid VARCHAR(255) NOT NULL, 
+    provider_uid VARCHAR(30) NOT NULL, 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE (provider_uid),
@@ -71,3 +71,18 @@ DO
   DELETE FROM users
   WHERE (verification_code_expires_at < NOW() AND verification_code IS NOT NULL)
      OR (password_reset_token_expires_at < NOW() AND password_reset_token IS NOT NULL);
+
+CREATE EVENT delete_unverified_users
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP
+DO
+  DELETE FROM users
+  WHERE email_verified = FALSE
+    AND created_at < NOW() - INTERVAL 1 DAY;
+
+CREATE EVENT delete_expired_refresh_tokens
+ON SCHEDULE EVERY 1 DAY
+DO
+  DELETE FROM users
+  WHERE (refresh_token_expires_at < NOW() 
+  AND refresh_token IS NOT NULL)
