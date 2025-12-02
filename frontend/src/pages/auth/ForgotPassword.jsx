@@ -3,43 +3,102 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useTranslation } from "react-i18next";
-import { Mail, Send } from "lucide-react";
+import { Mail, Send, Key, Lock } from "lucide-react";
 import LangSwitcher from "@/components/common/LangSwitcher";
 import ThemeSwitcher from "@/components/common/ThemeSwitcher";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
-import shopImg from "@/assets/images/shop_cart.jpg"; // giữ ảnh cũ
+import shopImg from "@/assets/images/shop_cart.jpg";
 
-const schema = yup.object({
+// ================== VALIDATION ==================
+const schemaEmail = yup.object({
   email: yup.string().required("auth.required").email("auth.invalidEmail"),
+});
+
+const schemaCode = yup.object({
+  code: yup.string().required("auth.required").min(4, "Mã không hợp lệ"),
+});
+
+const schemaReset = yup.object({
+  newPassword: yup.string().required("auth.required").min(6, "Mật khẩu quá ngắn"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("newPassword")], "Mật khẩu không khớp"),
 });
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  // Lấy các hàm provider từ useAuth()
+  const { forgotPassword, verifyResetCode, resetPassword } = useAuth();
+
+  const [step, setStep] = useState(1); // 1 = nhập email, 2 = nhập mã, 3 = đặt mật khẩu
   const [loading, setLoading] = useState(false);
+
+  const [email, setEmail] = useState(""); // lưu email để dùng lại khi reset password
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  // ================== FORM HOOKS ==================
+  const formEmail = useForm({ resolver: yupResolver(schemaEmail) });
+  const formCode = useForm({ resolver: yupResolver(schemaCode) });
+  const formReset = useForm({ resolver: yupResolver(schemaReset) });
 
-  const onSubmit = async (data) => {
+  // ================== STEP 1: Gửi mail ==================
+  const handleSendEmail = async (data) => {
     try {
       setLoading(true);
       setErrorMessage("");
       setSuccessMessage("");
 
-      // Giả lập gửi request
-      await new Promise((res) => setTimeout(res, 1500));
+      const res = await forgotPassword(data);
 
-      setSuccessMessage(
-        "Nếu email hợp lệ, bạn sẽ nhận được link đặt lại mật khẩu."
-      );
+      setSuccessMessage("Email đã được gửi. Vui lòng kiểm tra hộp thư!");
+      setEmail(data.email); // lưu email lại
+      setStep(2); // chuyển sang bước nhập mã
     } catch (err) {
-      setErrorMessage("Có lỗi xảy ra, vui lòng thử lại.");
+      setErrorMessage(err?.response?.data?.message || "Không thể gửi email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================== STEP 2: Xác minh mã ==================
+  const handleVerifyCode = async (data) => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      await verifyResetCode({ email, code: data.code });
+
+      setSuccessMessage("Xác minh thành công!");
+      setStep(3);
+    } catch (err) {
+      setErrorMessage(err?.response?.data?.message || "Mã không đúng.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================== STEP 3: Đặt mật khẩu ==================
+  const handleResetPassword = async (data) => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      await resetPassword({
+        email,
+        newPassword: data.newPassword,
+      });
+
+      setSuccessMessage("Đặt lại mật khẩu thành công. Hãy đăng nhập lại!");
+      setTimeout(() => navigate("/login"), 1500);
+    } catch (err) {
+      setErrorMessage(err?.response?.data?.message || "Không thể đặt lại mật khẩu.");
     } finally {
       setLoading(false);
     }
@@ -55,7 +114,7 @@ export default function ForgotPasswordPage() {
 
           <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-2xl border border-white/20">
             <img 
-              src={shopImg} 
+              src={shopImg}
               alt="Shop illustration"
               className="w-full h-full object-cover"
             />
@@ -71,7 +130,7 @@ export default function ForgotPasswordPage() {
 
         </div>
 
-        {/* RIGHT — FORGOT PASSWORD FORM */}
+        {/* RIGHT — FORM */}
         <div className="p-10 md:p-14 flex flex-col justify-center">
 
           <div className="flex justify-end mb-6 gap-3">
@@ -80,56 +139,139 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="mx-auto w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-8 md:p-10 shadow-lg">
+            
+            {/* TITLE */}
             <div className="mb-6 text-center">
               <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-                Quên mật khẩu
+                {step === 1 && "Quên mật khẩu"}
+                {step === 2 && "Nhập mã xác nhận"}
+                {step === 3 && "Đặt mật khẩu mới"}
               </h2>
+
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
-                Nhập email của bạn để nhận link đặt lại mật khẩu
+                {step === 1 && "Nhập email để nhận mã khôi phục"}
+                {step === 2 && `Một mã đã gửi đến email: ${email}`}
+                {step === 3 && "Đặt lại mật khẩu mới cho tài khoản"}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              
-              {/* EMAIL */}
-              <div>
-                <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-300">
+            {/* FORM THEO STEP */}
+            {step === 1 && (
+              <form onSubmit={formEmail.handleSubmit(handleSendEmail)} className="space-y-4">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
                   Email
                 </label>
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border rounded-xl px-4 py-3">
                   <Mail className="text-orange-600" size={20} />
                   <input
                     type="email"
-                    {...register("email")}
-                    placeholder="Nhập email của bạn..."
-                    className="flex-1 bg-transparent outline-none text-gray-900 dark:text-gray-100"
+                    {...formEmail.register("email")}
+                    placeholder="Nhập email..."
+                    className="flex-1 bg-transparent outline-none"
                   />
                 </div>
-                {errors.email && <p className="text-orange-500 text-xs mt-1">{t(errors.email.message)}</p>}
-              </div>
+                {formEmail.formState.errors.email && (
+                  <p className="text-orange-500 text-xs">{t(formEmail.formState.errors.email.message)}</p>
+                )}
 
-              {errorMessage && <p className="text-orange-500 text-sm">{errorMessage}</p>}
-              {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
+                {errorMessage && <p className="text-orange-500 text-sm">{errorMessage}</p>}
+                {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
 
-              {/* SUBMIT */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-white font-semibold 
-                  bg-gradient-to-r from-orange-500 to-orange-700 
-                  hover:from-orange-600 hover:to-orange-800 shadow-md active:scale-95 transition"
-              >
-                <Send size={18} />
-                {loading ? "Đang xử lý..." : "Gửi link đặt lại"}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl text-white bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-3"
+                >
+                  <Send size={18} />
+                  {loading ? "Đang gửi..." : "Gửi mã khôi phục"}
+                </button>
+              </form>
+            )}
 
-            {/* EXTRA LINK */}
+            {step === 2 && (
+              <form onSubmit={formCode.handleSubmit(handleVerifyCode)} className="space-y-4">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Mã xác nhận</label>
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border rounded-xl px-4 py-3">
+                  <Key className="text-orange-600" size={20} />
+                  <input
+                    type="text"
+                    {...formCode.register("code")}
+                    placeholder="Nhập mã 4-6 số..."
+                    className="flex-1 bg-transparent outline-none"
+                  />
+                </div>
+
+                {formCode.formState.errors.code && (
+                  <p className="text-orange-500 text-xs">{formCode.formState.errors.code.message}</p>
+                )}
+
+                {errorMessage && <p className="text-orange-500 text-sm">{errorMessage}</p>}
+                {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl text-white bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-3"
+                >
+                  <Send size={18} />
+                  {loading ? "Đang xác minh..." : "Xác minh mã"}
+                </button>
+              </form>
+            )}
+
+            {step === 3 && (
+              <form onSubmit={formReset.handleSubmit(handleResetPassword)} className="space-y-4">
+                
+                {/* NEW PASSWORD */}
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Mật khẩu mới
+                </label>
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border rounded-xl px-4 py-3">
+                  <Lock className="text-orange-600" size={20} />
+                  <input
+                    type="newPassword"
+                    {...formReset.register("newPassword")}
+                    placeholder="Nhập mật khẩu mới..."
+                    className="flex-1 bg-transparent outline-none"
+                  />
+                </div>
+
+                {/* CONFIRM */}
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Xác nhận mật khẩu
+                </label>
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border rounded-xl px-4 py-3">
+                  <Lock className="text-orange-600" size={20} />
+                  <input
+                    type="newPassword"
+                    {...formReset.register("confirmPassword")}
+                    placeholder="Nhập lại mật khẩu..."
+                    className="flex-1 bg-transparent outline-none"
+                  />
+                </div>
+
+                {formReset.formState.errors.confirmPassword && (
+                  <p className="text-orange-500 text-xs">
+                    {formReset.formState.errors.confirmPassword.message}
+                  </p>
+                )}
+
+                {errorMessage && <p className="text-orange-500 text-sm">{errorMessage}</p>}
+                {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl text-white bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-3"
+                >
+                  <Send size={18} />
+                  {loading ? "Đang đặt lại..." : "Đặt mật khẩu mới"}
+                </button>
+              </form>
+            )}
+
             <div className="mt-6 text-center text-sm">
-              <Link 
-                to="/login" 
-                className="text-orange-600 hover:underline font-medium"
-              >
+              <Link to="/login" className="text-orange-600 hover:underline font-medium">
                 Quay lại đăng nhập
               </Link>
             </div>
