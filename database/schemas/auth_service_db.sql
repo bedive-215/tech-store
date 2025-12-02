@@ -20,7 +20,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_oauth_providers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
     provider_uid VARCHAR(255) NOT NULL, 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
