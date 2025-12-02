@@ -43,6 +43,48 @@ services:
     networks:
       - kong-net
 
+  # order database
+  order-database:
+    image: mysql:8.0
+    container_name: order-database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: order_service
+    ports:
+      - "3306:3306"
+    volumes:
+      - order-data:/var/lib/mysql
+      - ../../database/schemas/order_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seeds/seed_order_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    command: >
+      mysqld
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --init-connect='SET NAMES utf8mb4;'
+      --skip-character-set-client-handshake
+    networks:
+      - kong-net
+  
+  # order service
+  order-service:
+    build:
+      context: ../../backend/order-service
+      dockerfile: Dockerfile
+    image: order-service:v1.0.0
+    container_name: order-service
+    restart: always
+    depends_on:
+      - order-database
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "mysql://root:root@order-database:3306/order_service"
+    env_file:
+      - ../../backend/order-service/.env
+    networks:
+      - kong-net
+
   # Kong gateway
   kong-database:
     image: postgres:9.6
