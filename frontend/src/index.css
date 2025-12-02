@@ -56,13 +56,7 @@ a {
   text-decoration: none;
 }
 
-/* Buttons */
-button {
-  @apply px-4 py-2 rounded-lg 
-         bg-[var(--color-primary)] text-[var(--color-on-primary)]
-         hover:bg-[var(--color-secondary)]
-         transition-colors;
-}
+
 
 /* Inputs */
 input, select, textarea {
