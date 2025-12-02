@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /usr
 
 # Copy package.json + package-lock.json (nếu có)
 COPY package*.json ./
@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 3000
 
 # CMD đúng file index.js
-CMD ["node", "index.js"]
+CMD ["node", "src/index.js"]

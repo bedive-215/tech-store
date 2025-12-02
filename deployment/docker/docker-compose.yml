@@ -52,7 +52,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: order_service
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - order-data:/var/lib/mysql
       - ../../database/schemas/order_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -142,6 +142,7 @@ volumes:
   auth-data:
   auth-service:
   kong-data:
+  order-data:
 
 networks:
   kong-net:
