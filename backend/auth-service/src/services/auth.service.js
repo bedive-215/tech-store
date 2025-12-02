@@ -10,7 +10,7 @@ import axios from 'axios';
 class AuthService {
   constructor() {
     this.User = models.User;
-    this.UserOAuth = models.UserOauth;
+    this.UserOAuth = models.UserOAuth;
   }
 
   makeCode() {
@@ -331,7 +331,14 @@ class AuthService {
       message: "OAuth login successful",
       accessToken,
       refreshToken,
-      user,
+      user: {
+        user_id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone_number: user.phone_number,
+        date_of_birth: user.date_of_birth,
+        avatar: user.avatar
+      }
     };
   }
 
