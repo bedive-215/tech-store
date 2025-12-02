@@ -1,8 +1,14 @@
 import { Router } from "express";
+import authMiddlewareInstance from "../middlewares/auth.middleware.js";
 
 import routerAuth from './auth.route.js';
-import route from "./auth.route.js";
+import routerUser from './user.route.js';
 
-route.use('/auth', routerAuth);
+const router = Router();
 
-export default route;
+router.use('/auth', routerAuth);
+
+router.use('/users', authMiddlewareInstance.auth.bind(authMiddlewareInstance));
+router.use('/users', routerUser);
+
+export default router;

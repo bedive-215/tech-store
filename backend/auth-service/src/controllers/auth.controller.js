@@ -14,7 +14,7 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const result = await AuthService.login(email, password);
+    const {refreshToken, ...result} = await AuthService.login(email, password);
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -85,13 +85,7 @@ export const logout = async (req, res, next) => {
 
 export const oauthLogin = async (req, res, next) => {
   try {
-    const { token, phone_number, date_of_birth } = req.body;
-
-    const data = await AuthService.oauthLogin({
-      token,
-      phone_number,
-      date_of_birth,
-    });
+    const data = await AuthService.oauthLogin(req.body);
 
     // set cookie refresh token
     res.cookie("refreshToken", data.refreshToken, {

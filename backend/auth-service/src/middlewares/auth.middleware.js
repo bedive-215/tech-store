@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { generateAccessToken } from "../utils/token.js";
 import "dotenv/config";
 import models from "../models/index.js";
+import { AppError } from "./errorHandler.middleware.js";
 
 export class authMiddleware {
     constructor() {
@@ -21,25 +22,27 @@ export class authMiddleware {
             }
 
             const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            if(!decoded) throw new AppError('Invalid decode', 400)
             
-            const user = await this.User.findByPk(decoded.id);
+            const user = await this.User.findByPk(decoded.user_id);
             if (!user) {
                 return res.status(404).json({ 
                     status: 'error',
                     message: "User not found" 
                 });
             }
-
             req.user = {
-                id: decoded.id,
+                id: decoded.user_id,
                 email: decoded.email,
                 role: decoded.role,
                 full_name: user.full_name,
+                role: user.role,
                 phone_number: decoded.phone_number
             };
             
             next();
         } catch (err) {
+            console.error("Auth middleware error:", err);
             if (err.name === "TokenExpiredError") {
                 return res.status(401).json({ 
                     status: 'error',

@@ -12,7 +12,7 @@ export default (sequelize) => {
       allowNull: false,
     },
     provider_uid: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(30),
       allowNull: false,
     },
   }, {

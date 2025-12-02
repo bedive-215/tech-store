@@ -79,11 +79,11 @@ class AuthService {
 
   async login(email, password) {
     const user = await this.User.findOne({ where: { email } });
-    if (!user) throw new AppError('Invalid email or password', 401);
+    if (!user) throw new AppError('Invalid email or password', 400);
     if (!user.email_verified) throw new AppError('Email not verified', 403);
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) throw new AppError('Invalid email or password', 401);
+    if (!valid) throw new AppError('Invalid email or password', 400);
 
     const payload = { user_id: user.id, email: user.email, role: user.role, full_name: user.full_name, phone_number: user.phone_number };
     const accessToken = generateAccessToken(payload);
@@ -97,7 +97,14 @@ class AuthService {
     return {
       accessToken,
       refreshToken,
-      user
+      user: {
+        user_id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone_number: user.phone_number,
+        date_of_birth: user.date_of_birth,
+        avatar: user.avatar
+      }
     };
   }
 
@@ -246,7 +253,7 @@ class AuthService {
       );
 
       const data = response.data;
-      if (!data.email) throw new AppError('Invalid Google token', 401);
+      if (!data.email) throw new AppError('Invalid Google token', 400);
 
       return {
         email: data.email,
