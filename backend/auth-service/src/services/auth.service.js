@@ -103,6 +103,7 @@ class AuthService {
         email: user.email,
         phone_number: user.phone_number,
         date_of_birth: user.date_of_birth,
+        role: user.role,
         avatar: user.avatar
       }
     };
@@ -274,7 +275,6 @@ class AuthService {
 
     // 1. Tìm user theo email
     let user = await this.User.findOne({ where: { email } });
-
     if (!user) {
       user = await this.User.create({
         email,
@@ -337,6 +337,7 @@ class AuthService {
         email: user.email,
         phone_number: user.phone_number,
         date_of_birth: user.date_of_birth,
+        role: user.role,
         avatar: user.avatar
       }
     };
