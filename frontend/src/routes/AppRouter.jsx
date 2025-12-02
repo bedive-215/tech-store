@@ -15,9 +15,16 @@ import DashboardAdmin from "@/pages/admin/Dashboard";
 import SubscriptionPlansAdmin from "@/pages/admin/SubscriptionPlans";
 import UserManagementAdmin from "@/pages/admin/UserManagement";
 
-// Staff pages
+// User pages
+import Home from "@/pages/user/Home";
+import Cart from "@/pages/user/Cart";
 import DashboardSuser from "@/pages/user/Dashboard";
 import Payments from "@/pages/user/PaymentPage";
+
+// ➕ Thêm 3 trang mới
+import Category from "@/pages/user/Category";
+import Profile from "@/pages/user/Profile";
+import Product from "@/pages/user/Product";
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -33,8 +40,15 @@ const routeConfig = [
   { path: ROUTERS.PUBLIC.FORGOT_PASSWORD, element: ForgotPassword, layout: AuthLayout },
 
   // USER
+  { path: ROUTERS.USER.HOME, element: Home, layout: UserLayout },
+  { path: ROUTERS.USER.CART, element: Cart, layout: UserLayout },
   { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout },
   { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout },
+
+  // ➕ 3 trang mới
+  { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
+  { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
+  { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
 
   // ADMIN
   { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
