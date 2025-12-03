@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
-//import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
 
+// Fake sample with multiple images
 const FAKE_PRODUCTS = [
   {
     id: 1,
@@ -23,10 +23,12 @@ const FAKE_PRODUCTS = [
       Camera: "48MP + 12MP + 12MP",
       Pin: "4,422 mAh",
     },
-    image:
+    images: [
       "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-blue-thumb-600x600.jpg",
+      "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-gold-thumb-600x600.jpg",
+      "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-titan-thumb-600x600.jpg"
+    ],
   },
-
   {
     id: 2,
     name: "Samsung Galaxy S24 Ultra 12GB",
@@ -44,14 +46,19 @@ const FAKE_PRODUCTS = [
       Camera: "200MP + 50MP + 12MP + 10MP",
       Pin: "5,000 mAh",
     },
-    image:
+    images: [
       "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-grey-thumbnew-600x600.jpg",
+      "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-black-thumb-600x600.jpg",
+      "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-green-thumb-600x600.jpg"
+    ],
   },
 ];
 
 export default function Product() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const product = FAKE_PRODUCTS.find((p) => p.id === Number(id));
+  const [currentImg, setCurrentImg] = useState(0);
 
   useEffect(() => {
     AOS.init({ duration: 900, once: true });
@@ -65,35 +72,78 @@ export default function Product() {
     );
   }
 
+  const nextImage = () => {
+    setCurrentImg((prev) => (prev + 1) % product.images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImg((prev) =>
+      prev === 0 ? product.images.length - 1 : prev - 1
+    );
+  };
+
+  const goToBuy = () => {
+    navigate(`/user/customer-info/${product.id}`);
+  };
+
   return (
     <>
-
-
       <div className="max-w-7xl mx-auto px-5 py-10">
-        {/* MAIN PRODUCT SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* LEFT IMAGE */}
-          <div className="flex items-center justify-center" data-aos="fade-right">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="rounded-xl shadow-lg w-4/5 hover:scale-105 transition duration-300"
-            />
+
+          {/* LEFT IMAGE GALLERY */}
+          <div className="flex flex-col items-center" data-aos="fade-right">
+            <div className="relative w-full flex items-center justify-center">
+              {/* Prev */}
+              <button
+                onClick={prevImage}
+                className="absolute left-0 text-3xl px-3 py-2 bg-white/80 rounded-full shadow hover:bg-gray-200"
+              >
+                ‹
+              </button>
+
+              <img
+                src={product.images[currentImg]}
+                alt={product.name}
+                className="rounded-xl shadow-lg w-4/5 transition duration-300"
+              />
+
+              {/* Next */}
+              <button
+                onClick={nextImage}
+                className="absolute right-0 text-3xl px-3 py-2 bg-white/80 rounded-full shadow hover:bg-gray-200"
+              >
+                ›
+              </button>
+            </div>
+
+            {/* Thumbnails */}
+            <div className="flex gap-4 mt-4">
+              {product.images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt="thumb"
+                  onClick={() => setCurrentImg(index)}
+                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 ${
+                    currentImg === index ? "border-orange-500" : "border-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           {/* RIGHT INFO */}
           <div className="flex flex-col gap-6" data-aos="fade-left">
-            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
 
             <div className="flex items-center gap-3">
-              <span className="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+              <span className="px-3 py-1 rounded-lg text-sm font-medium text-white bg-orange-500">
                 {product.badge}
               </span>
             </div>
 
-            <div className="text-3xl font-bold text-orange-600">
-              {product.price}
-            </div>
+            <div className="text-3xl font-bold text-orange-500">{product.price}</div>
             <div className="line-through text-gray-500">{product.oldPrice}</div>
 
             {/* RATING */}
@@ -107,17 +157,14 @@ export default function Product() {
             {/* ACTION BUTTONS */}
             <div className="flex flex-col sm:flex-row gap-4 mt-5">
               <button
-                className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg transition hover:opacity-90"
-                style={{ background: COLORS.primary }}
+                className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg bg-orange-500 hover:opacity-90"
               >
                 Thêm vào giỏ hàng
               </button>
 
               <button
-                className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg transition hover:opacity-90"
-                style={{
-                  background: `linear-gradient(90deg, ${COLORS.primaryGradientStart}, ${COLORS.primaryGradientEnd})`,
-                }}
+                onClick={goToBuy}
+                className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg bg-gradient-to-r from-orange-500 to-orange-700 hover:opacity-90"
               >
                 Mua ngay
               </button>
@@ -136,10 +183,7 @@ export default function Product() {
           <h2 className="text-2xl font-bold mb-4">Thông số kỹ thuật</h2>
           <div className="bg-white rounded-xl shadow p-6">
             {Object.entries(product.specs).map(([key, value]) => (
-              <div
-                key={key}
-                className="flex justify-between py-3 border-b last:border-none"
-              >
+              <div key={key} className="flex justify-between py-3 border-b last:border-none">
                 <span className="text-gray-600">{key.replace("_", " ")}</span>
                 <span className="font-medium">{value}</span>
               </div>
@@ -150,7 +194,6 @@ export default function Product() {
         {/* REVIEWS */}
         <section className="mt-12" data-aos="fade-up">
           <h2 className="text-2xl font-bold mb-4">Đánh giá của khách hàng</h2>
-
           <div className="bg-white rounded-xl shadow p-6">
             <p className="text-gray-500">Chưa có đánh giá nào.</p>
           </div>

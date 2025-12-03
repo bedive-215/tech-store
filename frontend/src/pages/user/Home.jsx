@@ -75,7 +75,7 @@ export default function Home() {
                 data-aos-delay={i * 100}
               >
                 <div
-                  onClick={() => navigate(`/product/${p.id}`)}
+                  onClick={() => navigate(`/user/product/${p.id}`)}
                   className="group relative cursor-pointer"
                 >
                   {/* Hover overlay */}

@@ -1,84 +1,258 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useUser } from "@/Providers/UserProvider";
+import { Loader2, Camera } from "lucide-react";
+
+/* Avatar component tối ưu */
+const AvatarImage = React.memo(function AvatarImage({
+  src,
+  alt = "Avatar",
+  className = "",
+  fallback = "/default-avatar.png",
+  onBroken = null,
+}) {
+  const imgRef = useRef(null);
+  const lastSrcRef = useRef(null);
+
+  useEffect(() => {
+    const final = src && typeof src === "string" && src.trim() !== "" ? src.trim() : fallback;
+    if (lastSrcRef.current === final) return;
+
+    lastSrcRef.current = final;
+    const img = imgRef.current;
+    if (!img) return;
+
+    const handleError = () => {
+      if (onBroken) onBroken(img.src);
+      img.onerror = null;
+      img.src = fallback;
+    };
+
+    img.onerror = handleError;
+    img.src = final;
+
+    return () => {
+      img.onerror = null;
+    };
+  }, [src, fallback, onBroken]);
+
+  return <img ref={imgRef} alt={alt} className={className} />;
+});
 
 export default function Profile() {
-  const [user, setUser] = useState({
-    name: "Nguyễn Văn A",
-    phone: "0901234567",
-    email: "example@gmail.com",
-    address: "123 Nguyễn Trãi, Quận 1, TP.HCM",
+  const {
+    user,
+    loading: contextLoading,
+    error,
+    fetchMyInfo,
+    updateMyInfo,
+  } = useUser();
+
+  const [previewAvatar, setPreviewAvatar] = useState("/default-avatar.png");
+  const failedAvatarUrls = useRef(new Set());
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    phone_number: "",
+    date_of_birth: "",
+    avatar: null,
   });
 
-  const [message, setMessage] = useState("");
+  useEffect(() => {
+    const load = async () => {
+      await fetchMyInfo();
+      setIsInitialLoad(false);
+    };
+    load();
+  }, [fetchMyInfo]);
 
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (user) {
+      setPreviewAvatar(user.avatar || "/default-avatar.png");
+      setForm({
+        full_name: user.full_name || user.name || "",
+        email: user.email || "",
+        phone_number: user.phone_number || user.phone || "",
+        date_of_birth: user.date_of_birth || "",
+        avatar: null,
+      });
+    }
+  }, [user]);
+
+  const handleAvatarBroken = (failedUrl) => {
+    failedAvatarUrls.current.add(failedUrl);
+    setPreviewAvatar("/default-avatar.png");
   };
 
-  const handleSave = () => {
-    setMessage("Cập nhật thành công!");
-    setTimeout(() => setMessage(""), 2500);
+  const onChangeInput = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleChooseAvatar = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setForm((prev) => ({ ...prev, avatar: file }));
+      setPreviewAvatar(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await updateMyInfo(form);
+
+      // 🔥 Sau khi lưu → fetch lại thông tin mới → thoát edit → reload trang
+      await fetchMyInfo();
+      setIsEditing(false);
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    if (user) {
+      setForm({
+        full_name: user.full_name || user.name || "",
+        email: user.email || "",
+        phone_number: user.phone_number || user.phone || "",
+        date_of_birth: user.date_of_birth || "",
+        avatar: null,
+      });
+      setPreviewAvatar(user.avatar || "/default-avatar.png");
+    }
+  };
+
+  if (isInitialLoad && contextLoading) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 mt-10 flex justify-center items-center min-h-[300px]">
+        <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  if (error && !user) {
+    return <p className="text-red-500 text-center mt-10">{error}</p>;
+  }
 
   return (
     <div className="max-w-3xl mx-auto p-6 mt-10">
-      <h1 className="text-2xl font-bold mb-6">Thông tin cá nhân</h1>
-
-      <div className="bg-white shadow-md rounded-xl p-6 border border-gray-200">
-
-        {/* Họ tên */}
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Họ và tên</label>
-          <input
-            name="name"
-            value={user.name}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg bg-gray-50 focus:bg-white focus:border-orange-500 outline-none"
-          />
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Thông tin cá nhân</h1>
+          <p className="text-gray-600 mt-2">
+            {isEditing ? "Chỉnh sửa thông tin của bạn" : "Chế độ chỉ xem"}
+          </p>
         </div>
 
-        {/* Số điện thoại */}
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Số điện thoại</label>
-          <input
-            name="phone"
-            value={user.phone}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg bg-gray-50 focus:bg-white focus:border-orange-500 outline-none"
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600 transition"
+          >
+            Chỉnh sửa
+          </button>
+        )}
+      </div>
+
+      <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-200">
+        <div className="flex justify-center mb-8 relative">
+          <AvatarImage
+            src={previewAvatar}
+            alt="Avatar"
+            className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-md"
+            fallback="/default-avatar.png"
+            onBroken={handleAvatarBroken}
           />
+
+          {isEditing && (
+            <label className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow cursor-pointer border">
+              <Camera size={18} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleChooseAvatar} />
+            </label>
+          )}
         </div>
 
-        {/* Email */}
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Email</label>
-          <input
-            name="email"
-            value={user.email}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg bg-gray-50 focus:bg-white focus:border-orange-500 outline-none"
-          />
+        <div className="space-y-6">
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Họ và tên</label>
+            {isEditing ? (
+              <input
+                name="full_name"
+                value={form.full_name}
+                onChange={onChangeInput}
+                className="p-3 border rounded-lg w-full"
+              />
+            ) : (
+              <p className="p-3 bg-gray-50 border rounded-lg">{form.full_name || "-"}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Email</label>
+            {isEditing ? (
+              <input
+                name="email"
+                value={form.email}
+                onChange={onChangeInput}
+                className="p-3 border rounded-lg w-full"
+              />
+            ) : (
+              <p className="p-3 bg-gray-50 border rounded-lg">{form.email || "-"}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Số điện thoại</label>
+            {isEditing ? (
+              <input
+                name="phone_number"
+                value={form.phone_number}
+                onChange={onChangeInput}
+                className="p-3 border rounded-lg w-full"
+              />
+            ) : (
+              <p className="p-3 bg-gray-50 border rounded-lg">{form.phone_number || "-"}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Ngày sinh</label>
+            {isEditing ? (
+              <input
+                type="date"
+                name="date_of_birth"
+                value={form.date_of_birth}
+                onChange={onChangeInput}
+                className="p-3 border rounded-lg w-full"
+              />
+            ) : (
+              <p className="p-3 bg-gray-50 border rounded-lg">{form.date_of_birth || "-"}</p>
+            )}
+          </div>
         </div>
 
-        {/* Địa chỉ */}
-        <div className="mb-6">
-          <label className="block font-medium mb-1">Địa chỉ</label>
-          <input
-            name="address"
-            value={user.address}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg bg-gray-50 focus:bg-white focus:border-orange-500 outline-none"
-          />
-        </div>
+        {isEditing && (
+          <div className="mt-8 flex justify-end gap-3">
+            <button
+              onClick={handleCancel}
+              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+            >
+              Hủy
+            </button>
 
-        {/* BUTTON LƯU */}
-        <button
-          onClick={handleSave}
-          className="w-full bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition"
-        >
-          Lưu thay đổi
-        </button>
-
-        {message && (
-          <div className="text-green-600 text-center mt-4">{message}</div>
+            <button
+              onClick={handleSubmit}
+              disabled={contextLoading}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-2"
+            >
+              {contextLoading && <Loader2 size={16} className="animate-spin" />}
+              Lưu thay đổi
+            </button>
+          </div>
         )}
       </div>
     </div>
