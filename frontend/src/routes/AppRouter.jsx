@@ -14,6 +14,8 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import DashboardAdmin from "@/pages/admin/Dashboard";
 import SubscriptionPlansAdmin from "@/pages/admin/SubscriptionPlans";
 import UserManagementAdmin from "@/pages/admin/UserManagement";
+import AdminDiscounts from "@/pages/admin/Discounts";
+import Orders from "@/pages/admin/Orders";
 
 // User pages
 import Home from "@/pages/user/Home";
@@ -25,6 +27,9 @@ import Payments from "@/pages/user/PaymentPage";
 import Category from "@/pages/user/Category";
 import Profile from "@/pages/user/Profile";
 import Product from "@/pages/user/Product";
+// ➕ Thêm import CustomerInfo
+import CustomerInfo from "@/pages/user/CustomerInfo";
+
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -49,11 +54,14 @@ const routeConfig = [
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
+    { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },
 
   // ADMIN
   { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout },
+  {path: ROUTERS.ADMIN.DISCOUNTS,element: AdminDiscounts,layout: AdminLayout },
+  { path: ROUTERS.ADMIN.ORDERS, element: Orders, layout: AdminLayout },
 
   // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },
