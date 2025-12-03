@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useUser } from "@/Providers/UserProvider";
-import { Loader2, Camera } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth"; // 👉 Thêm useAuth để dùng logout()
+import { Loader2, Camera, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 /* Avatar component tối ưu */
 const AvatarImage = React.memo(function AvatarImage({
@@ -47,6 +49,9 @@ export default function Profile() {
     updateMyInfo,
   } = useUser();
 
+  const { logout } = useAuth(); // 👉 lấy hàm logout từ Provider Auth
+  const navigate = useNavigate();
+
   const [previewAvatar, setPreviewAvatar] = useState("/default-avatar.png");
   const failedAvatarUrls = useRef(new Set());
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -60,6 +65,7 @@ export default function Profile() {
     avatar: null,
   });
 
+  // 🔥 Load info
   useEffect(() => {
     const load = async () => {
       await fetchMyInfo();
@@ -81,8 +87,8 @@ export default function Profile() {
     }
   }, [user]);
 
-  const handleAvatarBroken = (failedUrl) => {
-    failedAvatarUrls.current.add(failedUrl);
+  // Avatar bị lỗi
+  const handleAvatarBroken = () => {
     setPreviewAvatar("/default-avatar.png");
   };
 
@@ -102,8 +108,6 @@ export default function Profile() {
   const handleSubmit = async () => {
     try {
       await updateMyInfo(form);
-
-      // 🔥 Sau khi lưu → fetch lại thông tin mới → thoát edit → reload trang
       await fetchMyInfo();
       setIsEditing(false);
       window.location.reload();
@@ -116,13 +120,23 @@ export default function Profile() {
     setIsEditing(false);
     if (user) {
       setForm({
-        full_name: user.full_name || user.name || "",
+        full_name: user.full_name || "",
         email: user.email || "",
-        phone_number: user.phone_number || user.phone || "",
+        phone_number: user.phone_number || "",
         date_of_birth: user.date_of_birth || "",
         avatar: null,
       });
       setPreviewAvatar(user.avatar || "/default-avatar.png");
+    }
+  };
+
+  // 🔥 Logout API gọi authService.logout() → xóa token → xóa user → navigate login
+  const handleLogout = async () => {
+    try {
+      await logout(); // gọi API + clear token + clear user
+      navigate("/login"); // chuyển sang trang login
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -148,14 +162,25 @@ export default function Profile() {
           </p>
         </div>
 
-        {!isEditing && (
+        <div className="flex gap-3">
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600 transition"
+            >
+              Chỉnh sửa
+            </button>
+          )}
+
+          {/* 🔥 NÚT ĐĂNG XUẤT */}
           <button
-            onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600 transition"
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition flex items-center gap-2"
           >
-            Chỉnh sửa
+            <LogOut size={18} />
+            Đăng xuất
           </button>
-        )}
+        </div>
       </div>
 
       <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-200">
@@ -177,6 +202,7 @@ export default function Profile() {
         </div>
 
         <div className="space-y-6">
+          {/* Họ và tên */}
           <div>
             <label className="block font-medium text-gray-700 mb-2">Họ và tên</label>
             {isEditing ? (
@@ -191,6 +217,7 @@ export default function Profile() {
             )}
           </div>
 
+          {/* Email */}
           <div>
             <label className="block font-medium text-gray-700 mb-2">Email</label>
             {isEditing ? (
@@ -205,6 +232,7 @@ export default function Profile() {
             )}
           </div>
 
+          {/* Số điện thoại */}
           <div>
             <label className="block font-medium text-gray-700 mb-2">Số điện thoại</label>
             {isEditing ? (
@@ -219,6 +247,7 @@ export default function Profile() {
             )}
           </div>
 
+          {/* Ngày sinh */}
           <div>
             <label className="block font-medium text-gray-700 mb-2">Ngày sinh</label>
             {isEditing ? (

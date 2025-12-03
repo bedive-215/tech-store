@@ -34,10 +34,19 @@ export const userService = {
   getUserById: (id) => apiClient.get(`/api/v1/users/${id}`),
   
   // GET / - Lấy danh sách user (chỉ admin)
-  getListOfUser: (params) => apiClient.get("/api/v1/users", { params }),
-  
-  // DELETE /:id - Xóa user theo ID (chỉ admin)
-  deleteUser: (id) => apiClient.delete(`/api/v1/users/${id}`),
+// GET / - Lấy danh sách user (admin)
+getListOfUser: (params, token) =>
+  apiClient.get("/api/v1/users", {
+    params,
+    headers: { Authorization: `Bearer ${token}` },
+  }),
+
+// DELETE /:id - Xóa user (admin)
+deleteUser: (id, token) =>
+  apiClient.delete(`/api/v1/users/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }),
+
 };
 
 export default userService;

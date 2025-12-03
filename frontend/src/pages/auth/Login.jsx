@@ -185,9 +185,50 @@ export default function Login() {
         token: googleToken,
       });
 
-      const role =
-        res?.data?.user?.role || res?.data?.role || "user";
+      // ========== LƯU TOKEN VÀO LOCALSTORAGE ==========
+      // Lấy token từ response (kiểm tra nhiều trường hợp)
+      const accessToken = 
+        res?.data?.access_token || 
+        res?.data?.accessToken || 
+        res?.data?.token ||
+        res?.data?.data?.access_token ||
+        res?.data?.data?.token;
 
+      const refreshToken = 
+        res?.data?.refresh_token || 
+        res?.data?.refreshToken ||
+        res?.data?.data?.refresh_token;
+
+      // Lưu access token vào localStorage
+      if (accessToken) {
+        localStorage.setItem("access_token", accessToken);
+        console.log("✅ Access token đã được lưu vào localStorage");
+      } else {
+        console.warn("⚠️ Không tìm thấy access_token trong response");
+      }
+
+      // Lưu refresh token nếu có
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+        console.log("✅ Refresh token đã được lưu vào localStorage");
+      }
+
+      // Lưu thông tin user nếu cần
+      const userInfo = res?.data?.user || res?.data?.data?.user;
+      if (userInfo) {
+        localStorage.setItem("user", JSON.stringify(userInfo));
+        console.log("✅ User info đã được lưu vào localStorage");
+      }
+
+      // Lấy role để điều hướng
+      const role =
+        res?.data?.user?.role || 
+        res?.data?.role || 
+        res?.data?.data?.user?.role ||
+        res?.data?.data?.role ||
+        "user";
+
+      // Điều hướng theo role
       if (role === "admin") {
         navigate(ROUTERS.ADMIN.DASHBOARD);
       } else if (role === "user") {
