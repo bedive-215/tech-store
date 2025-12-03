@@ -100,6 +100,7 @@ export default function Header() {
           {/* LOGO */}
           <div className="flex items-center">
             <div 
+            onClick={() => navigate("/user/home")}
               className="cursor-pointer text-white font-bold text-2xl tracking-wide px-3 py-1 rounded"
               style={{ background: "rgba(255,255,255,.1)", border: "2px solid rgba(255,255,255,.3)" }}
             >
