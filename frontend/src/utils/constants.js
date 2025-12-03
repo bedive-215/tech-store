@@ -5,16 +5,21 @@ export const ROUTERS = {
     PAYMENTS: "/user/payments",
     CART: "/user/cart",
 
-    // ➕ Thêm 3 trang mới
-    CATEGORY: "/user/category",   // danh mục → có id
-    PROFILE: "/user/profile",         // trang cá nhân
-    PRODUCT: "/user/product",     // chi tiết sản phẩm
+    // ➕ Trang thêm mới
+    CATEGORY: "/user/category",
+    PROFILE: "/user/profile",
+    PRODUCT: "/user/product/:id",
+
+    // ⭐ Trang nhập thông tin mua hàng
+    CUSTOMER_INFO: "/user/customer-info/:id",
   },
 
   ADMIN: {
     DASHBOARD: "/admin/dashboard",
     SUBSCRIPTION_PLANS: "/admin/subscriptions",
     USER_MANAGEMENT: "/admin/users",
+    DISCOUNTS: "/admin/discounts",
+     ORDERS: "/admin/orders",
   },
 
   PUBLIC: {
