@@ -156,6 +156,4 @@ export class authMiddleware {
     }
 }
 
-// Export instance
-const authMiddlewareInstance = new authMiddleware();
-export default authMiddlewareInstance;
+export default new authMiddleware;

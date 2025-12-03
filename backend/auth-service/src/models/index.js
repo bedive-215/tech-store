@@ -4,7 +4,7 @@ import usersModel from "./users.model.js";
 import chatMessagesModel from "./chatMessages.model.js";
 import reviewsModel from "./reviews.model.js";
 import wishlistModel from "./wishlist.model.js";
-import userOAuthModel from "./userOauth.model.js";
+import userOAuthModel from "./userOAuth.model.js";
 
 const User = usersModel(sequelize);
 const ChatMessage = chatMessagesModel(sequelize);
