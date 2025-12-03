@@ -16,7 +16,7 @@ User.hasMany(Wishlist, { foreignKey: "user_id", onDelete: "CASCADE" });
 Wishlist.belongsTo(User, { foreignKey: "user_id" });
 
 User.hasMany(Review, { foreignKey: "user_id", onDelete: "CASCADE" });
-Review.belongsTo(User, { foreignKey: "user_id" });
+Review.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 User.hasMany(ChatMessage, { foreignKey: "user_id", onDelete: "CASCADE" });
 ChatMessage.belongsTo(User, { foreignKey: "user_id" });
