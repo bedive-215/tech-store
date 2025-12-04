@@ -190,13 +190,13 @@ services:
     image: product-service:v1.0.0
     container_name: product-service
     depends_on:
-      - order-database
+      - product-database
     ports:
       - "8585:8585"
     environment:
       DATABASE_URL: "mysql://root:root@product-database:3306/product_service"
     env_file:
-      - ../../backend/order-service/.env
+      - ../../backend/product-service/.env
     networks:
       - kong-net
 
