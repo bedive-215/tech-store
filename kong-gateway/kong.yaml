@@ -10,7 +10,6 @@ services:
   retries: 5
   routes:
   - hosts:
-    - auth-service
     - localhost
     https_redirect_status_code: 426
     name: auth-routes
@@ -91,6 +90,32 @@ services:
     path_handling: v0
     paths:
     - /api/v1/payments
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: false
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: product-service
+  name: product-service
+  port: 8585
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - hosts:
+    - product-service
+    - localhost
+    https_redirect_status_code: 426
+    name: product-routes
+    path_handling: v0
+    paths:
+    - /api/v1/products
     preserve_host: false
     protocols:
     - http
