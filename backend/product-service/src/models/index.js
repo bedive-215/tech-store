@@ -23,8 +23,8 @@ Category.hasMany(Product, { foreignKey: "category_id", onDelete: "CASCADE" });
 Product.belongsTo(Category, { foreignKey: "category_id" });
 
 // Product - Media
-Product.hasMany(ProductMedia, { foreignKey: "product_id", onDelete: "CASCADE" });
-ProductMedia.belongsTo(Product, { foreignKey: "product_id" });
+Product.hasMany(ProductMedia, { foreignKey: "product_id", onDelete: "CASCADE", as: 'media' });
+ProductMedia.belongsTo(Product, { foreignKey: "product_id", as: 'product' });
 
 // FlashSale - FlashSaleItem
 FlashSale.hasMany(FlashSaleItem, { foreignKey: "flash_sale_id", onDelete: "CASCADE" });

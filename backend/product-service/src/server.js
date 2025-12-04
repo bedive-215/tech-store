@@ -1,9 +1,10 @@
-import { app } from './app.js';   // app đã có express.json() trước route
+import { app } from './app.js';
 import 'dotenv/config';
 import sequelize from './configs/db.config.js';
 import http from 'http';
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
+console.log(PORT);
 const server = http.createServer(app);
 
 const startServer = async () => {
