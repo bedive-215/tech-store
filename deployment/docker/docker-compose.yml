@@ -138,11 +138,75 @@ services:
     networks:
       - kong-net
 
+  # Rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kong-net
+
+  # product-database
+  product-database:
+    image: mysql:8.0
+    container_name: product-database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: product_service
+    ports:
+      - "3306:3306"
+    volumes:
+      - product-data:/var/lib/mysql
+      - ../../database/schemas/product_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seeds/seed_product_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    command: >
+      mysqld
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --init-connect='SET NAMES utf8mb4;'
+      --skip-character-set-client-handshake
+    networks:
+      - kong-net
+
+  # product-service
+  product-service:
+    build:
+      context: ../../backend/product-service
+      dockerfile: Dockerfile
+    image: product-service:v1.0.0
+    container_name: product-service
+    depends_on:
+      - order-database
+    ports:
+      - "8585:8585"
+    environment:
+      DATABASE_URL: "mysql://root:root@product-database:3306/product_service"
+    env_file:
+      - ../../backend/order-service/.env
+    networks:
+      - kong-net
+
 volumes:
   auth-data:
   auth-service:
   kong-data:
   order-data:
+  product-data:
+  rabbitmq-data:
 
 networks:
   kong-net:
