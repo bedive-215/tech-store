@@ -29,6 +29,7 @@ CREATE TABLE products (
 CREATE TABLE product_media (
     id VARCHAR(36) PRIMARY KEY,
     product_id VARCHAR(36) NOT NULL,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     url VARCHAR(500) NOT NULL,
     type ENUM('image','video') NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
