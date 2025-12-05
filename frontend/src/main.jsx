@@ -10,6 +10,7 @@ import { AuthProvider } from "@/providers/AuthProvider.jsx";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { PaymentProvider } from "@/providers/PaymentProvider"; 
 import UserProvider from "@/providers/UserProvider"; 
+import  ProductProvider  from "@/providers/ProductProvider";  // 👉 THÊM DÒNG NÀY
 
 console.log("🚀 Rendering App...");
 
@@ -21,9 +22,11 @@ root.render(
       <ThemeProvider>
         <AuthProvider>
           <UserProvider>
-                  <PaymentProvider>
-                    <App />
-                  </PaymentProvider>
+            <PaymentProvider>
+              <ProductProvider>   {/* 👉 BỌC THÊM NÈ */}
+                <App />
+              </ProductProvider>
+            </PaymentProvider>
           </UserProvider>
         </AuthProvider>
       </ThemeProvider>

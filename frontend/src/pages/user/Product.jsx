@@ -2,88 +2,46 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import Footer from "../../components/common/Footer";
 
-// Fake sample with multiple images
-const FAKE_PRODUCTS = [
-  {
-    id: 1,
-    name: "iPhone 15 Pro Max 256GB",
-    price: "29.990.000đ",
-    oldPrice: "34.990.000đ",
-    badge: "Trả góp 0%",
-    rating: 4.8,
-    reviews: 234,
-    description:
-      "iPhone 15 Pro Max với chip A17 Pro mạnh mẽ, camera zoom quang 5x, màn hình Super Retina XDR 120Hz và thời lượng pin vượt trội.",
-    specs: {
-      Màn_hình: "OLED 6.7 inch, 120Hz",
-      Chip: "A17 Pro",
-      RAM: "8GB",
-      Camera: "48MP + 12MP + 12MP",
-      Pin: "4,422 mAh",
-    },
-    images: [
-      "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-blue-thumb-600x600.jpg",
-      "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-gold-thumb-600x600.jpg",
-      "https://cdn.tgdd.vn/Products/Images/42/329190/iphone-15-pro-max-titan-thumb-600x600.jpg"
-    ],
-  },
-  {
-    id: 2,
-    name: "Samsung Galaxy S24 Ultra 12GB",
-    price: "27.990.000đ",
-    oldPrice: "31.990.000đ",
-    badge: "Giảm 12%",
-    rating: 4.7,
-    reviews: 189,
-    description:
-      "Galaxy S24 Ultra sở hữu camera 200MP, màn hình Dynamic AMOLED 2X, chip Snapdragon 8 Gen 3 và bút S-Pen tiện lợi.",
-    specs: {
-      Màn_hình: "AMOLED 6.8 inch, 120Hz",
-      Chip: "Snapdragon 8 Gen 3",
-      RAM: "12GB",
-      Camera: "200MP + 50MP + 12MP + 10MP",
-      Pin: "5,000 mAh",
-    },
-    images: [
-      "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-grey-thumbnew-600x600.jpg",
-      "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-black-thumb-600x600.jpg",
-      "https://cdn.tgdd.vn/Products/Images/42/329101/samsung-galaxy-s24-ultra-green-thumb-600x600.jpg"
-    ],
-  },
-];
+import Footer from "../../components/common/Footer";
+import { useProduct } from "@/providers/ProductProvider";
 
 export default function Product() {
-  const { id } = useParams();
+  const { id } = useParams(); // id = product_id được truyền từ Home
   const navigate = useNavigate();
-  const product = FAKE_PRODUCTS.find((p) => p.id === Number(id));
+
+  const {
+    productDetail,
+    loading,
+    error,
+    fetchProductById,
+  } = useProduct();
+
   const [currentImg, setCurrentImg] = useState(0);
 
   useEffect(() => {
     AOS.init({ duration: 900, once: true });
-  }, []);
+    fetchProductById(id); // gọi API lấy chi tiết theo product_id
+  }, [id, fetchProductById]);
 
-  if (!product) {
-    return (
-      <div className="text-center py-20 text-xl font-semibold">
-        Không tìm thấy sản phẩm!
-      </div>
-    );
-  }
+  const product = productDetail;
 
-  const nextImage = () => {
-    setCurrentImg((prev) => (prev + 1) % product.images.length);
-  };
+  if (loading)
+    return <div className="text-center py-20 text-xl font-semibold">Đang tải thông tin sản phẩm...</div>;
 
-  const prevImage = () => {
-    setCurrentImg((prev) =>
-      prev === 0 ? product.images.length - 1 : prev - 1
-    );
-  };
+  if (error || !product)
+    return <div className="text-center py-20 text-xl font-semibold">Không tìm thấy sản phẩm!</div>;
+
+  // ẢNH SẢN PHẨM
+  const images = product.media?.length > 0
+    ? product.media.map((m) => m.url)
+    : ["/placeholder.png"];
+
+  const nextImage = () => setCurrentImg((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
 
   const goToBuy = () => {
-    navigate(`/user/customer-info/${product.id}`);
+    navigate(`/user/customer-info/${product.product_id}`);
   };
 
   return (
@@ -94,7 +52,6 @@ export default function Product() {
           {/* LEFT IMAGE GALLERY */}
           <div className="flex flex-col items-center" data-aos="fade-right">
             <div className="relative w-full flex items-center justify-center">
-              {/* Prev */}
               <button
                 onClick={prevImage}
                 className="absolute left-0 text-3xl px-3 py-2 bg-white/80 rounded-full shadow hover:bg-gray-200"
@@ -103,12 +60,11 @@ export default function Product() {
               </button>
 
               <img
-                src={product.images[currentImg]}
+                src={images[currentImg]}
                 alt={product.name}
                 className="rounded-xl shadow-lg w-4/5 transition duration-300"
               />
 
-              {/* Next */}
               <button
                 onClick={nextImage}
                 className="absolute right-0 text-3xl px-3 py-2 bg-white/80 rounded-full shadow hover:bg-gray-200"
@@ -119,7 +75,7 @@ export default function Product() {
 
             {/* Thumbnails */}
             <div className="flex gap-4 mt-4">
-              {product.images.map((img, index) => (
+              {images.map((img, index) => (
                 <img
                   key={index}
                   src={img}
@@ -137,28 +93,21 @@ export default function Product() {
           <div className="flex flex-col gap-6" data-aos="fade-left">
             <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
 
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 rounded-lg text-sm font-medium text-white bg-orange-500">
-                {product.badge}
-              </span>
+            {/* Giá */}
+            <div className="text-3xl font-bold text-orange-500">
+              {Number(product.price).toLocaleString()}₫
             </div>
 
-            <div className="text-3xl font-bold text-orange-500">{product.price}</div>
-            <div className="line-through text-gray-500">{product.oldPrice}</div>
-
-            {/* RATING */}
-            <div className="flex items-center gap-2 text-yellow-500">
-              {"★".repeat(Math.round(product.rating))}
-              <span className="text-gray-700 text-sm ml-2">
-                {product.rating} ({product.reviews} đánh giá)
-              </span>
+            {/* Thương hiệu & danh mục */}
+            <div className="text-gray-700 text-lg">
+              <p><strong>Thương hiệu:</strong> {product.brand?.name}</p>
+              <p><strong>Danh mục:</strong> {product.category?.name}</p>
+              <p><strong>Tồn kho:</strong> {product.stock}</p>
             </div>
 
             {/* ACTION BUTTONS */}
             <div className="flex flex-col sm:flex-row gap-4 mt-5">
-              <button
-                className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg bg-orange-500 hover:opacity-90"
-              >
+              <button className="w-full py-3 rounded-xl text-white text-lg font-semibold shadow-lg bg-orange-500 hover:opacity-90">
                 Thêm vào giỏ hàng
               </button>
 
@@ -178,18 +127,24 @@ export default function Product() {
           <p className="text-gray-700 leading-7">{product.description}</p>
         </section>
 
-        {/* SPECS */}
-        <section className="mt-12" data-aos="fade-up">
-          <h2 className="text-2xl font-bold mb-4">Thông số kỹ thuật</h2>
-          <div className="bg-white rounded-xl shadow p-6">
-            {Object.entries(product.specs).map(([key, value]) => (
-              <div key={key} className="flex justify-between py-3 border-b last:border-none">
-                <span className="text-gray-600">{key.replace("_", " ")}</span>
-                <span className="font-medium">{value}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* SPECIFICATIONS (nếu có) */}
+        {product.specs && (
+          <section className="mt-12" data-aos="fade-up">
+            <h2 className="text-2xl font-bold mb-4">Thông số kỹ thuật</h2>
+
+            <div className="bg-white rounded-xl shadow p-6">
+              {Object.entries(product.specs).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex justify-between py-3 border-b last:border-none"
+                >
+                  <span className="text-gray-600">{key.replace("_", " ")}</span>
+                  <span className="font-medium">{value}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* REVIEWS */}
         <section className="mt-12" data-aos="fade-up">
