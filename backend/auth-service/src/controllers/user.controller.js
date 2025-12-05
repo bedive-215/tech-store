@@ -16,7 +16,7 @@ export const updateUserInfo = async (req, res, next) => {
             full_name: req.body.full_name,
             phone_number: req.body.phone_number,
             date_of_birth: req.body.date_of_birth,
-            avatar: req.file // từ multer
+            avatar: req.file
         };
 
         const result = await UserService.updateUserInfo(req.user.id, data);
