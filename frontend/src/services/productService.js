@@ -1,17 +1,9 @@
-// src/services/productService.js
 import apiClient from "@/api/apiClient";
 
 export const productService = {
-  /** 
-   * GET / - Lấy danh sách sản phẩm
-   * params: { page, limit, search, categoryId, ... }
-   */
   getProducts: (params = {}) =>
     apiClient.get("/api/v1/products", { params }),
 
-  /**
-   * GET /:id - Lấy chi tiết 1 sản phẩm theo ID
-   */
   getProductById: (id) =>
     apiClient.get(`/api/v1/products/${id}`),
 
@@ -35,17 +27,13 @@ export const productService = {
     });
 
   return apiClient.post("/api/v1/products", payload, {
-  headers: {
+      headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
-});
 
-  },
-
-  /**
-   * PUT /:id - Cập nhật sản phẩm (admin)
-   */
  updateProduct: (id, payload, token) => {
   return apiClient.put(`/api/v1/products/${id}`, payload, {
     headers: {
@@ -56,15 +44,61 @@ export const productService = {
 },
 
 
-  /**
-   * DELETE /:id - Xóa sản phẩm (admin)
-   */
   deleteProduct: (id, token) =>
     apiClient.delete(`/api/v1/products/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  // ----------------------------------------------------------
+  // NEW 🔥 MEDIA APIs
+  // ----------------------------------------------------------
+
+  /** Upload nhiều ảnh sản phẩm */
+  uploadProductMedia: (productId, files, token) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+
+    return apiClient.post(
+      `/api/v1/products/${productId}/media`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
+  /** Đặt ảnh chính */
+  setPrimaryImage: (productId, file, token) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiClient.post(
+    `/api/v1/products/${productId}/media/primary`,
+    formData,
+    {
       headers: {
         Authorization: `Bearer ${token}`,
+        // DON'T set Content-Type manually — axios will set it with correct boundary
       },
-    }),
+    }
+  );
+},
+
+
+  /** Xóa image */
+  deleteMedia: (productId, mediaId, token) =>
+    apiClient.delete(
+      `/api/v1/products/${productId}/media`,
+      {
+        data: { media_id: mediaId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    ),
 };
 
 export default productService;
