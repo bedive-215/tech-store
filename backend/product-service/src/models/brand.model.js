@@ -7,6 +7,10 @@ export default (sequelize) => {
             primaryKey: true,
             defaultValue: DataTypes.UUIDV4
         },
+        logo : {
+            type: DataTypes.STRING(500),
+            allowNull: false
+        },
         name: {
             type: DataTypes.STRING,
             allowNull: false
