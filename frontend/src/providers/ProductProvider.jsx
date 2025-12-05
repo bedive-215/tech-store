@@ -16,7 +16,7 @@ export const useProduct = () => {
 };
 
 const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState([]);          // ALWAYS array
+  const [products, setProducts] = useState([]);
   const [productDetail, setProductDetail] = useState(null);
 
   const [pagination, setPagination] = useState({
@@ -28,21 +28,19 @@ const ProductProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ==========================
-  // GET LIST PRODUCTS (GET /)
-  // ==========================
+  // =====================================================
+  // GET LIST PRODUCTS
+  // =====================================================
   const fetchProducts = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
 
     try {
       const res = await productService.getProducts(params);
-
-      // 🎯 API của bạn trả về:
-      // { products: [...], total, page, limit }
-      const list = res?.data?.products ?? [];
+      const list = res.data?.products ?? [];
 
       setProducts(Array.isArray(list) ? list : []);
+
       setPagination({
         total: res.data?.total ?? 0,
         page: res.data?.page ?? 1,
@@ -51,7 +49,8 @@ const ProductProvider = ({ children }) => {
 
       return list;
     } catch (err) {
-      const msg = err.response?.data?.message || "Không thể tải danh sách sản phẩm";
+      const msg =
+        err.response?.data?.message || "Không thể tải danh sách sản phẩm";
       setError(msg);
       toast.error(msg);
       throw err;
@@ -60,9 +59,9 @@ const ProductProvider = ({ children }) => {
     }
   }, []);
 
-  // ==========================
-  // GET PRODUCT BY ID (GET /:id)
-  // ==========================
+  // =====================================================
+  // GET PRODUCT BY ID
+  // =====================================================
   const fetchProductById = useCallback(async (id) => {
     setLoading(true);
     setError(null);
@@ -70,12 +69,8 @@ const ProductProvider = ({ children }) => {
     try {
       const res = await productService.getProductById(id);
 
-      // Nếu API trả dạng { product: {...} }
       const item =
-        res.data?.product ??
-        res.data?.data ??
-        res.data ??
-        null;
+        res.data?.product ?? res.data?.data ?? res.data ?? null;
 
       setProductDetail(item);
       return item;
@@ -89,9 +84,9 @@ const ProductProvider = ({ children }) => {
     }
   }, []);
 
-  // ==========================
-  // CREATE PRODUCT (POST /)
-  // ==========================
+  // =====================================================
+  // CREATE PRODUCT
+  // =====================================================
   const createProduct = async (payload, token) => {
     setLoading(true);
     setError(null);
@@ -100,7 +95,7 @@ const ProductProvider = ({ children }) => {
       const res = await productService.createProduct(payload, token);
       toast.success("Tạo sản phẩm thành công!");
 
-      await fetchProducts(); // refresh list
+      await fetchProducts();
 
       return res.data;
     } catch (err) {
@@ -113,9 +108,9 @@ const ProductProvider = ({ children }) => {
     }
   };
 
-  // ==========================
-  // UPDATE PRODUCT (PUT /:id)
-  // ==========================
+  // =====================================================
+  // UPDATE PRODUCT
+  // =====================================================
   const updateProduct = async (id, payload, token) => {
     setLoading(true);
     setError(null);
@@ -137,9 +132,9 @@ const ProductProvider = ({ children }) => {
     }
   };
 
-  // ==========================
-  // DELETE PRODUCT (DELETE /:id)
-  // ==========================
+  // =====================================================
+  // DELETE PRODUCT
+  // =====================================================
   const deleteProduct = async (id, token) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm?")) return false;
 
@@ -163,6 +158,93 @@ const ProductProvider = ({ children }) => {
     }
   };
 
+  // =====================================================
+  // UPLOAD PRODUCT MEDIA (POST /:id/media)
+  // =====================================================
+  const uploadProductMedia = async (product_id, files, token) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await productService.uploadProductMedia(
+        product_id,
+        files,
+        token
+      );
+
+      toast.success("Tải ảnh sản phẩm thành công!");
+
+      await fetchProductById(product_id);
+      return res.data;
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Upload hình ảnh thất bại";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // SET PRIMARY IMAGE (POST /:id/media/primary)
+  // =====================================================
+  const setPrimaryImage = async (product_id, file, token) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await productService.setPrimaryImage(
+        product_id,
+        file,
+        token
+      );
+
+      toast.success("Đặt ảnh đại diện thành công!");
+
+      await fetchProductById(product_id);
+      return res.data;
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Đặt ảnh đại diện thất bại";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // DELETE MEDIA (DELETE /:id/media)
+  // =====================================================
+  const deleteMedia = async (product_id, mediaIds, token) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await productService.deleteMedia(
+        product_id,
+        mediaIds,
+        token
+      );
+
+      toast.success("Xóa ảnh thành công!");
+
+      await fetchProductById(product_id);
+      return res.data;
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Xóa hình ảnh thất bại";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = () => setError(null);
 
   const value = {
@@ -178,8 +260,11 @@ const ProductProvider = ({ children }) => {
     updateProduct,
     deleteProduct,
 
-    clearError,
+    uploadProductMedia,
+    setPrimaryImage,
+    deleteMedia,
 
+    clearError,
     setProducts,
     setProductDetail,
   };
