@@ -18,6 +18,11 @@ export default (sequelize) => {
         sale_price: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
+        },
+        stock_limit: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
         }
     }, {
         tableName: "flash_sale_items",

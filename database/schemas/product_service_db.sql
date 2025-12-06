@@ -49,6 +49,7 @@ CREATE TABLE flash_sale_items (
     flash_sale_id VARCHAR(36) NOT NULL,
     product_id VARCHAR(36) NOT NULL,
     sale_price DECIMAL(10,2) NOT NULL,
+    stock_limit INTEGER DEFAULT 0,
     CONSTRAINT fk_flash_sale_items_flash_sale FOREIGN KEY (flash_sale_id) REFERENCES flash_sales(id) ON DELETE CASCADE,
     CONSTRAINT fk_flash_sale_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );

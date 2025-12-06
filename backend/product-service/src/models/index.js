@@ -27,12 +27,12 @@ Product.hasMany(ProductMedia, { foreignKey: "product_id", onDelete: "CASCADE", a
 ProductMedia.belongsTo(Product, { foreignKey: "product_id", as: 'product' });
 
 // FlashSale - FlashSaleItem
-FlashSale.hasMany(FlashSaleItem, { foreignKey: "flash_sale_id", onDelete: "CASCADE" });
-FlashSaleItem.belongsTo(FlashSale, { foreignKey: "flash_sale_id" });
+FlashSale.hasMany(FlashSaleItem, { foreignKey: "flash_sale_id", onDelete: "CASCADE", as: "items" });
+FlashSaleItem.belongsTo(FlashSale, { foreignKey: "flash_sale_id", as: "flash_sale" });
 
 // Product - FlashSaleItem
 Product.hasMany(FlashSaleItem, { foreignKey: "product_id", onDelete: "CASCADE" });
-FlashSaleItem.belongsTo(Product, { foreignKey: "product_id" });
+FlashSaleItem.belongsTo(Product, { foreignKey: "product_id", as: 'product' });
 
 const models = {
     sequelize,
