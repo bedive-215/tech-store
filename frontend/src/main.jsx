@@ -6,11 +6,15 @@ import { BrowserRouter } from "react-router-dom";
 import App from "@/App";
 import "@/index.css";
 
+// Providers
 import { AuthProvider } from "@/providers/AuthProvider.jsx";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { PaymentProvider } from "@/providers/PaymentProvider"; 
 import UserProvider from "@/providers/UserProvider"; 
-import  ProductProvider  from "@/providers/ProductProvider";  // 👉 THÊM DÒNG NÀY
+import ProductProvider from "@/providers/ProductProvider";
+
+// 👉 THÊM ORDER PROVIDER
+import { OrderProvider } from "@/providers/OrderProvider";
 
 console.log("🚀 Rendering App...");
 
@@ -23,8 +27,11 @@ root.render(
         <AuthProvider>
           <UserProvider>
             <PaymentProvider>
-              <ProductProvider>   {/* 👉 BỌC THÊM NÈ */}
-                <App />
+              <ProductProvider>
+                {/* ⭐ BỌC OrderProvider Ở NGOÀI CustomerInfo, Cart, Checkout,... */}
+                <OrderProvider>
+                  <App />
+                </OrderProvider>
               </ProductProvider>
             </PaymentProvider>
           </UserProvider>
