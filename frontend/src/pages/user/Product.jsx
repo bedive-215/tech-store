@@ -41,8 +41,23 @@ export default function Product() {
   const prevImage = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
 
   const goToBuy = () => {
-    navigate(`/user/customer-info/${product.product_id}`);
-  };
+  // Chuẩn bị object sản phẩm truyền đi (dạng giống cart item)
+  const preselected = [
+    {
+      // giữ cả product_id và id tùy backend/front của bạn
+      id: product.product_id ?? product.id ?? product._id ?? String(product.id),
+      product_id: product.product_id ?? product.id ?? product._id ?? String(product.id),
+      name: product.name,
+      price: Number(product.price) || 0,
+      quantity: 1,
+      image: images[0] ?? "/placeholder.png",
+      selected: true,
+    },
+  ];
+
+  // Navigate tới trang CustomerInfo kèm state
+  navigate("/user/customer-info", { state: { preselected } });
+};
 
   return (
     <>
