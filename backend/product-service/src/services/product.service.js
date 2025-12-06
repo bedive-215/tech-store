@@ -140,25 +140,34 @@ class ProductService {
     }
 
     async createProduct(data) {
-        const { name, description, price, stock, brand_id, category_id } = data;
+        const { name, description, price, stock, brand_name, category_name } = data;
 
-        if (!name || !price || !brand_id || !category_id) {
+        if (!name || !price || !brand_name || !category_name) {
             throw new AppError("Missing required fields", 400);
         }
 
-        const brand = await this.Brand.findByPk(brand_id);
+        // Tìm brand theo tên
+        const brand = await this.Brand.findOne({
+            where: { name: brand_name.trim() }
+        });
+
         if (!brand) throw new AppError("Brand not found", 404);
 
-        const category = await this.Category.findByPk(category_id);
+        // Tìm category theo tên
+        const category = await this.Category.findOne({
+            where: { name: category_name.trim() }
+        });
+
         if (!category) throw new AppError("Category not found", 404);
 
+        // Tạo product
         const product = await this.Product.create({
             name,
             description,
             price,
-            stock,
-            brand_id,
-            category_id
+            stock: stock ?? 0,
+            brand_id: brand.id,
+            category_id: category.id
         });
 
         return {
