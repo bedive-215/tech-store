@@ -1,6 +1,8 @@
+// src/components/Cart.jsx
 import React, { useState } from "react";
 import { ShoppingCart, Trash2, Plus, Minus, Package } from "lucide-react";
 import CustomerInfo from "./CustomerInfo";
+import { useOrder } from "@/Providers/OrderProvider";
 
 export default function Cart() {
   const COLORS = {
@@ -25,9 +27,11 @@ export default function Cart() {
   };
 
   const [step, setStep] = useState(1);
+  const [orderResult, setOrderResult] = useState(null);
+
   const [cartItems, setCartItems] = useState([
     {
-      id: 1,
+      id: "P123",
       name: "iPhone 15 Pro Max 256GB",
       price: 29990000,
       quantity: 1,
@@ -35,7 +39,7 @@ export default function Cart() {
       selected: true,
     },
     {
-      id: 2,
+      id: "P456",
       name: "Samsung Galaxy S24 Ultra",
       price: 27990000,
       quantity: 1,
@@ -79,6 +83,11 @@ export default function Cart() {
     }).format(price);
   };
 
+  const handleOrderCreated = (order) => {
+    setOrderResult(order);
+    setStep(3);
+  };
+
   if (step === 2) {
     return (
       <CustomerInfo
@@ -87,11 +96,56 @@ export default function Cart() {
         totalAmount={totalAmount}
         COLORS={COLORS}
         goBack={() => setStep(1)}
-        goPayment={() => setStep(3)}
+        onOrderCreated={handleOrderCreated}
       />
     );
   }
 
+  if (step === 3) {
+    return (
+      <div className="min-h-screen py-8" style={{ backgroundColor: COLORS.bgGrayLight }}>
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="rounded-xl shadow-lg p-8 text-center" style={{ backgroundColor: COLORS.bgLight }}>
+            <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.textLight }}>
+              {orderResult ? "Đặt hàng thành công!" : "Hoàn tất"}
+            </h2>
+
+            {orderResult ? (
+              <>
+                <p className="mb-2">Mã đơn hàng: <strong>{orderResult.order_id ?? orderResult.id ?? "—"}</strong></p>
+                <p className="mb-4">Tổng: <strong style={{ color: COLORS.primary }}>{formatPrice(orderResult.total_amount ?? totalAmount)}</strong></p>
+
+                <button
+                  onClick={() => {
+                    // reset cart or navigate theo nhu cầu
+                    setCartItems([]);
+                    setOrderResult(null);
+                    setStep(1);
+                  }}
+                  className="px-6 py-3 rounded-lg font-semibold"
+                  style={{
+                    background: `linear-gradient(135deg, ${COLORS.primaryGradientStart}, ${COLORS.primaryGradientEnd})`,
+                    color: COLORS.white,
+                  }}
+                >
+                  Quay về trang chủ
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Không có thông tin đơn hàng.</p>
+                <button onClick={() => setStep(1)} className="mt-4 px-6 py-3 rounded-lg">
+                  Quay lại
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // step === 1
   return (
     <div className="min-h-screen py-8" style={{ backgroundColor: COLORS.bgGrayLight }}>
       <div className="max-w-6xl mx-auto px-4">
