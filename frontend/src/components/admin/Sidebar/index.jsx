@@ -1,6 +1,6 @@
 // src/components/common/Sidebar/index.jsx
 import React from "react";
-import { Home, Users, CreditCard, Box, Tag } from "lucide-react"; // Tag dùng cho Discount
+import { Home, Users, CreditCard, Box, Tag, Package } from "lucide-react"; 
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTERS } from "@/utils/constants";
 
@@ -24,6 +24,14 @@ export default function Sidebar({ active = true, mode = "admin" }) {
       icon: <CreditCard size={20} />,
       path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS,
     },
+
+    // 👉 THÊM MỤC QUẢN LÝ SẢN PHẨM
+    {
+      label: "Sản phẩm",
+      icon: <Package size={20} />,
+      path: ROUTERS.ADMIN.PRODUCTS,
+    },
+
     {
       label: "Đơn hàng",
       icon: <Box size={20} />,
@@ -32,7 +40,7 @@ export default function Sidebar({ active = true, mode = "admin" }) {
     {
       label: "Mã giảm giá",
       icon: <Tag size={20} />,
-      path: ROUTERS.ADMIN.DISCOUNTS, // ← Đây là route bạn vừa thêm
+      path: ROUTERS.ADMIN.DISCOUNTS,
     },
   ];
 
@@ -79,11 +87,9 @@ export default function Sidebar({ active = true, mode = "admin" }) {
         })}
       </nav>
 
-      {/* FOOTER / SETTINGS */}
+      {/* FOOTER */}
       <div className="px-4 py-4 border-t mt-auto">
-        <button
-          className="flex items-center gap-3 w-full px-4 py-3 transition-colors duration-200 rounded-lg text-gray-700 hover:bg-gray-100"
-        >
+        <button className="flex items-center gap-3 w-full px-4 py-3 transition-colors duration-200 rounded-lg text-gray-700 hover:bg-gray-100">
           <Users size={20} />
           {active && <span className="font-medium">Profile</span>}
         </button>

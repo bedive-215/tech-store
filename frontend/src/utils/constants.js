@@ -19,7 +19,10 @@ export const ROUTERS = {
     SUBSCRIPTION_PLANS: "/admin/subscriptions",
     USER_MANAGEMENT: "/admin/users",
     DISCOUNTS: "/admin/discounts",
-     ORDERS: "/admin/orders",
+    ORDERS: "/admin/orders",
+
+    // ⭐ Thêm mới: trang quản lý sản phẩm
+    PRODUCTS: "/admin/products",
   },
 
   PUBLIC: {

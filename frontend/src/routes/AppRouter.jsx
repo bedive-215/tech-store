@@ -17,19 +17,22 @@ import UserManagementAdmin from "@/pages/admin/UserManagement";
 import AdminDiscounts from "@/pages/admin/Discounts";
 import Orders from "@/pages/admin/Orders";
 
+// ⭐ Thêm trang quản lý sản phẩm admin
+import ProductManagementAdmin from "@/pages/admin/ProductManagement";
+
 // User pages
 import Home from "@/pages/user/Home";
 import Cart from "@/pages/user/Cart";
 import DashboardSuser from "@/pages/user/Dashboard";
 import Payments from "@/pages/user/PaymentPage";
 
-// ➕ Thêm 3 trang mới
+// ➕ 3 trang mới
 import Category from "@/pages/user/Category";
 import Profile from "@/pages/user/Profile";
 import Product from "@/pages/user/Product";
-// ➕ Thêm import CustomerInfo
-import CustomerInfo from "@/pages/user/CustomerInfo";
 
+// ➕ Trang nhập thông tin khách hàng
+import CustomerInfo from "@/pages/user/CustomerInfo";
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -54,14 +57,17 @@ const routeConfig = [
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
-    { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },
+  { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },
 
   // ADMIN
   { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout },
-  {path: ROUTERS.ADMIN.DISCOUNTS,element: AdminDiscounts,layout: AdminLayout },
+  { path: ROUTERS.ADMIN.DISCOUNTS, element: AdminDiscounts, layout: AdminLayout },
   { path: ROUTERS.ADMIN.ORDERS, element: Orders, layout: AdminLayout },
+
+  // ⭐ Trang quản lý sản phẩm admin
+  { path: ROUTERS.ADMIN.PRODUCTS, element: ProductManagementAdmin, layout: AdminLayout },
 
   // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },
