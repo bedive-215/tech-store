@@ -112,6 +112,38 @@ services:
     - product-service
     - localhost
     https_redirect_status_code: 426
+    name: brand-routes
+    path_handling: v0
+    paths:
+    - /api/v1/brands
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: false
+  - hosts:
+    - product-service
+    - localhost
+    https_redirect_status_code: 426
+    name: category-routes
+    path_handling: v0
+    paths:
+    - /api/v1/categories
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: false
+  - hosts:
+    - product-service
+    - localhost
+    https_redirect_status_code: 426
     name: product-routes
     path_handling: v0
     paths:
