@@ -158,6 +158,24 @@ services:
       retries: 5
     networks:
       - kong-net
+    
+  # rabbitmq-service
+  rabbitmq-service:
+    build:
+      context: ../rabbitmq
+      dockerfile: Dockerfile
+    image: rabbitmq-service:v1.0.0
+    container_name: rabbitmq-service
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      - EXCHANGE_NAME=tech_store_exchange
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    env_file:
+      - ../rabbitmq/.env
+    networks:
+      - kong-net
 
   # product-database
   product-database:
