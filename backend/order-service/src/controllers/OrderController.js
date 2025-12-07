@@ -17,15 +17,31 @@ const OrderController = {
     }
   },
 
-  async list(req, res) {
+async list(req, res) {
     try {
-      const userId = req.query.user_id || 'U-ANON';
-      const page = Number(req.query.page || 1);
-      const limit = Number(req.query.limit || 10);
-      const status = req.query.status || null;
-      const result = await OrderService.listUserOrders(userId, { page, limit, status });
+      const { user_id: userId, order_id: orderId, page, limit, status } = req.query;
+
+      if (orderId) {
+        // Nếu có order_id => trả về chi tiết đơn
+        const order = await OrderService.getOrderById(orderId);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+        return res.json(order);
+      }
+
+      if (!userId) {
+        return res.status(400).json({ error: "user_id is required if order_id not provided" });
+      }
+
+      // Trường hợp lấy danh sách đơn hàng theo user_id
+      const result = await OrderService.listUserOrders(userId, {
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        status: status || null
+      });
+
       return res.json(result);
     } catch (err) {
+      console.error(err);
       return res.status(500).json({ error: err.message });
     }
   },
