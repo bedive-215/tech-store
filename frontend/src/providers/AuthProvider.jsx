@@ -6,17 +6,22 @@ import apiClient from "@/api/apiClient";
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 
-// ===== Decode JWT =====
+/* ============================
+   Decode JWT, safe & tolerant
+   ============================ */
 const decodeJWT = (token) => {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload;
-  } catch (err) {
-    console.error("Decode JWT error:", err);
+    const payloadBase64 = token.split(".")[1];
+    return JSON.parse(atob(payloadBase64));
+  } catch (e) {
+    console.error("JWT decode error:", e);
     return null;
   }
 };
 
+/* ============================
+       Auth Provider
+   ============================ */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(
@@ -28,7 +33,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // ===== Save Tokens =====
+  /* ============================
+        Persist Tokens
+     ============================ */
   const persistTokens = (access, refresh) => {
     if (access) {
       localStorage.setItem(ACCESS_TOKEN_KEY, access);
@@ -47,74 +54,79 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ===== Refresh Token =====
-  const refreshTokens = useCallback(
-    async () => {
-      if (!refreshToken || isRefreshing) return null;
+  /* ============================
+         Extract user from JWT
+     ============================ */
+  const buildUserFromToken = (token) => {
+    const decoded = decodeJWT(token);
+    if (!decoded) return null;
 
-      try {
-        setIsRefreshing(true);
+    return {
+      user_id: decoded.user_id || decoded.id || decoded.sub || null,
+      email: decoded.email || null,
+      role: decoded.role || decoded.roles || null,
+    };
+  };
 
-        const res = await authService.refreshToken({
-          refresh_token: refreshToken,
-        });
+  /* ============================
+         Refresh Tokens
+     ============================ */
+  const refreshTokens = useCallback(async () => {
+    if (!refreshToken || isRefreshing) return null;
 
-        const data = res?.data ?? res;
+    try {
+      setIsRefreshing(true);
 
-        const newAccess = data?.access_token ?? data?.accessToken;
-        const newRefresh = data?.refresh_token ?? data?.refreshToken;
+      const res = await authService.refreshToken({
+        refresh_token: refreshToken,
+      });
 
-        if (newAccess || newRefresh) {
-          persistTokens(newAccess, newRefresh);
-        }
+      const data = res?.data ?? res;
 
-        // Decode again
-        if (newAccess) {
-          const decoded = decodeJWT(newAccess);
-          if (decoded) {
-            setUser({
-              user_id: decoded.user_id,
-              email: decoded.email,
-              role: decoded.role,
-            });
-          }
-        }
+      const newAccess = data?.access_token ?? data?.accessToken;
+      const newRefresh = data?.refresh_token ?? data?.refreshToken;
 
-        setIsRefreshing(false);
-        return data;
-      } catch (err) {
-        setIsRefreshing(false);
-        persistTokens(null, null);
-        setUser(null);
-        return null;
+      if (newAccess || newRefresh) {
+        persistTokens(newAccess, newRefresh);
+
+        const newUser = buildUserFromToken(newAccess);
+        if (newUser) setUser(newUser);
       }
-    },
-    [refreshToken, isRefreshing]
-  );
 
-  // ===== LOGIN =====
+      setIsRefreshing(false);
+      return data;
+    } catch (err) {
+      console.error("Refresh token failed", err);
+
+      setIsRefreshing(false);
+      persistTokens(null, null);
+      setUser(null);
+
+      return null;
+    }
+  }, [refreshToken, isRefreshing]);
+
+  /* ============================
+             LOGIN
+     ============================ */
   const login = async (payload) => {
     const res = await authService.login(payload);
     const data = res?.data ?? res;
 
-    const newAccess = data?.access_token ?? data?.accessToken ?? null;
-    const newRefresh = data?.refresh_token ?? data?.refreshToken ?? null;
+    const newAccess = data?.access_token ?? data?.accessToken;
+    const newRefresh = data?.refresh_token ?? data?.refreshToken;
 
     persistTokens(newAccess, newRefresh);
 
-    const decoded = decodeJWT(newAccess);
-    if (decoded) {
-      setUser({
-        user_id: decoded.user_id,
-        email: decoded.email,
-        role: decoded.role,
-      });
-    }
+    const newUser = buildUserFromToken(newAccess);
+    if (newUser) setUser(newUser);
 
     return data;
   };
 
-  // ===== LOGIN OAUTH =====
+  /* ============================
+            LOGIN OAUTH
+     ============================ */
   const loginWithOAuth = async (payload) => {
     const res = await authService.loginWithOAuth(payload);
     const data = res?.data ?? res;
@@ -124,19 +136,15 @@ export const AuthProvider = ({ children }) => {
 
     persistTokens(newAccess, newRefresh);
 
-    const decoded = decodeJWT(newAccess);
-    if (decoded) {
-      setUser({
-        user_id: decoded.user_id,
-        email: decoded.email,
-        role: decoded.role,
-      });
-    }
+    const newUser = buildUserFromToken(newAccess);
+    if (newUser) setUser(newUser);
 
     return data;
   };
 
-  // ===== LOGOUT =====
+  /* ============================
+              LOGOUT
+     ============================ */
   const logout = async () => {
     try {
       await authService.logout().catch(() => {});
@@ -146,43 +154,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ===== REGISTER =====
+  /* ============================
+          OTHER AUTH ACTIONS
+     ============================ */
   const register = async (payload) => {
     const res = await authService.register(payload);
     return res?.data ?? res;
   };
 
-  // ===== VERIFY EMAIL =====
   const verifyEmail = async (payload) => {
     const res = await authService.verifyEmail(payload);
     return res?.data ?? res;
   };
 
-  // ===== RESEND VERIFY CODE =====
   const resendVerifyCode = async (payload) => {
     const res = await authService.resendVerifyCode(payload);
     return res?.data ?? res;
   };
 
-  // ===== FORGOT PASSWORD =====
   const forgotPassword = async (payload) => {
     const res = await authService.forgotPassword(payload);
     return res?.data ?? res;
   };
 
-  // ===== VERIFY RESET CODE =====
   const verifyResetCode = async (payload) => {
     const res = await authService.verifyResetCode(payload);
     return res?.data ?? res;
   };
 
-  // ===== RESET PASSWORD =====
   const resetPassword = async (payload) => {
     const res = await authService.resetPassword(payload);
     return res?.data ?? res;
   };
 
-  // ===== Axios Interceptors =====
+  /* ============================
+        Axios Interceptors
+     ============================ */
   useEffect(() => {
     const reqInterceptor = apiClient.interceptors.request.use(
       (config) => {
@@ -231,39 +238,32 @@ export const AuthProvider = ({ children }) => {
     };
   }, [accessToken, refreshTokens]);
 
-  // ===== Init User From Token =====
+  /* ============================
+        Init User From Token
+     ============================ */
   useEffect(() => {
     if (accessToken) {
-      const decoded = decodeJWT(accessToken);
-      if (decoded) {
-        setUser({
-          user_id: decoded.user_id,
-          email: decoded.email,
-          role: decoded.role,
-        });
-      }
+      const userObj = buildUserFromToken(accessToken);
+      if (userObj) setUser(userObj);
     }
     setLoading(false);
   }, []);
 
-  // ===== PROVIDER VALUE =====
+  /* ============================
+             PROVIDER VALUE
+     ============================ */
   const value = {
     user,
     accessToken,
     refreshToken,
     loading,
 
-    // Auth Actions
     login,
     loginWithOAuth,
     logout,
     register,
-
-    // Verify
     verifyEmail,
     resendVerifyCode,
-
-    // Password Recovery
     forgotPassword,
     verifyResetCode,
     resetPassword,

@@ -1,12 +1,13 @@
 // src/context/OrderContext.jsx
 import React, { createContext, useState, useContext, useCallback } from "react";
-import { orderService } from "@/services/orderService";
+import { orderService } from "@/services/orderService"; // bao gồm cả coupon service
 import { toast } from "react-toastify";
 
-// Tạo context
+// ----------------------------
+// Tạo Context
+// ----------------------------
 export const OrderContext = createContext();
 
-// Hook tiện lợi để dùng ở các component
 export const useOrder = () => {
   const context = useContext(OrderContext);
   if (!context) {
@@ -15,7 +16,9 @@ export const useOrder = () => {
   return context;
 };
 
-// Helper chuẩn hoá order từ server sang UI model
+// ----------------------------
+// Chuẩn hoá Order
+// ----------------------------
 const normalizeOrder = (serverOrder) => {
   if (!serverOrder) return null;
 
@@ -24,76 +27,87 @@ const normalizeOrder = (serverOrder) => {
     status: serverOrder.status ?? serverOrder.order_status ?? "",
     total_amount: serverOrder.total_amount ?? serverOrder.total ?? 0,
     currency: serverOrder.currency ?? "VND",
-    created_at: serverOrder.created_at ?? serverOrder.createdAt ?? serverOrder.date ?? null,
+    created_at:
+      serverOrder.created_at ??
+      serverOrder.createdAt ??
+      serverOrder.date ??
+      null,
     updated_at: serverOrder.updated_at ?? serverOrder.updatedAt ?? null,
     items: serverOrder.items ?? serverOrder.order_items ?? [],
     shipping: serverOrder.shipping ?? serverOrder.shipping_info ?? {},
     payment: serverOrder.payment ?? serverOrder.payment_info ?? {},
     customer: serverOrder.customer ?? serverOrder.user ?? null,
-    raw: serverOrder, // giữ bản gốc nếu cần
+    raw: serverOrder,
   };
 };
 
+// ----------------------------
 // Provider chính
+// ----------------------------
 export const OrderProvider = ({ children }) => {
-  const [orders, setOrders] = useState([]); // cache danh sách đơn (nếu muốn)
-  const [currentOrder, setCurrentOrder] = useState(null); // chi tiết đơn hiện tại
+  const [orders, setOrders] = useState([]);
+  const [currentOrder, setCurrentOrder] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Tạo đơn (POST /orders)
+  // ====================================================
+  // ORDER METHODS
+  // ====================================================
+
+  // Tạo đơn hàng
   const createOrder = async (payload) => {
     setLoading(true);
     setError(null);
     try {
       const res = await orderService.createOrder(payload);
-      // backend có thể trả res.data.data hoặc res.data.order
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
-      // thêm vào cache local (nếu muốn)
+
       setOrders((prev) => (normalized ? [normalized, ...prev] : prev));
       toast.success("Tạo đơn hàng thành công");
       return normalized;
     } catch (err) {
       const msg = err.response?.data?.message || "Tạo đơn thất bại";
-      setError(msg);
       toast.error(msg);
+      setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Lấy danh sách đơn (GET /orders) - có thể truyền params: { page, limit, status, ... }
-  const fetchOrders = useCallback(
-    async (params = {}) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await orderService.listOrders(params);
-        // server có thể trả { data: { orders: [...], meta: {...} } } hoặc res.data.data...
-        const raw = res.data?.data ?? res.data ?? {};
-        // cố gắng lấy mảng orders từ nhiều cấu trúc phổ biến
-        const serverList =
-          raw.orders ?? raw.items ?? raw.data ?? (Array.isArray(res.data) ? res.data : []);
-        const normalizedList = Array.isArray(serverList)
-          ? serverList.map(normalizeOrder)
-          : [];
-        setOrders(normalizedList);
-        return { data: normalizedList, meta: raw.meta ?? null };
-      } catch (err) {
-        const msg = err.response?.data?.message || "Lấy danh sách đơn thất bại";
-        setError(msg);
-        toast.error(msg);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [setOrders]
-  );
+  // Lấy danh sách đơn hàng
+  const fetchOrders = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.listOrders(params);
 
-  // Lấy chi tiết đơn (GET /orders/:id)
+      const raw = res.data?.data ?? res.data ?? {};
+      const serverList =
+        raw.orders ??
+        raw.items ??
+        raw.data ??
+        (Array.isArray(res.data) ? res.data : []);
+
+      const normalizedList = Array.isArray(serverList)
+        ? serverList.map(normalizeOrder)
+        : [];
+
+      setOrders(normalizedList);
+      return { data: normalizedList, meta: raw.meta ?? null };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Lấy danh sách đơn thất bại";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Lấy chi tiết đơn hàng
   const fetchOrderDetail = async (orderId) => {
     setLoading(true);
     setError(null);
@@ -105,30 +119,31 @@ export const OrderProvider = ({ children }) => {
       return normalized;
     } catch (err) {
       const msg = err.response?.data?.message || "Không tìm thấy đơn hàng";
-      setError(msg);
       toast.error(msg);
+      setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Huỷ đơn (PUT /orders/:id/cancel)
+  // Huỷ đơn hàng
   const cancelOrder = async (orderId, payload = {}) => {
-    const ok = window.confirm("Bạn có chắc chắn muốn huỷ đơn hàng này?");
+    const ok = window.confirm("Bạn có chắc chắn muốn huỷ đơn hàng?");
     if (!ok) return false;
 
     setLoading(true);
     setError(null);
+
     try {
       const res = await orderService.cancelOrder(orderId, payload);
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
 
-      // cập nhật cache orders & currentOrder nếu trùng
       setOrders((prev) =>
         prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
       );
+
       if (currentOrder?.order_id === normalized.order_id) {
         setCurrentOrder(normalized);
       }
@@ -137,7 +152,27 @@ export const OrderProvider = ({ children }) => {
       return normalized;
     } catch (err) {
       const msg = err.response?.data?.message || "Huỷ đơn thất bại";
+      toast.error(msg);
       setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ====================================================
+  // COUPON METHODS (validate, create, list, remove)
+  // ====================================================
+
+  // Validate Coupon
+  const validateCoupon = async (payload, token) => {
+    setLoading(true);
+    try {
+      const res = await orderService.coupon.validate(payload, token);
+      toast.success("Mã giảm giá hợp lệ!");
+      return res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Mã giảm giá không hợp lệ";
       toast.error(msg);
       throw err;
     } finally {
@@ -145,31 +180,96 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Clear error
-  const clearError = () => setError(null);
+  // Tạo coupon
+  const createCoupon = async (payload, token) => {
+    setLoading(true);
+    try {
+      const res = await orderService.coupon.create(payload, token);
+      toast.success("Tạo coupon thành công!");
+      return res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Tạo coupon thất bại";
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Reset / clear orders cache (nếu cần)
+  // Lấy danh sách coupon
+  const listCoupons = async (params = {}, token) => {
+    setLoading(true);
+    try {
+      const res = await orderService.coupon.list(params, token);
+      console.log("COUPON LIST RAW:", res.data);
+      return res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được danh sách coupon";
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xoá coupon
+  const removeCoupon = async (id, token) => {
+    const ok = window.confirm("Xoá coupon này?");
+    if (!ok) return false;
+
+    setLoading(true);
+    try {
+      await orderService.coupon.remove(id, token);
+      toast.success("Xoá coupon thành công!");
+
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Xoá coupon thất bại";
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ====================================================
+  // Helper
+  // ====================================================
+  const clearError = () => setError(null);
   const clearOrders = () => {
     setOrders([]);
     setCurrentOrder(null);
   };
 
+  // ====================================================
+  // Provider value
+  // ====================================================
   const value = {
+    // ORDER
     orders,
     currentOrder,
     loading,
     error,
-    clearError,
-    clearOrders,
     createOrder,
     fetchOrders,
     fetchOrderDetail,
     cancelOrder,
-    setCurrentOrder,
+    clearError,
+    clearOrders,
+
+    // COUPON
+    validateCoupon,
+    createCoupon,
+    listCoupons,
+    removeCoupon,
+
     setOrders,
+    setCurrentOrder,
   };
 
-  return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
+  return (
+    <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
+  );
 };
 
 export default OrderProvider;
