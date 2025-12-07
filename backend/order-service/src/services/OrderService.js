@@ -109,14 +109,57 @@ const OrderService = {
 },
 
 
+async getOrderById(orderId) {
+    if (!orderId) return null;
+
+    const order = await OrderRepository.findById(orderId);
+    if (!order) return null;
+
+    const items = await OrderItemRepository.findByOrder(orderId);
+    const normalizedItems = items.map(it => ({
+      product_id: it.product_id,
+      product_name: it.product_name ?? null,
+      quantity: it.quantity,
+      price: it.price
+    }));
+
+    return {
+      order_id: order.id,
+      total_price: order.total_price,
+      status: order.status,
+      created_at: order.created_at,
+      shipping_address: order.shipping_address,
+      payment: order.payment ?? null,
+      items: normalizedItems
+    };
+  },
+
   async listUserOrders(userId, { page = 1, limit = 10, status = null } = {}) {
     const { rows, total } = await OrderRepository.findByUser(userId, { page, limit, status });
-    const orders = rows.map(r => ({
-      order_id: r.id,
-      total_price: r.total_price,
-      status: r.status,
-      created_at: r.created_at
-    }));
+
+    const orders = await Promise.all(
+      rows.map(async r => {
+        // Lấy chi tiết từng đơn
+        const items = await OrderItemRepository.findByOrder(r.id);
+        const normalizedItems = items.map(it => ({
+          product_id: it.product_id,
+          product_name: it.product_name ?? null,
+          quantity: it.quantity,
+          price: it.price
+        }));
+
+        return {
+          order_id: r.id,
+          total_price: r.total_price,
+          status: r.status,
+          created_at: r.created_at,
+          shipping_address: r.shipping_address,
+          payment: r.payment ?? null,
+          items: normalizedItems
+        };
+      })
+    );
+
     return { orders, total };
   },
 

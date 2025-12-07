@@ -11,7 +11,10 @@ export const ROUTERS = {
     PRODUCT: "/user/product/:id",
 
     // ⭐ Trang nhập thông tin mua hàng
-    CUSTOMER_INFO: "/user/customer-info/:id",
+    CUSTOMER_INFO: "/user/customer-info",
+
+    // ➕ Trang quản lý đơn hàng (user)
+    ORDERS: "/user/orders",
   },
 
   ADMIN: {

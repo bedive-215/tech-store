@@ -50,8 +50,8 @@ export default function ProductManagement() {
     price: "",
     stock: "",
     description: "",
-    brand_id: "",
-    category_id: "",
+    brand_name: "",
+    category_name: "",
   });
 
   // For media manager (when editing)
@@ -74,8 +74,8 @@ export default function ProductManagement() {
       price: "",
       stock: "",
       description: "",
-      brand_id: "",
-      category_id: "",
+      brand_name: "",
+      category_name: "",
     });
     setMediaList([]);
     setSelectedFiles([]);
@@ -90,8 +90,8 @@ export default function ProductManagement() {
       price: product.price ?? "",
       stock: product.stock ?? "",
       description: product.description ?? "",
-      brand_id: product.brand_id ?? "",
-      category_id: product.category_id ?? "",
+      brand_name: product.brand_name ?? "",
+      category_name: product.category_name ?? "",
     });
     setSelectedFiles([]);
     // Load product details (including media)
@@ -127,8 +127,8 @@ export default function ProductManagement() {
         // keep original form values as strings; we'll parse/validate below
         price: formData.price,
         stock: formData.stock,
-        brand_id: formData.brand_id,
-        category_id: formData.category_id,
+        brand_name: formData.brand_name,
+        category_name: formData.category_name,
       };
 
       // Clean payload: remove undefined/null/empty-string; parse numbers safely
@@ -160,12 +160,12 @@ export default function ProductManagement() {
       }
 
       // brand_id & category_id: include only if non-empty trimmed string
-      if (typeof rawPayload.brand_id === "string" && rawPayload.brand_id.trim() !== "") {
-        payload.brand_id = rawPayload.brand_id.trim();
+      if (typeof rawPayload.brand_name === "string" && rawPayload.brand_name.trim() !== "") {
+        payload.brand_name = rawPayload.brand_name.trim();
       }
 
-      if (typeof rawPayload.category_id === "string" && rawPayload.category_id.trim() !== "") {
-        payload.category_id = rawPayload.category_id.trim();
+      if (typeof rawPayload.category_name === "string" && rawPayload.category_name.trim() !== "") {
+        payload.category_name = rawPayload.category_name.trim();
       }
 
       // Debug logs
@@ -696,21 +696,21 @@ const handleSetPrimary = async (mediaId) => {
               }
             />
 
-            <label style={label}>Brand ID</label>
+            <label style={label}>Brand Name</label>
             <input
               style={input}
-              value={formData.brand_id}
+              value={formData.brand_name}
               onChange={(e) =>
-                setFormData({ ...formData, brand_id: e.target.value })
+                setFormData({ ...formData, brand_name: e.target.value })
               }
             />
 
-            <label style={label}>Category ID</label>
+            <label style={label}>Category Name</label>
             <input
               style={input}
-              value={formData.category_id}
+              value={formData.category_name}
               onChange={(e) =>
-                setFormData({ ...formData, category_id: e.target.value })
+                setFormData({ ...formData, category_name: e.target.value })
               }
             />
 
