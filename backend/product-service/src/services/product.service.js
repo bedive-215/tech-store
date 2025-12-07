@@ -1,6 +1,7 @@
 import models from "../models/index.js";
 import { Op } from "sequelize";
 import { AppError } from "../middlewares/errorHandler.middleware.js";
+import RabbitMQ from "../configs/rabbitmq.config.js";
 
 const { Product, Brand, Category, ProductMedia, Review, UserInfo } = models;
 
@@ -12,6 +13,7 @@ class ProductService {
         this.Category = Category;
         this.ProductMedia = ProductMedia;
         this.UserInfo = UserInfo;
+        this.RabbitMQ = RabbitMQ;
     }
 
     async getProducts(query) {
@@ -241,6 +243,45 @@ class ProductService {
         };
     }
 
+    async initMessageHandlers() {
+        await this.RabbitMQ.subscribe("wishlist_product", async (msg) => {
+            const productIds = msg.products;
+            const correlationId = msg.correlationId;
+            if (productIds.length === 0) {
+                return await this.RabbitMQ.publish("product_detail", {
+                    products: [],
+                    correlationId
+                });
+            }
+            if (!productIds || !Array.isArray(productIds) || !correlationId) {
+                console.error("Invalid productIds:", productIds);
+                return;
+            }
+
+            const products = await this.Product.findAll({
+                where: { id: productIds },
+                include: [
+                    { model: this.Brand, attributes: ["id", "name"] },
+                    { model: this.Category, attributes: ["id", "name"] },
+                    { model: this.ProductMedia, as: "media", attributes: ["url", "is_primary"] }
+                ]
+            });
+
+            const result = products.map((p) => ({
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                brand: p.Brand?.name,
+                category: p.Category?.name,
+                media: p.media?.[0]?.url ?? null
+            }));
+
+            await this.RabbitMQ.publish("product_detail", {
+                products: result,
+                correlationId
+            });
+        });
+    }
 }
 
 export default new ProductService();
