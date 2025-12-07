@@ -1,4 +1,5 @@
 import amqp from "amqplib";
+import 'dotenv/config';
 
 class RabbitMQ {
     constructor() {
@@ -33,44 +34,33 @@ class RabbitMQ {
         }
     }
 
-    // Tạo Exchange (direct dùng cho Pub/Sub)
-    async assertExchange(exchangeName) {
-        await this.channel.assertExchange(exchangeName, "direct", {
-            durable: true,
-        });
-    }
-
     // Publish message
-    async publish(exchangeName, message) {
+    async publish(routing_key, message) {
         if (!this.channel) await this.connect();
-
-        await this.assertExchange(exchangeName);
-
-        this.channel.publish(exchangeName, "", Buffer.from(JSON.stringify(message)));
-
-        console.log(`Published to "${exchangeName}":`, message);
+        const exchangeName = process.env.EXCHANGE_NAME;
+        this.channel.publish(exchangeName, routing_key, Buffer.from(JSON.stringify(message)));
     }
 
     // Subscribe (Pub/Sub)
-    async subscribe(exchangeName, callback) {
+    async subscribe(routingKey, callback) {
         if (!this.channel) await this.connect();
 
-        await this.assertExchange(exchangeName);
+        const exchangeName = process.env.EXCHANGE_NAME;
 
-        // Queue random kiểu pub/sub
-        const q = await this.channel.assertQueue("", { exclusive: true });
-
-        // Bind queue → exchange
-        await this.channel.bindQueue(q.queue, exchangeName, "");
-
-        console.log(`Subscribed to exchange "${exchangeName}" on queue "${q.queue}"`);
-
+        // Tạo queue tự động (server-generated name)
+        const q = await this.channel.assertQueue("", {
+            exclusive: true,
+            durable: false
+        });
+        const queueName = q.queue;
+        await this.channel.bindQueue(queueName, exchangeName, routingKey);
+        // Consume messages
         this.channel.consume(
-            q.queue,
+            queueName,
             (msg) => {
-                if (msg !== null) {
+                if (msg) {
                     const content = JSON.parse(msg.content.toString());
-                    callback(content);
+                    callback(content, msg.fields.routingKey);
                 }
             },
             { noAck: true }

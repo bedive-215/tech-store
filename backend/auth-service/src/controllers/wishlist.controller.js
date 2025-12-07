@@ -16,4 +16,14 @@ export const deleteProductById = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};
+
+export const getWishlist = async (req, res, next) => {
+    try{
+        const result = await wishlistService.getWishlist(req.user.id);
+        res.json(result);
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
+};

@@ -1,10 +1,14 @@
 import models from "../models/index.js";
 import { AppError } from "../middlewares/errorHandler.middleware.js";
+import RabbitMQ from "../configs/rabbitmq.config.js";
+import crypto from "crypto";
 
 class WishlistService {
     constructor() {
         this.Wishlist = models.Wishlist;
         this.User = models.User;
+        this.RabbitMQ = RabbitMQ;
+        this._promiseMap = new Map();
     }
 
     async addWishlist(user_id, product_id) {
@@ -44,6 +48,45 @@ class WishlistService {
             product_id
         };
     }
+
+    async initMessageHandlers() {
+        await this.RabbitMQ.connect();
+
+        this.RabbitMQ.subscribe("product_detail", (data) => {
+            const { correlationId, products } = data;
+            const resolver = this._promiseMap.get(correlationId);
+            if (resolver) {
+                resolver(products);
+                this._promiseMap.delete(correlationId);
+            }
+        });
+    }
+
+    async getWishlist(user_id) {
+        if (!user_id) throw new AppError("User is required", 400);
+
+        const wishlist = await this.Wishlist.findAll({
+            where: { user_id },
+            attributes: ["product_id"]
+        });
+
+        const productIds = wishlist.map(w => w.product_id);
+
+        // Tạo correlationId unique
+        const correlationId = crypto.randomUUID();
+
+        const dataPromise = new Promise(resolve => {
+            this._promiseMap.set(correlationId, resolve);
+        });
+
+        await this.RabbitMQ.publish("wishlist_product", {
+            products: productIds,
+            correlationId
+        });
+
+        return await dataPromise;
+    }
+
 }
 
 export default new WishlistService();
