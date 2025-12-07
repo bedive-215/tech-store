@@ -40,6 +40,22 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
+  - hosts:
+    - localhost
+    - auth-service
+    https_redirect_status_code: 426
+    name: wishlist-routes
+    path_handling: v0
+    paths:
+    - /api/v1/wishlist
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: false
   write_timeout: 60000
 - connect_timeout: 60000
   enabled: true
