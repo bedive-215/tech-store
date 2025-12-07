@@ -1,3 +1,4 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
@@ -15,7 +16,7 @@ import DashboardAdmin from "@/pages/admin/Dashboard";
 import SubscriptionPlansAdmin from "@/pages/admin/SubscriptionPlans";
 import UserManagementAdmin from "@/pages/admin/UserManagement";
 import AdminDiscounts from "@/pages/admin/Discounts";
-import Orders from "@/pages/admin/Orders";
+import OrdersAdmin from "@/pages/admin/Orders";
 
 // ⭐ Thêm trang quản lý sản phẩm admin
 import ProductManagementAdmin from "@/pages/admin/ProductManagement";
@@ -33,6 +34,9 @@ import Product from "@/pages/user/Product";
 
 // ➕ Trang nhập thông tin khách hàng
 import CustomerInfo from "@/pages/user/CustomerInfo";
+
+// ===== NEW: user orders pages =====
+import Orders from "@/pages/user/Orders";               // /user/orders   // /user/orders/:id
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -59,12 +63,14 @@ const routeConfig = [
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
   { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },
 
+  // ===== user orders routes =====
+  { path: ROUTERS.USER.ORDERS, element: Orders, layout: UserLayout },
   // ADMIN
   { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.DISCOUNTS, element: AdminDiscounts, layout: AdminLayout },
-  { path: ROUTERS.ADMIN.ORDERS, element: Orders, layout: AdminLayout },
+  { path: ROUTERS.ADMIN.ORDERS, element: OrdersAdmin, layout: AdminLayout },
 
   // ⭐ Trang quản lý sản phẩm admin
   { path: ROUTERS.ADMIN.PRODUCTS, element: ProductManagementAdmin, layout: AdminLayout },

@@ -1,43 +1,39 @@
 // src/services/orderService.js
 import apiClient from "@/api/apiClient";
 
-/**
- * Order service
- * Routes available (server):
- * POST   /api/v1/orders         -> create order
- * GET    /api/v1/orders         -> list user's orders (or all orders if admin)
- * GET    /api/v1/orders/:id     -> order detail
- * PUT    /api/v1/orders/:id/cancel -> cancel order
- */
-
-const BASE = "/api/v1/orders";
+/** BASE URL */
+const ORDER_BASE = "/api/v1/orders";
+const COUPON_BASE = "/api/v1/coupons";
 
 /** helper: kiểm tra payload có File/FileList/Blob hay không */
 const payloadHasFile = (payload) => {
   if (!payload || typeof payload !== "object") return false;
+
   return Object.values(payload).some((v) => {
-    // Node environment may not have File, so check duck-typing
     if (!v) return false;
+
     const isFile =
       (typeof File !== "undefined" && v instanceof File) ||
       (typeof Blob !== "undefined" && v instanceof Blob) ||
-      (typeof v === "object" && (v instanceof FileList || v.constructor.name === "FileList"));
-    // also arrays of files
-    const isArrayOfFiles = Array.isArray(v) && v.some((x) =>
-      (typeof File !== "undefined" && x instanceof File) ||
-      (typeof Blob !== "undefined" && x instanceof Blob)
-    );
+      (typeof v === "object" &&
+        (v instanceof FileList || v.constructor?.name === "FileList"));
+
+    const isArrayOfFiles =
+      Array.isArray(v) &&
+      v.some(
+        (x) =>
+          (typeof File !== "undefined" && x instanceof File) ||
+          (typeof Blob !== "undefined" && x instanceof Blob)
+      );
+
     return isFile || isArrayOfFiles;
   });
 };
 
 export const orderService = {
-  /**
-   * POST /api/v1/orders
-   * payload: object chứa thông tin đơn hàng (items, shippingAddress, paymentMethod, v.v.)
-   * Nếu payload có file(s) -> gửi multipart/form-data
-   * token (optional): Bearer token nếu muốn override header (thường không cần nếu apiClient đã set sẵn)
-   */
+  /* ===================================
+   *            ORDER SERVICE
+   * =================================== */
   createOrder: (payload, token) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -46,25 +42,31 @@ export const orderService = {
       Object.keys(payload).forEach((key) => {
         const value = payload[key];
         if (value === undefined || value === null) return;
-        // Nếu là mảng -> append từng phần tử (phục vụ items hoặc file list)
+
         if (Array.isArray(value)) {
           value.forEach((v) => {
-            // nếu là object (non-file) -> stringify
-            if (typeof v === "object" && !(v instanceof File) && !(v instanceof Blob)) {
+            if (
+              typeof v === "object" &&
+              !(v instanceof File) &&
+              !(v instanceof Blob)
+            ) {
               formData.append(`${key}[]`, JSON.stringify(v));
             } else {
               formData.append(`${key}[]`, v);
             }
           });
-        } else if (typeof value === "object" && !(value instanceof File) && !(value instanceof Blob)) {
-          // object (không phải file) -> stringify
+        } else if (
+          typeof value === "object" &&
+          !(value instanceof File) &&
+          !(value instanceof Blob)
+        ) {
           formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, value);
         }
       });
 
-      return apiClient.post(BASE, formData, {
+      return apiClient.post(ORDER_BASE, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           ...headers,
@@ -72,8 +74,7 @@ export const orderService = {
       });
     }
 
-    // Không có file -> gửi JSON bình thường
-    return apiClient.post(BASE, payload, {
+    return apiClient.post(ORDER_BASE, payload, {
       headers: {
         "Content-Type": "application/json",
         ...headers,
@@ -81,39 +82,56 @@ export const orderService = {
     });
   },
 
-  /**
-   * GET /api/v1/orders
-   * params: object cho query (page, limit, status, fromDate, toDate,...)
-   * token (optional)
-   */
   listOrders: (params = {}, token) => {
     const config = { params };
     if (token) config.headers = { Authorization: `Bearer ${token}` };
-    return apiClient.get(BASE, config);
+    return apiClient.get(ORDER_BASE, config);
   },
 
-  /**
-   * GET /api/v1/orders/:id
-   * id: order id
-   * token (optional)
-   */
   getOrderDetail: (id, token) => {
-    const config = {};
-    if (token) config.headers = { Authorization: `Bearer ${token}` };
-    return apiClient.get(`${BASE}/${id}`, config);
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    return apiClient.get(`${ORDER_BASE}/${id}`, config);
   },
 
-  /**
-   * PUT /api/v1/orders/:id/cancel
-   * id: order id
-   * body (optional): { reason: '...', ... }
-   * token (optional)
-   */
   cancelOrder: (id, body = {}, token) => {
-    const config = {};
-    if (token) config.headers = { Authorization: `Bearer ${token}` };
-    // Một số backend có thể mong PUT với body JSON
-    return apiClient.put(`${BASE}/${id}/cancel`, body, config);
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    return apiClient.put(`${ORDER_BASE}/${id}/cancel`, body, config);
+  },
+
+  /* ===================================
+   *            COUPON SERVICE
+   * =================================== */
+  coupon: {
+    validate: (body, token) => {
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      return apiClient.post(`${COUPON_BASE}/validate`, body, config);
+    },
+
+    create: (body, token) => {
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      return apiClient.post(COUPON_BASE, body, config);
+    },
+
+    list: (params = {}, token) => {
+      const config = { params };
+      if (token) config.headers = { Authorization: `Bearer ${token}` };
+      return apiClient.get(COUPON_BASE, config);
+    },
+
+    remove: (id, token) => {
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+      return apiClient.delete(`${COUPON_BASE}/${id}`, config);
+    },
   },
 };
 
