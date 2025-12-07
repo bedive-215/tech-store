@@ -32,7 +32,7 @@ INSERT INTO users (id, full_name, email, password_hash, role, created_at, update
 ('550e8400-e29b-41d4-a716-446655440013', 'Trương Thị Mai', 'truong.thi.mai@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-05 14:00:00', '2024-02-05 14:00:00'),
 ('550e8400-e29b-41d4-a716-446655440014', 'Lý Văn Nam', 'ly.van.nam@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-08 09:45:00', '2024-02-08 09:45:00'),
 ('550e8400-e29b-41d4-a716-446655440015', 'Phan Thị Oanh', 'phan.thi.oanh@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-10 16:30:00', '2024-02-10 16:30:00');
-
+UPDATE users SET email_verified = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440001';
 -- ===================================
 -- 2. SEED REVIEWS TABLE
 -- ===================================
