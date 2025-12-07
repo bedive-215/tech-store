@@ -95,12 +95,12 @@ export default function Header() {
         className="py-4 shadow-lg relative"
         style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}
       >
-        <div className="max-w-[1280px] mx-auto flex items-center gap-5 px-4">
+        <div className="max-w-[1280px] mx-auto flex items-center gap-4 px-4">
 
           {/* LOGO */}
           <div className="flex items-center">
             <div 
-            onClick={() => navigate("/user/home")}
+              onClick={() => navigate("/user/home")}
               className="cursor-pointer text-white font-bold text-2xl tracking-wide px-3 py-1 rounded"
               style={{ background: "rgba(255,255,255,.1)", border: "2px solid rgba(255,255,255,.3)" }}
             >
@@ -110,22 +110,22 @@ export default function Header() {
 
           {/* DANH MỤC */}
           <div className="relative">
-          <button
+            <button
               onClick={() => {
                 setShowCategories(!showCategories);
                 setShowLocations(false);
                 setSelectedCategory(null);
               }}
-            className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            Danh mục
+              className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Danh mục
               <svg className={`h-4 w-4 transition-transform ${showCategories ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
-          </button>
+            </button>
 
             {/* DROPDOWN DANH MỤC */}
             {showCategories && (
@@ -248,13 +248,15 @@ export default function Header() {
             )}
           </div>
 
-          {/* SEARCH BAR */}
-          <div className="flex-1 relative flex items-center">
+          {/* SEARCH BAR (slightly smaller) */}
+          <div className="flex-1 min-w-[220px] relative flex items-center">
             <input
               type="text"
               placeholder="Bạn muốn mua gì hôm nay?"
-              className="w-full h-11 pl-4 pr-12 bg-white rounded-full text-sm text-gray-700 shadow-md border border-gray-200"
+              className="w-full h-10 pl-4 pr-40 bg-white rounded-full text-sm text-gray-700 shadow-md border border-gray-200"
             />
+
+        
 
             <button className="absolute right-4 top-1/2 -translate-y-1/2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2">
@@ -264,30 +266,38 @@ export default function Header() {
             </button>
           </div>
 
-          {/* CART */}
+          {/* ĐƠN HÀNG CỦA TÔI (nhỏ, có border nhẹ) */}
           <button
-            onClick={() => navigate("/user/cart")}
-            className="flex items-center gap-2 text-white font-medium px-4 py-2 rounded-lg hover:bg-white/20 transition"
+            onClick={() => navigate("/user/orders")}
+            className="text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition border border-white/20"
+            style={{ background: "transparent" }}
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="20" cy="21" r="1" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-            </svg>
+            Đơn hàng của tôi
           </button>
 
-          {/* USER ICON */}
-         {/* ĐĂNG NHẬP → icon và điều hướng sang trang Profile */}
+    {/* CART */}
 <button
-  onClick={() => navigate("/user/profile")}
-  className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md"
-  style={{ color: "#F97316" }}
+  onClick={() => navigate("/user/cart")}
+  className="flex items-center justify-center text-white font-medium px-3 py-2 rounded-lg hover:bg-white/20 transition border border-white/10"
 >
-  <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+  <svg className="h-5 w-5 mx-auto" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="9" cy="21" r="1" />
+    <circle cx="20" cy="21" r="1" />
+    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
   </svg>
 </button>
+
+          {/* USER ICON */}
+          <button
+            onClick={() => navigate("/user/profile")}
+            className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md"
+            style={{ color: "#F97316" }}
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+            </svg>
+          </button>
 
         </div>
       </div>
