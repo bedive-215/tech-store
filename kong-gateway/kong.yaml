@@ -44,10 +44,10 @@ services:
     - localhost
     - auth-service
     https_redirect_status_code: 426
-    name: review-routes
+    name: wishlist-routes
     path_handling: v0
     paths:
-    - /api/v1/reviews
+    - /api/v1/wishlist
     preserve_host: false
     protocols:
     - http
@@ -56,14 +56,24 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: cart-service
+  name: cart-service
+  port: 6000
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
   - hosts:
+    - cart-service
     - localhost
-    - auth-service
     https_redirect_status_code: 426
-    name: wishlist-routes
+    name: cart-routes
     path_handling: v0
     paths:
-    - /api/v1/wishlist
+    - /api/v1/carts
     preserve_host: false
     protocols:
     - http
