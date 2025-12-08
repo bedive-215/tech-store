@@ -218,13 +218,54 @@ services:
     networks:
       - kong-net
 
+  # cart-database
+  cart-database:
+    image: mysql:8.0
+    container_name: cart-database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cart_service
+    ports:
+      - "3309:3306"
+    volumes:
+      - cart-data:/var/lib/mysql
+      - ../../database/schemas/cart_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seeds/seed_cart_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    command: >
+      mysqld
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --init-connect='SET NAMES utf8mb4;'
+      --skip-character-set-client-handshake
+    networks:
+      - kong-net
+
+  # cart-service
+  cart-service:
+    build:
+      context: ../../backend/cart-service
+      dockerfile: Dockerfile
+    image: cart-service:v1.0.0
+    container_name: cart-service
+    depends_on:
+      - cart-database
+    ports:
+      - "6000:6000"
+    environment:
+      DATABASE_URL: "mysql://root:root@cart-database:3306/cart_service"
+    env_file:
+      - ../../backend/cart-service/.env
+    networks:
+      - kong-net
+
 volumes:
   auth-data:
-  auth-service:
   kong-data:
   order-data:
   product-data:
   rabbitmq-data:
+  cart-data:
 
 networks:
   kong-net:
