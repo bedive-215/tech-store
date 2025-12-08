@@ -66,7 +66,7 @@ class RabbitMQ {
                     callback(content, msg.fields.routingKey);
                 }
             },
-            { noAck: true }
+            { noAck: false }
         );
     }
 }

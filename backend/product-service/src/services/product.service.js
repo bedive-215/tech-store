@@ -121,12 +121,6 @@ class ProductService {
 
         if (!product) throw new AppError("Product not found", 404);
 
-        // Tính average rating chuẩn
-        // const reviews = product.reviews || [];
-        // const averageRating = reviews.length
-        //     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        //     : 0;
-
         return {
             product_id: product.id,
             name: product.name,
@@ -136,8 +130,6 @@ class ProductService {
             brand: product.Brand,
             category: product.Category,
             media: product.media,
-            // reviews: product.reviews,
-            // average_rating: Number(averageRating.toFixed(1))
         };
     }
 
@@ -191,6 +183,8 @@ class ProductService {
 
         await product.destroy();
 
+        await this.RabbitMQ.publish('delete_product', { product_id });
+
         return {
             status: "deleted",
             product_id
@@ -227,6 +221,19 @@ class ProductService {
             brand_id: brand_id ?? product.brand_id,
             category_id: category_id ?? product.category_id
         });
+
+        // Day su kien thay doi vao cart service
+        if (stock !== undefined) {
+            await this.RabbitMQ.publish('change_stock', { product_id, stock });
+        }
+
+        if (price !== undefined) {
+            await this.RabbitMQ.publish('change_price', { product_id, price });
+        }
+
+        if (name !== undefined) {
+            await this.RabbitMQ.publish('change_name', { product_id, name });
+        }
 
         return {
             message: "Product updated successfully",
