@@ -1,6 +1,6 @@
 // src/components/common/Sidebar/index.jsx
 import React from "react";
-import { Home, Users, CreditCard, Box, Tag, Package } from "lucide-react"; 
+import { Home, Users, CreditCard, Box, Tag, Package, Flame } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTERS } from "@/utils/constants";
 
@@ -24,18 +24,23 @@ export default function Sidebar({ active = true, mode = "admin" }) {
       icon: <CreditCard size={20} />,
       path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS,
     },
-
-    // 👉 THÊM MỤC QUẢN LÝ SẢN PHẨM
     {
       label: "Sản phẩm",
       icon: <Package size={20} />,
       path: ROUTERS.ADMIN.PRODUCTS,
     },
 
+    // ⭐⭐⭐ THÊM FLASH SALE Ở ĐÂY
+    {
+      label: "Flash Sale",
+      icon: <Flame size={20} />,
+      path: ROUTERS.ADMIN.FLASH_SALES,
+    },
+
     {
       label: "Đơn hàng",
       icon: <Box size={20} />,
-      path: "/admin/orders",
+      path: ROUTERS.ADMIN.ORDERS,
     },
     {
       label: "Mã giảm giá",
@@ -50,7 +55,6 @@ export default function Sidebar({ active = true, mode = "admin" }) {
         active ? "w-64" : "w-20"
       }`}
     >
-      {/* LOGO */}
       <div
         className={`flex items-center justify-center h-16 border-b ${
           active ? "px-4" : "px-0"
@@ -66,7 +70,6 @@ export default function Sidebar({ active = true, mode = "admin" }) {
         {!active && <span className="text-orange-500 font-bold text-xl">A</span>}
       </div>
 
-      {/* MENU */}
       <nav className="flex-1 mt-4">
         {menuItems.map((item, idx) => {
           const isActive = location.pathname === item.path;
@@ -87,7 +90,6 @@ export default function Sidebar({ active = true, mode = "admin" }) {
         })}
       </nav>
 
-      {/* FOOTER */}
       <div className="px-4 py-4 border-t mt-auto">
         <button className="flex items-center gap-3 w-full px-4 py-3 transition-colors duration-200 rounded-lg text-gray-700 hover:bg-gray-100">
           <Users size={20} />
