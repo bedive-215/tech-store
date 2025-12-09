@@ -14,4 +14,14 @@ router.get('/:id', OrderController.detail);
 // Cancel order
 router.put('/:id/cancel', OrderController.cancel);
 
+// --- NEW ---
+// Get all orders (admin)
+router.get('/admin/all', OrderController.listAll);
+
+// Set order status => shipping
+router.put('/:id/ship', OrderController.setShipping);
+
+// Set order status => completed
+router.put('/:id/complete', OrderController.setCompleted);
+
 module.exports = router;
