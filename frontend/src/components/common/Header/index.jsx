@@ -1,76 +1,286 @@
-import React, { useState } from "react";
+// src/components/Header.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import categoryService from "@/services/categoryService";
+import brandService from "@/services/brandService";
 
-export default function Header() {
+/**
+ * Header (improved visuals, fixed repeated requests)
+ * - Không fetch brands trên hover để tránh request liên tục
+ * - Hover chỉ thay đổi UI bằng `hoveredCategory`
+ * - Fetch brands chỉ khi người dùng click chọn danh mục
+ * - Thêm chọn price range, search text, sort -> build query và navigate
+ */
+export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const navigate = useNavigate();
 
   const [showCategories, setShowCategories] = useState(false);
   const [showLocations, setShowLocations] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState(null); // chỉ cho UI
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState(null);
 
-  const categories = [
-    { 
-      id: 1, 
-      name: "Điện thoại, Tablet",
-      subcategories: [
-        { name: "Apple", logo: true },
-        { name: "Samsung", logo: true },
-        { name: "Xiaomi", logo: true },
-        { name: "OPPO", logo: true },
-        { name: "TECNO", logo: true },
-        { name: "HONOR", logo: true },
-        { name: "ZTE | nubia", logo: true },
-        { name: "SONY", logo: true },
-        { name: "NOKIA", logo: true },
-        { name: "Infinix", logo: true },
-        { name: "NOTHING", logo: true },
-        { name: "Masstel", logo: true },
-        { name: "realme", logo: true },
-        { name: "itel", logo: true },
-        { name: "vivo", logo: true },
-        { name: "Điện thoại phổ thông" },
-      ]
-    },
-    { id: 2, name: "Laptop", subcategories: [] },
-    { id: 3, name: "Âm thanh, Mic thu âm", subcategories: [] },
-    { id: 4, name: "Đồng hồ, Camera", subcategories: [] },
-    { id: 5, name: "Đồ gia dụng, Làm đẹp", subcategories: [] },
-    { id: 6, name: "Phụ kiện", subcategories: [] },
-    { id: 7, name: "PC, Màn hình, Máy in", subcategories: [] },
-    { id: 8, name: "Tivi, Điện máy", subcategories: [] },
-    { id: 9, name: "Thu cũ đổi mới", subcategories: [] },
-    { id: 10, name: "Hàng cũ", subcategories: [] },
-    { id: 11, name: "Khuyến mãi", subcategories: [] },
-    { id: 12, name: "Tin công nghệ", subcategories: [] },
-  ];
+  // thêm: search, price range, sort
+  const [searchText, setSearchText] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [sort, setSort] = useState(""); // e.g. price_asc, price_desc, newest
+
+  const categoriesRef = useRef(null);
+  const locationsRef = useRef(null);
+  const headerRef = useRef(null);
 
   const locations = [
     { id: 1, name: "Hồ Chí Minh", districts: "50+ cửa hàng" },
     { id: 2, name: "Hà Nội", districts: "40+ cửa hàng" },
     { id: 3, name: "Đà Nẵng", districts: "15+ cửa hàng" },
-    { id: 4, name: "Cần Thơ", districts: "10+ cửa hàng" },
-    { id: 5, name: "Biên Hòa", districts: "8+ cửa hàng" },
-    { id: 6, name: "Nha Trang", districts: "6+ cửa hàng" },
-    { id: 7, name: "Hải Phòng", districts: "12+ cửa hàng" },
-    { id: 8, name: "Vũng Tàu", districts: "5+ cửa hàng" },
   ];
 
   const miniMessages = [
     "📱 Thu cũ giá ngon - Lên đời tiết kiệm",
     "📦 Sản phẩm Chính hãng - Xuất VAT đầy đủ",
     "🚚 Giao nhanh - Miễn phí cho đơn 300k",
-    "🔄 Đổi trả trong 7 ngày - Bảo hành chính hãng",
-    "🏬 200+ cửa hàng trên toàn quốc"
   ];
 
-  return (
-    <header className="w-full sticky top-0 z-[999] font-sans">
+  // improved icon mapping: nhiều từ khoá hơn, fallback neutral icon
+  const CategoryIcon = ({ keyName }) => {
+    const k = (keyName || "").toLowerCase();
+    const match = (arr) => arr.some((s) => k.includes(s));
 
-      {/* ========== TOP MINI BAR ========== */}
-      <div
-        className="w-full text-white text-xs py-2"
-        style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}
-      >
+    if (match(["phone", "điện thoại", "mobile", "smartphone"])) {
+      return (
+        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="7" y="2" width="10" height="20" rx="2" />
+          <circle cx="12" cy="18" r="0.6" />
+        </svg>
+      );
+    }
+    if (match(["laptop", "máy tính", "notebook", "pc"])) {
+      return (
+        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="3" y="4" width="18" height="12" rx="1" />
+          <path d="M2 20h20" />
+        </svg>
+      );
+    }
+    if (match(["watch", "đồng hồ", "đeo tay"])) {
+      return (
+        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="6" />
+          <path d="M12 8v5l3 2" />
+        </svg>
+      );
+    }
+    if (match(["accessory", "phụ kiện", "case", "cáp", "tai nghe", "sạc"])) {
+      return (
+        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M3 6h18v12H3z" />
+          <path d="M3 12h18" />
+        </svg>
+      );
+    }
+    if (match(["tv", "tivi", "màn hình", "monitor"])) {
+      return (
+        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="2" y="5" width="20" height="12" rx="1" />
+          <path d="M8 21h8" />
+        </svg>
+      );
+    }
+    // fallback
+    return (
+      <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6" />
+        <path d="M17 3l4 4" />
+      </svg>
+    );
+  };
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
+        setShowCategories(false);
+        // không reset filter state khi click outside, chỉ đóng UI
+        setHoveredCategory(null);
+      }
+      if (locationsRef.current && !locationsRef.current.contains(e.target)) {
+        setShowLocations(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // load categories once when dropdown opened the first time
+  useEffect(() => {
+    if (!showCategories) return;
+    if (categories.length > 0) return;
+    (async () => {
+      try {
+        setLoadingCategories(true);
+        const res = await categoryService.getCategories();
+        const data = res.data;
+        if (Array.isArray(data)) setCategories(data);
+        else if (data.rows) setCategories(data.rows);
+        else setCategories(data?.categories ?? []);
+      } catch (err) {
+        console.error("fetch categories error", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    })();
+  }, [showCategories, categories.length]);
+
+  // NOTE: fetchBrands is now only called when user clicks a category to "select" it.
+  const fetchBrands = async (category) => {
+    if (!category) return setBrands([]);
+    try {
+      setLoadingBrands(true);
+      const res = await brandService.getBrands({ category_id: category.id });
+      const data = res.data;
+      if (Array.isArray(data)) setBrands(data);
+      else if (data.rows) setBrands(data.rows);
+      else setBrands(data?.brands ?? []);
+    } catch (err) {
+      console.error("fetch brands error", err);
+      setBrands([]);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  // build query string and navigate
+  const buildAndNavigate = (overrides = {}) => {
+    // overrides can include category, brand, searchText, minPrice, maxPrice, sort, page, limit
+    const category = overrides.category ?? selectedCategory;
+    const brand = overrides.brand ?? selectedBrand;
+    const search = overrides.searchText ?? searchText;
+    const min = overrides.minPrice ?? minPrice;
+    const max = overrides.maxPrice ?? maxPrice;
+    const st = overrides.sort ?? sort;
+    const page = overrides.page ?? 1;
+    const limit = overrides.limit ?? 20;
+
+    const params = new URLSearchParams();
+    params.set("page", page);
+    params.set("limit", limit);
+    if (search && String(search).trim() !== "") params.set("search", String(search).trim());
+    if (category) {
+      // ưu tiên slug nếu có, else dùng id hoặc name (slug giống ví dụ: charging)
+      const catVal = category.slug ?? category.code ?? category.name ?? category.id;
+      params.set("category", String(catVal));
+    }
+    if (brand) {
+      const brandVal = brand.slug ?? brand.code ?? brand.name ?? brand.id;
+      params.set("brand", String(brandVal));
+    }
+    // giá chỉ set khi là số
+    const minNum = String(min).replace(/[^\d]/g, "");
+    const maxNum = String(max).replace(/[^\d]/g, "");
+    if (minNum !== "") params.set("min_price", minNum);
+    if (maxNum !== "") params.set("max_price", maxNum);
+    if (st) params.set("sort", st);
+
+    const qs = params.toString();
+    navigate(`/user/home?${qs}`);
+    onFilter({
+      page,
+      limit,
+      search: search && String(search).trim(),
+      category: category ? (category.slug ?? category.name ?? category.id) : null,
+      brand: brand ? (brand.slug ?? brand.name ?? brand.id) : null,
+      min_price: minNum || null,
+      max_price: maxNum || null,
+      sort: st || null,
+    });
+  };
+
+  const handleSelectBrand = (brand) => {
+    setSelectedBrand(brand);
+    // apply ngay khi chọn brand (theo yêu cầu: chọn xong -> tạo query)
+    buildAndNavigate({ brand, page: 1 });
+    setShowCategories(false);
+  };
+
+  const handleSelectCategoryOnly = async (category) => {
+    // chọn danh mục sẽ fetch brand 1 lần
+    setSelectedCategory(category);
+    setSelectedBrand(null);
+    setHoveredCategory(null);
+    await fetchBrands(category);
+    // áp dụng filter theo category ngay
+    buildAndNavigate({ category, brand: null, page: 1 });
+    // giữ dropdown mở để user chọn brand nếu muốn (nếu muốn tự động đóng -> uncomment)
+    // setShowCategories(false);
+  };
+
+  // UI component cho ảnh brand
+  const BrandImage = ({ b, size = 84 }) => {
+    const src = b?.logo || b?.image || b?.thumbnail || null;
+    const FALLBACK = "/default-product.png";
+
+    const handleImgError = (e) => {
+      try {
+        if (!e?.currentTarget) return;
+        const cur = e.currentTarget;
+        if (cur.dataset.fallback === "true") {
+          cur.onerror = null;
+          return;
+        }
+        cur.onerror = null;
+        cur.dataset.fallback = "true";
+        cur.src = FALLBACK;
+      } catch (err) {
+        if (e?.currentTarget) e.currentTarget.onerror = null;
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-center w-full">
+        {src ? (
+          <img
+            src={src}
+            alt={b?.name || "brand"}
+            loading="lazy"
+            className={`block object-contain rounded-md shadow-sm bg-white`}
+            style={{ width: size, height: size }}
+            onError={handleImgError}
+          />
+        ) : (
+          <div
+            className="flex items-center justify-center rounded-md bg-gray-100"
+            style={{ width: size, height: size }}
+          >
+            <span className="text-xs text-gray-600">
+              {b?.name?.slice(0, 2)?.toUpperCase()}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // reset filters button
+  const resetFilters = () => {
+    setSelectedCategory(null);
+    setSelectedBrand(null);
+    setMinPrice("");
+    setMaxPrice("");
+    setSort("");
+    setSearchText("");
+    // navigate đến home với page=1&limit=20 (không filter)
+    navigate(`/user/home?page=1&limit=20`);
+    onFilter({}); // thông báo callback nếu cần
+    setShowCategories(false);
+  };
+
+  return (
+    <header ref={headerRef} className="w-full sticky top-0 z-[999] font-sans">
+      <div className="w-full text-white text-xs py-2" style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}>
         <div className="max-w-[1280px] mx-auto px-4">
           <div className="relative overflow-hidden">
             <div className="marquee-track flex items-center">
@@ -79,10 +289,9 @@ export default function Header() {
                   <span key={i} className="mx-6">{m}</span>
                 ))}
               </div>
-
               <div className="marquee-group flex items-center whitespace-nowrap">
                 {miniMessages.map((m, i) => (
-                  <span key={"dup-" + i} className="mx-6">{m}</span>
+                  <span key={'dup-'+i} className="mx-6">{m}</span>
                 ))}
               </div>
             </div>
@@ -90,33 +299,20 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ========== MAIN HEADER ========== */}
-      <div
-        className="py-4 shadow-lg relative"
-        style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}
-      >
+      <div className="py-4 shadow relative" style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}>
         <div className="max-w-[1280px] mx-auto flex items-center gap-4 px-4">
 
-          {/* LOGO */}
           <div className="flex items-center">
-            <div 
-              onClick={() => navigate("/user/home")}
-              className="cursor-pointer text-white font-bold text-2xl tracking-wide px-3 py-1 rounded"
-              style={{ background: "rgba(255,255,255,.1)", border: "2px solid rgba(255,255,255,.3)" }}
-            >
+            <div onClick={() => navigate("/user/home")} className="cursor-pointer text-white font-extrabold text-2xl tracking-wide px-3 py-1 rounded-lg shadow-sm" style={{ background: "rgba(255,255,255,.08)", border: "2px solid rgba(255,255,255,.18)" }}>
               Store
             </div>
           </div>
 
-          {/* DANH MỤC */}
-          <div className="relative">
+          <div className="relative" ref={categoriesRef}>
             <button
-              onClick={() => {
-                setShowCategories(!showCategories);
-                setShowLocations(false);
-                setSelectedCategory(null);
-              }}
-              className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30"
+              aria-expanded={showCategories}
+              onClick={() => { setShowCategories(prev => !prev); setShowLocations(false); setSelectedCategory(null); setSelectedBrand(null); setHoveredCategory(null); setBrands([]); }}
+              className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30 transition-all"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 6h16M4 12h16M4 18h16" />
@@ -127,116 +323,159 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* DROPDOWN DANH MỤC */}
             {showCategories && (
-              <div className="absolute top-full mt-2 left-0 flex shadow-2xl rounded-lg overflow-hidden">
+              <>
+                <div className="fixed inset-0 z-40 bg-black/20" onClick={() => { setShowCategories(false); setHoveredCategory(null); setBrands([]); }} />
 
-                {/* MENU CHÍNH */}
-                <div className="bg-white" style={{ width: 280, borderRight: "1px solid #E5E7EB" }}>
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onMouseEnter={() => setSelectedCategory(category)}
-                      className={`w-full px-4 py-3 flex items-center justify-between text-left transition ${
-                        selectedCategory?.id === category.id ? "bg-red-50" : "hover:bg-gray-50"
-                      }`}
-                      style={{
-                        borderLeft: selectedCategory?.id === category.id ? "3px solid #F97316" : "3px solid transparent"
-                      }}
-                    >
-                      <div className="flex items-center gap-3 text-gray-800">
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="7" height="7" />
-                          <rect x="14" y="3" width="7" height="7" />
-                          <rect x="14" y="14" width="7" height="7" />
-                          <rect x="3" y="14" width="7" height="7" />
-                        </svg>
-                        <span className="text-sm font-medium">{category.name}</span>
-                      </div>
-
-                      {category.subcategories.length > 0 && (
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 6l6 6-6 6" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* SUB MENU */}
-                {selectedCategory && selectedCategory.subcategories.length > 0 && (
-                  <div className="bg-white" style={{ width: 620, maxHeight: 500, overflowY: "auto" }}>
-                    <div className="p-6">
-                      <h3 className="text-base font-bold mb-4">{selectedCategory.name}</h3>
-
-                      <div className="grid grid-cols-3 gap-3">
-                        {selectedCategory.subcategories.map((sub, i) => (
+                <div className="absolute top-full mt-2 left-0 flex shadow-2xl rounded-lg overflow-hidden z-50" style={{ minWidth: 920 }}>
+                  <div className="bg-white" style={{ width: 320, borderRight: "1px solid #E5E7EB" }}>
+                    {loadingCategories ? (
+                      <div className="p-4">Loading...</div>
+                    ) : categories.length === 0 ? (
+                      <div className="p-4 text-sm text-gray-500">Chưa có danh mục</div>
+                    ) : (
+                      categories.map((category) => {
+                        const isSelected = selectedCategory?.id === category.id;
+                        const isHovered = hoveredCategory?.id === category.id;
+                        return (
                           <button
-                            key={i}
-                            className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition text-sm text-left"
+                            key={category.id}
+                            onMouseEnter={() => setHoveredCategory(category)}
+                            onMouseLeave={() => setHoveredCategory(prev => prev?.id === category.id ? null : prev)}
+                            onClick={() => handleSelectCategoryOnly(category)}
+                            className={`w-full px-4 py-3 flex items-center gap-3 text-left transition ${isSelected ? "bg-orange-50" : isHovered ? "bg-gray-50" : "hover:bg-gray-50"}`}
+                            style={{ borderLeft: isSelected ? "4px solid #F97316" : "4px solid transparent" }}
+                            aria-pressed={isSelected}
                           >
-                            {sub.name}
+                            <div className="flex items-center gap-3 text-gray-800">
+                              <div className="flex items-center justify-center w-8 h-8 bg-orange-50 rounded-md">
+                                <CategoryIcon keyName={category.slug || category.name} />
+                              </div>
+                              <span className="text-sm font-medium truncate">{category.name}</span>
+                            </div>
+                            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M9 6l6 6-6 6" />
+                            </svg>
                           </button>
-                        ))}
-                      </div>
+                        );
+                      })
+                    )}
+                  </div>
 
-                      {/* MỨC GIÁ ĐIỆN THOẠI */}
-                      {selectedCategory.id === 1 && (
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                          <h4 className="font-bold text-sm mb-3">Mức giá điện thoại</h4>
-                          <div className="grid grid-cols-3 gap-3">
-                            {[
-                              "Dưới 2 triệu", "Từ 2 - 4 triệu", "Từ 4 - 7 triệu",
-                              "Từ 7 - 13 triệu", "Từ 13 - 20 triệu", "Trên 20 triệu"
-                            ].map((p) => (
-                              <button key={p} className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition text-sm">
-                                {p}
-                              </button>
-                            ))}
+                  <div className="bg-white p-6" style={{ width: 600, maxHeight: 520, overflowY: "auto" }}>
+                    {/* Nếu có selectedCategory -> show brands (được fetch khi click) */}
+                    {!selectedCategory ? (
+                      <div className="text-sm text-gray-500">Di chuột lên danh mục để xem tên, click để load thương hiệu</div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-base font-bold text-gray-800">{selectedCategory.name}</h3>
+                          <div>
+                            <button onClick={() => { setSelectedCategory(null); setBrands([]); }} className="text-xs text-gray-500 hover:underline">Bỏ chọn</button>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
-              </div>
+                        <div className="mb-4">
+                          {loadingBrands ? (
+                            <div>Loading brands...</div>
+                          ) : brands.length === 0 ? (
+                            <div className="text-sm text-gray-500">Không tìm thấy thương hiệu cho danh mục này</div>
+                          ) : (
+                            <div className="grid grid-cols-4 gap-4">
+                              {brands.map((b) => {
+                                const isActive = selectedBrand?.id === b.id;
+                                return (
+                                  <button
+                                    key={b.id}
+                                    onClick={() => handleSelectBrand(b)}
+                                    className={`flex flex-col items-center p-4 rounded-lg border transition transform ${isActive ? "ring-2 ring-orange-300 scale-105 bg-orange-50" : "hover:scale-105 hover:shadow-lg"}`}
+                                    title={b.name}
+                                  >
+                                    <BrandImage b={b} size={84} />
+                                    <div className="text-sm text-center text-gray-700 truncate mt-2 w-full">{b.name}</div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Price filter + sort + apply */}
+                        <div className="mt-4">
+                          <h4 className="font-semibold text-sm mb-2">Lọc theo giá</h4>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={minPrice}
+                              onChange={(e) => setMinPrice(e.target.value.replace(/[^\d]/g, ""))}
+                              placeholder="Từ (₫)"
+                              className="px-3 py-2 border rounded w-1/2 text-sm"
+                            />
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={maxPrice}
+                              onChange={(e) => setMaxPrice(e.target.value.replace(/[^\d]/g, ""))}
+                              placeholder="Đến (₫)"
+                              className="px-3 py-2 border rounded w-1/2 text-sm"
+                            />
+                          </div>
+
+                          <div className="mt-3">
+                            <label className="text-sm font-medium">Sắp xếp</label>
+                            <div className="flex items-center gap-2 mt-2">
+                              <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-3 py-2 border rounded text-sm">
+                                <option value="">Mặc định</option>
+                                <option value="price_asc">Giá: Thấp → Cao</option>
+                                <option value="price_desc">Giá: Cao → Thấp</option>
+                                <option value="newest">Mới nhất</option>
+                              </select>
+                              <div className="ml-auto flex items-center gap-2">
+                                <button onClick={() => buildAndNavigate({ page: 1 })} className="px-3 py-2 bg-orange-500 text-white rounded text-sm">Áp dụng</button>
+                                <button onClick={resetFilters} className="px-3 py-2 border rounded text-sm">Đặt lại</button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 p-3 bg-gray-50 rounded">
+                            <div className="text-xs text-gray-600">Hiển thị: {selectedCategory ? selectedCategory.name : "Tất cả danh mục"} {selectedBrand ? ` • ${selectedBrand.name}` : ""} {minPrice || maxPrice ? ` • Giá ${minPrice ? formatPrice(minPrice) : "0"} - ${maxPrice ? formatPrice(maxPrice) : "∞"}` : ""}</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <h4 className="font-bold text-sm mb-3">Mẹo</h4>
+                          <p className="text-sm text-gray-600">Chọn thương hiệu hoặc đặt khoảng giá để lọc sản phẩm trong danh mục này — trang sẽ chuyển sang trang Home với query tương ứng.</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
-          {/* VỊ TRÍ */}
-          <div className="relative">
-            <button 
-              onClick={() => setShowLocations(!showLocations)}
-              className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30"
-            >
+          <div className="relative" ref={locationsRef}>
+            <button onClick={() => { setShowLocations(prev => !prev); setShowCategories(false); }} className="flex items-center gap-2 bg-white/20 px-4 py-2.5 rounded-lg text-white text-sm hover:bg-white/30 border border-white/30 transition-all">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
                 <circle cx="12" cy="9" r="2" />
               </svg>
               Hồ Chí Minh
-
-              <svg
-                className={`h-4 w-4 transition-transform ${showLocations ? "rotate-180" : ""}`}
-                fill="none" stroke="currentColor" strokeWidth="2"
-              >
+              <svg className={`h-4 w-4 transition-transform ${showLocations ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
 
             {showLocations && (
-              <div className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-2xl overflow-hidden w-72">
+              <div className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-2xl overflow-hidden w-72 z-50">
                 <div className="py-2">
                   {locations.map((location) => (
-                    <button
-                      key={location.id}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
-                    >
+                    <button key={location.id} className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left transition">
                       <svg className="h-5 w-5" fill="none" stroke="#F97316" strokeWidth="2">
                         <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
                         <circle cx="12" cy="9" r="2" />
                       </svg>
-
                       <div>
                         <div className="text-sm font-medium">{location.name}</div>
                         <div className="text-xs text-gray-500">{location.districts}</div>
@@ -248,17 +487,22 @@ export default function Header() {
             )}
           </div>
 
-          {/* SEARCH BAR (slightly smaller) */}
           <div className="flex-1 min-w-[220px] relative flex items-center">
             <input
               type="text"
               placeholder="Bạn muốn mua gì hôm nay?"
               className="w-full h-10 pl-4 pr-40 bg-white rounded-full text-sm text-gray-700 shadow-md border border-gray-200"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") buildAndNavigate({ searchText, page: 1 });
+              }}
             />
-
-        
-
-            <button className="absolute right-4 top-1/2 -translate-y-1/2">
+            <button
+              className="absolute right-4 top-1/2 -translate-y-1/2"
+              onClick={() => buildAndNavigate({ page: 1 })}
+              aria-label="Tìm"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
@@ -266,33 +510,19 @@ export default function Header() {
             </button>
           </div>
 
-          {/* ĐƠN HÀNG CỦA TÔI (nhỏ, có border nhẹ) */}
-          <button
-            onClick={() => navigate("/user/orders")}
-            className="text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition border border-white/20"
-            style={{ background: "transparent" }}
-          >
+          <button onClick={() => navigate("/user/orders")} className="text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition border border-white/20" style={{ background: "transparent" }}>
             Đơn hàng của tôi
           </button>
 
-    {/* CART */}
-<button
-  onClick={() => navigate("/user/cart")}
-  className="flex items-center justify-center text-white font-medium px-3 py-2 rounded-lg hover:bg-white/20 transition border border-white/10"
->
-  <svg className="h-5 w-5 mx-auto" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="9" cy="21" r="1" />
-    <circle cx="20" cy="21" r="1" />
-    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-  </svg>
-</button>
+          <button onClick={() => navigate("/user/cart")} className="flex items-center justify-center text-white font-medium px-3 py-2 rounded-lg hover:bg-white/20 transition border border-white/10">
+            <svg className="h-5 w-5 mx-auto" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+            </svg>
+          </button>
 
-          {/* USER ICON */}
-          <button
-            onClick={() => navigate("/user/profile")}
-            className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md"
-            style={{ color: "#F97316" }}
-          >
+          <button onClick={() => navigate("/user/profile")} className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md" style={{ color: "#F97316" }}>
             <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" />
               <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
@@ -302,28 +532,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* CLICK OUTSIDE TO CLOSE */}
-      {showLocations && (
-        <div
-          className="fixed inset-0 z-[1]"
-          onClick={() => setShowLocations(false)}
-        />
-      )}
-
-      {/* CSS MARQUEE */}
-      <style>{`
-        .marquee-track {
-          height: 28px;
-          align-items: center;
-          animation: marquee 18s linear infinite;
-        }
-        .marquee-track:hover { animation-play-state: paused; }
-        .marquee-group { display: inline-flex; flex-shrink: 0; }
-        @keyframes marquee {
-          from { transform: translateX(0%); }
-          to { transform: translateX(-50%); }
-        }
-      `}</style>
+      <style>{`\n        .marquee-track { height: 28px; align-items: center; animation: marquee 18s linear infinite; }\n        .marquee-track:hover { animation-play-state: paused; }\n        .marquee-group { display: inline-flex; flex-shrink: 0; }\n        @keyframes marquee { from { transform: translateX(0%); } to { transform: translateX(-50%); } }\n      `}</style>
     </header>
   );
+}
+
+// helper outside component để format hiển thị
+function formatPrice(num) {
+  if (!num) return "";
+  const n = String(num).replace(/[^\d]/g, "");
+  if (n === "") return "";
+  return n.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
