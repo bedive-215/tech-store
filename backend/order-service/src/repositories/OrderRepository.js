@@ -3,75 +3,156 @@ const pool = require('../config/db');
 const OrderRepository = {
   async create(conn, order) {
     const c = conn || pool;
+
+    console.log("=== DEBUG ORDER CREATE ===");
+    console.log("ORDER ID:", order.id);
+    console.log("ORDER ID LENGTH:", order.id?.length);
+    console.log("ORDER OBJ:", order);
+
     const sql = `
       INSERT INTO orders 
-      (id, user_id, status, total_price, discount_amount, created_at, updated_at, shipping_address, cancelled_at, cancel_reason)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, user_id, status, total_price, discount_amount, final_price, created_at, updated_at, shipping_address, cancelled_at, cancel_reason)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
     const params = [
       order.id,
       order.user_id,
       order.status || 'pending',
       order.total_price,
       order.discount_amount || 0.0,
+      order.final_price,
       order.created_at || new Date(),
       order.updated_at || new Date(),
       order.shipping_address || null,
       order.cancelled_at || null,
       order.cancel_reason || null
     ];
-    await c.execute(sql, params);
+
+    console.log("SQL:", sql);
+    console.log("PARAMS:", params.map(v => (typeof v === 'string' ? `${v} (len=${v.length})` : v)));
+
+    try {
+      await c.execute(sql, params);
+      console.log("=== ORDER CREATED SUCCESSFULLY ===");
+    } catch (err) {
+      console.error("🔥 SQL ERROR (create):", err.message);
+      throw err;
+    }
+
     return order;
   },
 
   async findById(orderId) {
     if (!orderId) return null;
-    const [rows] = await pool.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
-    return rows[0] || null;
+    try {
+      console.log('>> findById called with:', orderId);
+      const [rows] = await pool.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+      console.log('>> findById result rows:', rows.length);
+      return rows[0] || null;
+    } catch (err) {
+      console.error('🔥 SQL ERROR (findById):', err.message, 'orderId:', orderId);
+      throw err;
+    }
   },
 
-  async findByUser(userId, { page = 1, limit = 10, status } = {}) {
-    if (!userId) return { rows: [], total: 0 };
+  async findAll({ page = null, limit = null } = {}) {
+    try {
+      let sql;
+      let params = [];
 
-    const limitNum = Number(limit) || 10;
-    const pageNum = Number(page) || 1;
-    const offsetNum = (pageNum - 1) * limitNum;
+      if (page != null && limit != null) {
+        const limitNum = Math.max(1, Number(limit) || 10);
+        const pageNum = Math.max(1, Number(page) || 1);
+        const offsetNum = (pageNum - 1) * limitNum;
+        sql = `SELECT * FROM orders ORDER BY created_at DESC LIMIT ?, ?`;
+        params = [offsetNum, limitNum];
+      } else if (limit != null) {
+        const limitNum = Math.max(1, Number(limit) || 100);
+        sql = `SELECT * FROM orders ORDER BY created_at DESC LIMIT ?`;
+        params = [limitNum];
+      } else {
+        // trả tất cả (cẩn thận nếu bảng lớn)
+        sql = `SELECT * FROM orders ORDER BY created_at DESC`;
+        params = [];
+      }
 
-    let where = 'WHERE user_id = ?';
-    const params = [userId];
+      const [rows] = await pool.execute(sql, params);
 
-    if (status) {
-      where += ' AND status = ?';
-      params.push(status);
+      // total count: nếu có phân trang thì tính COUNT toàn bộ, nếu không, total = rows.length
+      let total;
+      if (page != null && limit != null) {
+        const [countRows] = await pool.execute(`SELECT COUNT(*) AS total FROM orders`);
+        total = countRows[0]?.total || 0;
+      } else {
+        total = rows.length;
+      }
+
+      return { rows, total };
+    } catch (err) {
+      console.error('🔥 SQL ERROR (findAll):', err.message);
+      throw err;
     }
+  },
 
-    // Inline LIMIT để tránh lỗi MySQL2
-    const sql = `SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT ${offsetNum}, ${limitNum}`;
+ async findByUser(userId, { page = 1, limit = 10, status } = {}) {
+  if (!userId) return { rows: [], total: 0 };
+
+  const limitNum = Number(limit) || 10;
+  const pageNum = Number(page) || 1;
+  const offsetNum = (pageNum - 1) * limitNum;
+
+  let where = 'WHERE user_id = ?';
+  const params = [userId];
+
+  if (status) {
+    where += ' AND status = ?';
+    params.push(status);
+  }
+
+  const sql = `SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT ${offsetNum}, ${limitNum}`;
+  console.log('DEBUG findByUser SQL:', sql);
+  console.log('DEBUG findByUser PARAMS:', params);
+
+  try {
     const [rows] = await pool.execute(sql, params);
-
-    // COUNT tổng số
     const countSql = `SELECT COUNT(*) AS total FROM orders ${where}`;
+    console.log('DEBUG countSql:', countSql);
+    console.log('DEBUG countSql PARAMS:', params);
     const [countRows] = await pool.execute(countSql, params);
     const total = countRows[0]?.total || 0;
-
     return { rows, total };
-  },
+  } catch (err) {
+    console.error('🔥 SQL EXEC ERROR in findByUser:', err);
+    throw err;
+  }
+},
 
   async updateStatus(connOrPool, orderId, status, extraFields = {}) {
     const conn = connOrPool || pool;
-    const sets = ['status = ?', 'updated_at = ?'];
-    const params = [status, new Date()];
+    try {
+      const sets = ['status = ?', 'updated_at = ?'];
+      const params = [status, new Date()];
 
-    for (const k of Object.keys(extraFields)) {
-      sets.push(`${k} = ?`);
-      params.push(extraFields[k]);
+      for (const k of Object.keys(extraFields)) {
+        sets.push(`${k} = ?`);
+        params.push(extraFields[k]);
+      }
+
+      params.push(orderId);
+      const sql = `UPDATE orders SET ${sets.join(', ')} WHERE id = ?`;
+      const [result] = await conn.execute(sql, params);
+
+      // optional: check affectedRows
+      if (result && result.affectedRows === 0) {
+        return null; // not found
+      }
+
+      return this.findById(orderId);
+    } catch (err) {
+      console.error('🔥 SQL ERROR (updateStatus):', err.message, 'orderId:', orderId, 'status:', status);
+      throw err;
     }
-
-    params.push(orderId);
-    const sql = `UPDATE orders SET ${sets.join(', ')} WHERE id = ?`;
-    await conn.execute(sql, params);
-
-    return this.findById(orderId);
   }
 };
 
