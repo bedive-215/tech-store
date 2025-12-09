@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS orders (
     status ENUM('pending','paid','shipping','completed','cancelled') NOT NULL DEFAULT 'pending',
     total_price DECIMAL(15,2) NOT NULL,
     discount_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        final_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     shipping_address TEXT,
     cancelled_at DATETIME,
     cancel_reason TEXT,
