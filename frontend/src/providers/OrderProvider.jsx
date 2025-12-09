@@ -77,7 +77,7 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Lấy danh sách đơn hàng
+  // Lấy danh sách đơn hàng của user
   const fetchOrders = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
@@ -99,6 +99,37 @@ export const OrderProvider = ({ children }) => {
       return { data: normalizedList, meta: raw.meta ?? null };
     } catch (err) {
       const msg = err.response?.data?.message || "Lấy danh sách đơn thất bại";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // --- NEW: Lấy tất cả orders (admin) ---
+  // params: { page, limit, ... }, token optional if your API needs auth
+  const fetchAllOrders = useCallback(async (params = {}, token = null) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.listAllOrders(params, token);
+
+      const raw = res.data?.data ?? res.data ?? {};
+      const serverList =
+        raw.orders ??
+        raw.items ??
+        raw.data ??
+        (Array.isArray(res.data) ? res.data : []);
+
+      const normalizedList = Array.isArray(serverList)
+        ? serverList.map(normalizeOrder)
+        : [];
+
+      setOrders(normalizedList);
+      return { data: normalizedList, meta: raw.meta ?? raw.total ?? null };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Lấy tất cả đơn thất bại";
       toast.error(msg);
       setError(msg);
       throw err;
@@ -152,6 +183,76 @@ export const OrderProvider = ({ children }) => {
       return normalized;
     } catch (err) {
       const msg = err.response?.data?.message || "Huỷ đơn thất bại";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- NEW: Đặt order => shipping (admin)
+  // body optional (ví dụ { tracking_number }), token optional
+  const shipOrder = async (orderId, body = {}, token = null) => {
+    const ok = window.confirm("Bạn muốn chuyển trạng thái đơn này sang 'shipping'?");
+    if (!ok) return false;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.setOrderShipping(orderId, body, token);
+      const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
+      const normalized = normalizeOrder(serverOrder);
+
+      // Cập nhật list orders
+      setOrders((prev) =>
+        prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
+      );
+
+      // Cập nhật currentOrder nếu trùng
+      if (currentOrder?.order_id === normalized.order_id) {
+        setCurrentOrder(normalized);
+      }
+
+      toast.success("Đã chuyển trạng thái sang 'shipping'");
+      return normalized;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Cập nhật trạng thái failed";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- NEW: Đặt order => completed (admin)
+  // body optional, token optional
+  const completeOrder = async (orderId, body = {}, token = null) => {
+    const ok = window.confirm("Bạn muốn đặt trạng thái đơn này là 'completed'?");
+    if (!ok) return false;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.setOrderCompleted(orderId, body, token);
+      const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
+      const normalized = normalizeOrder(serverOrder);
+
+      // Cập nhật list orders
+      setOrders((prev) =>
+        prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
+      );
+
+      // Cập nhật currentOrder nếu trùng
+      if (currentOrder?.order_id === normalized.order_id) {
+        setCurrentOrder(normalized);
+      }
+
+      toast.success("Đã đặt trạng thái 'completed'");
+      return normalized;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Cập nhật trạng thái failed";
       toast.error(msg);
       setError(msg);
       throw err;
@@ -254,6 +355,11 @@ export const OrderProvider = ({ children }) => {
     fetchOrders,
     fetchOrderDetail,
     cancelOrder,
+    // NEW methods
+    fetchAllOrders,
+    shipOrder,
+    completeOrder,
+    // helpers
     clearError,
     clearOrders,
 
