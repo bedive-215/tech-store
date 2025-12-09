@@ -21,6 +21,9 @@ import OrdersAdmin from "@/pages/admin/Orders";
 // ⭐ Thêm trang quản lý sản phẩm admin
 import ProductManagementAdmin from "@/pages/admin/ProductManagement";
 
+// ⭐⭐ NEW — Flash Sale admin pages
+import FlashSaleAdminPage from "@/pages/admin/FlashSalePage";
+
 // User pages
 import Home from "@/pages/user/Home";
 import Cart from "@/pages/user/Cart";
@@ -36,7 +39,7 @@ import Product from "@/pages/user/Product";
 import CustomerInfo from "@/pages/user/CustomerInfo";
 
 // ===== NEW: user orders pages =====
-import Orders from "@/pages/user/Orders";               // /user/orders   // /user/orders/:id
+import Orders from "@/pages/user/Orders"; // /user/orders
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -65,7 +68,8 @@ const routeConfig = [
 
   // ===== user orders routes =====
   { path: ROUTERS.USER.ORDERS, element: Orders, layout: UserLayout },
-  // ADMIN
+
+  // ADMIN pages
   { path: ROUTERS.ADMIN.DASHBOARD, element: DashboardAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS, element: SubscriptionPlansAdmin, layout: AdminLayout },
   { path: ROUTERS.ADMIN.USER_MANAGEMENT, element: UserManagementAdmin, layout: AdminLayout },
@@ -74,6 +78,9 @@ const routeConfig = [
 
   // ⭐ Trang quản lý sản phẩm admin
   { path: ROUTERS.ADMIN.PRODUCTS, element: ProductManagementAdmin, layout: AdminLayout },
+
+  // ⭐⭐ Trang quản lý Flash Sale admin
+  { path: ROUTERS.ADMIN.FLASH_SALES, element: FlashSaleAdminPage, layout: AdminLayout },
 
   // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },

@@ -1,5 +1,6 @@
+// src/pages/user/Home.jsx
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -12,6 +13,7 @@ import { useProduct } from "@/providers/ProductProvider";
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     products,
@@ -22,8 +24,44 @@ export default function Home() {
 
   useEffect(() => {
     AOS.init({ duration: 900, once: true });
-    fetchProducts();
-  }, [fetchProducts]);
+  }, []);
+
+  // parse URL query into params object and call fetchProducts
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+
+    // build params object expected by your API/provider
+    const params = {};
+
+    // page & limit (defaults)
+    const page = searchParams.get("page") ?? "1";
+    const limit = searchParams.get("limit") ?? "20";
+    params.page = Number(page);
+    params.limit = Number(limit);
+
+    // other optional params
+    const search = searchParams.get("search");
+    if (search) params.search = search;
+
+    const category = searchParams.get("category");
+    if (category) params.category = category;
+
+    const brand = searchParams.get("brand");
+    if (brand) params.brand = brand;
+
+    const min_price = searchParams.get("min_price");
+    if (min_price) params.min_price = Number(min_price);
+
+    const max_price = searchParams.get("max_price");
+    if (max_price) params.max_price = Number(max_price);
+
+    const sort = searchParams.get("sort");
+    if (sort) params.sort = sort;
+
+    // gọi fetchProducts với params object
+    // (giả sử fetchProducts chấp nhận object param; nếu provider của bạn khác hãy map tương ứng)
+    fetchProducts(params);
+  }, [location.search, fetchProducts]);
 
   // helper: lấy id ưu tiên product_id -> id -> _id
   const getProductId = (p) => p?.product_id ?? p?.id ?? p?._id ?? null;
@@ -33,36 +71,26 @@ export default function Home() {
     const FALLBACK = "/default-product.png"; // đặt file fallback trong public/
     if (!img) return FALLBACK;
 
-    // nếu backend trả mảng
     if (Array.isArray(img) && img.length > 0) {
       img = img[0];
     }
 
-    // nếu là object có url property
     if (typeof img === "object" && img !== null) {
       img = img.url ?? img.path ?? null;
     }
 
     if (typeof img !== "string") return FALLBACK;
 
-    // nếu chuỗi chứa nhiều url (vd: "url1http...url2" hoặc cách nhau bằng space/comma)
-    // -> tách bằng space/comma hoặc "http" boundary
-    // tìm tất cả http(s) occurrences
     const matches = img.match(/https?:\/\/[^\s,;"]+/g);
     if (matches && matches.length > 0) return matches[0];
 
-    // nếu không có http nhưng có kí tự '//' (protocol relative)
     const protoRel = img.match(/\/\/[^\s,;"]+/);
     if (protoRel) return `${window.location.protocol}${protoRel[0]}`;
 
-    // nếu là đường dẫn relative (vd: /uploads/...)
     if (img.startsWith("/")) {
-      // Nếu API host khác, bạn có thể thêm base url: process.env.REACT_APP_API_URL
-      // return `${process.env.REACT_APP_API_URL ?? ""}${img}`;
       return img;
     }
 
-    // nếu đến đây thì trả chuỗi nguyên trạng (có thể là full url)
     return img;
   };
 
@@ -130,7 +158,6 @@ export default function Home() {
                   const productId = getProductId(p);
                   const key = productId ?? `product-${index}`;
 
-                  // chuẩn hoá ảnh trước khi pass vào ProductCard
                   const imageUrl = normalizeImage(p?.image);
 
                   return (

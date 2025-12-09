@@ -23,6 +23,7 @@ export const ROUTERS = {
     USER_MANAGEMENT: "/admin/users",
     DISCOUNTS: "/admin/discounts",
     ORDERS: "/admin/orders",
+    FLASH_SALES: "/admin/flash-sales",
 
     // ⭐ Thêm mới: trang quản lý sản phẩm
     PRODUCTS: "/admin/products",

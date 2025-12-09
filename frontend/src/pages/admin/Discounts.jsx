@@ -100,28 +100,37 @@ const handleDelete = async (coupon_id) => {
 
 
 
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Quản lý mã giảm giá</h1>
+ return (
+  <div className="p-6 space-y-6">
+    <h1 className="text-3xl font-bold mb-4">Quản lý mã giảm giá</h1>
 
-      {/* Form tạo mới */}
-      <div className="mb-6 bg-white p-6 rounded-xl shadow-md">
-        <h2 className="font-semibold mb-4">Thêm mã giảm giá mới</h2>
+    {/* FORM TẠO MÃ GIẢM GIÁ */}
+    <div className="bg-white p-6 rounded-xl shadow-md border">
+      <h2 className="text-xl font-semibold mb-4 text-orange-600">
+        Thêm mã giảm giá mới
+      </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Code */}
+        {/* CODE */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Mã giảm giá</label>
           <input
             type="text"
-            placeholder="Mã giảm giá (vd: SUMMER2024)"
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.code}
             onChange={(e) =>
-              setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })
+              setNewCoupon({
+                ...newCoupon,
+                code: e.target.value.toUpperCase(),
+              })
             }
           />
+        </div>
 
-          {/* Type */}
+        {/* TYPE */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Loại giảm giá</label>
           <select
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.discount_type}
@@ -129,17 +138,20 @@ const handleDelete = async (coupon_id) => {
               setNewCoupon({ ...newCoupon, discount_type: e.target.value })
             }
           >
-            <option value="percent">Giảm %</option>
-            <option value="amount">Giảm tiền mặt</option>
+            <option value="percent">Giảm theo %</option>
+            <option value="amount">Giảm số tiền</option>
           </select>
+        </div>
 
-          {/* Value */}
+        {/* VALUE */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Giá trị giảm</label>
           <input
             type="number"
             placeholder={
               newCoupon.discount_type === "percent"
-                ? "Giá trị % (vd: 10)"
-                : "Giá trị tiền (vd: 100000)"
+                ? "VD: 10 (%)"
+                : "VD: 100000 (đ)"
             }
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.discount_value}
@@ -150,11 +162,14 @@ const handleDelete = async (coupon_id) => {
               })
             }
           />
+        </div>
 
-          {/* Max Discount */}
+        {/* MAX DISCOUNT */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Giảm tối đa</label>
           <input
             type="number"
-            placeholder="Giảm tối đa (vd: 100000)"
+            placeholder="VD: 100000"
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.max_discount}
             onChange={(e) =>
@@ -164,11 +179,14 @@ const handleDelete = async (coupon_id) => {
               })
             }
           />
+        </div>
 
-          {/* Minimum Order */}
+        {/* MIN ORDER */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Giá trị đơn hàng tối thiểu</label>
           <input
             type="number"
-            placeholder="Giá trị đơn hàng tối thiểu"
+            placeholder="VD: 200000"
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.min_order}
             onChange={(e) =>
@@ -178,11 +196,14 @@ const handleDelete = async (coupon_id) => {
               })
             }
           />
+        </div>
 
-          {/* Usage Limit */}
+        {/* USAGE LIMIT */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Giới hạn lượt sử dụng</label>
           <input
             type="number"
-            placeholder="Giới hạn lượt sử dụng"
+            placeholder="VD: 50 lượt"
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.usage_limit}
             onChange={(e) =>
@@ -192,102 +213,109 @@ const handleDelete = async (coupon_id) => {
               })
             }
           />
+        </div>
 
-          {/* Expired At */}
+        {/* EXPIRED AT */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">Ngày hết hạn</label>
           <input
             type="datetime-local"
             className="px-4 py-2 border rounded-lg"
             value={newCoupon.expires_at}
             onChange={(e) =>
-              setNewCoupon({ ...newCoupon, expires_at: e.target.value })
+              setNewCoupon({
+                ...newCoupon,
+                expires_at: e.target.value,
+              })
             }
           />
         </div>
-
-        <button
-          onClick={handleAdd}
-          className="mt-4 flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
-        >
-          <Plus size={18} /> Thêm mã giảm giá
-        </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white p-6 rounded-xl shadow-md overflow-x-auto">
-        {loadingList ? (
-          <p>Đang tải...</p>
-        ) : (
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="px-4 py-2 text-left">Code</th>
-                <th className="px-4 py-2 text-left">Loại</th>
-                <th className="px-4 py-2 text-left">Giá trị</th>
-                <th className="px-4 py-2 text-left">Max giảm</th>
-                <th className="px-4 py-2 text-left">Đơn tối thiểu</th>
-                <th className="px-4 py-2 text-left">Giới hạn</th>
-                <th className="px-4 py-2 text-left">Hết hạn</th>
-                <th className="px-4 py-2 text-left">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coupons.map((c, index) => (
-  <tr 
-    key={c.id || c.code || index} 
-    className="border-b hover:bg-gray-50 transition"
-  >
-
-                  <td className="px-4 py-2">{c.code}</td>
-
-                  <td className="px-4 py-2">
-                    {c.discount_type === "percent"
-                      ? "Giảm %"
-                      : "Giảm tiền mặt"}
-                  </td>
-
-                  <td className="px-4 py-2">
-                    {c.discount_type === "percent"
-                      ? `${c.discount_value}%`
-                      : c.discount_value.toLocaleString()}
-                  </td>
-
-                  <td className="px-4 py-2">
-                    {c.max_discount?.toLocaleString()}đ
-                  </td>
-
-                  <td className="px-4 py-2">
-                    {c.min_order?.toLocaleString()}đ
-                  </td>
-
-                  <td className="px-4 py-2">{c.usage_limit}</td>
-
-                  <td className="px-4 py-2">
-                    {c.expires_at?.split("T")[0]}
-                  </td>
-
-                  <td className="px-4 py-2">
-                    <button
-                      className="text-red-500 hover:text-red-700 flex items-center gap-1"
-                      onClick={() => handleDelete(c.id || c.coupon_id)}
-
-                    >
-                      <Trash2 size={16} /> Xóa
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {coupons.length === 0 && (
-                <tr>
-                  <td colSpan="8" className="text-center py-4 text-gray-500">
-                    Không có mã giảm giá nào
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <button
+        onClick={handleAdd}
+        className="mt-5 flex items-center gap-2 bg-orange-500 text-white px-5 py-2 rounded-lg hover:bg-orange-600 transition"
+      >
+        <Plus size={18} /> Thêm mã giảm giá
+      </button>
     </div>
-  );
+
+    {/* DANH SÁCH COUPON */}
+    <div className="bg-white p-6 rounded-xl shadow-md border overflow-x-auto">
+      <h2 className="text-xl font-semibold mb-4 text-orange-600">Danh sách mã giảm giá</h2>
+
+      {loadingList ? (
+        <p>Đang tải...</p>
+      ) : (
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b bg-gray-100 text-gray-700">
+              <th className="px-4 py-3 text-left">Mã</th>
+              <th className="px-4 py-3 text-left">Loại</th>
+              <th className="px-4 py-3 text-left">Giá trị</th>
+              <th className="px-4 py-3 text-left">Giảm tối đa</th>
+              <th className="px-4 py-3 text-left">Đơn tối thiểu</th>
+              <th className="px-4 py-3 text-left">Giới hạn</th>
+              <th className="px-4 py-3 text-left">Hết hạn</th>
+              <th className="px-4 py-3 text-left">Hành động</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {coupons.map((c, index) => (
+              <tr
+                key={c.id || c.code || index}
+                className="border-b hover:bg-gray-50 transition"
+              >
+                <td className="px-4 py-3">{c.code}</td>
+
+                <td className="px-4 py-3">
+                  {c.discount_type === "percent" ? "Giảm %" : "Giảm tiền"}
+                </td>
+
+                <td className="px-4 py-3">
+                  {c.discount_type === "percent"
+                    ? `${c.discount_value}%`
+                    : c.discount_value.toLocaleString() + "đ"}
+                </td>
+
+                <td className="px-4 py-3">
+                  {c.max_discount?.toLocaleString()}đ
+                </td>
+
+                <td className="px-4 py-3">
+                  {c.min_order?.toLocaleString()}đ
+                </td>
+
+                <td className="px-4 py-3">{c.usage_limit}</td>
+
+                <td className="px-4 py-3">
+                  {c.expires_at?.split("T")[0]}
+                </td>
+
+                <td className="px-4 py-3">
+                  <button
+                    className="text-red-500 hover:text-red-700 flex items-center gap-1"
+                    onClick={() => handleDelete(c.id || c.coupon_id)}
+                  >
+                    <Trash2 size={16} /> Xóa
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {coupons.length === 0 && (
+              <tr>
+                <td colSpan="8" className="text-center py-4 text-gray-500">
+                  Không có mã giảm giá nào
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+);
+
 }

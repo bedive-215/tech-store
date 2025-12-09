@@ -50,16 +50,18 @@ const OrderService = {
     // Tạo order
     const orderId = `O-${uuidv4()}`;
     const now = new Date();
-    const order = {
-      id: orderId,
-      user_id: userId,
-      status: 'pending',
-      total_price: totalPrice,
-      discount_amount: discountAmount,
-      created_at: now,
-      updated_at: now,
-      shipping_address: shipping_address || null
-    };
+ const order = {
+  id: orderId,
+  user_id: userId,
+  status: 'pending',
+  total_price: totalPrice,
+  discount_amount: discountAmount,
+  final_price: finalPrice,   // ⭐ THÊM VÀO ĐÂY
+  created_at: now,
+  updated_at: now,
+  shipping_address: shipping_address || null
+};
+
     await OrderRepository.create(conn, order);
 
     // Tạo order items
@@ -134,62 +136,69 @@ async getOrderById(orderId) {
     };
   },
 
-  async listUserOrders(userId, { page = 1, limit = 10, status = null } = {}) {
-    const { rows, total } = await OrderRepository.findByUser(userId, { page, limit, status });
+async listUserOrders(userId, { page = 1, limit = 10, status = null } = {}) {
+  const { rows, total } = await OrderRepository.findByUser(userId, { page, limit, status });
 
-    const orders = await Promise.all(
-      rows.map(async r => {
-        // Lấy chi tiết từng đơn
-        const items = await OrderItemRepository.findByOrder(r.id);
-        const normalizedItems = items.map(it => ({
-          product_id: it.product_id,
-          product_name: it.product_name ?? null,
-          quantity: it.quantity,
-          price: it.price
-        }));
+  const orders = await Promise.all(
+    rows.map(async r => {
+      const items = await OrderItemRepository.findByOrder(r.id);
 
-        return {
-          order_id: r.id,
-          total_price: r.total_price,
-          status: r.status,
-          created_at: r.created_at,
-          shipping_address: r.shipping_address,
-          payment: r.payment ?? null,
-          items: normalizedItems
-        };
-      })
-    );
+      const normalizedItems = items.map(it => ({
+        product_id: it.product_id,
+        product_name: it.product_name ?? null,
+        quantity: it.quantity,
+        price: it.price
+      }));
 
-    return { orders, total };
-  },
+      return {
+        order_id: r.id,
+        total_price: r.total_price,
+        discount_amount: r.discount_amount ?? 0,
+        final_price: r.final_price ?? (r.total_price - r.discount_amount),  // ⭐ THÊM VÀO
+        status: r.status,
+        created_at: r.created_at,
+        shipping_address: r.shipping_address,
+        payment: r.payment ?? null,
+        items: normalizedItems
+      };
+    })
+  );
 
-  async getOrderDetail(orderId) {
-    const order = await OrderRepository.findById(orderId);
-    if (!order) return null;
+  return { orders, total };
+},
 
-    const items = await OrderItemRepository.findByOrder(orderId);
-    const payments = await PaymentRepository.findByOrder(orderId);
+ async getOrderDetail(orderId) {
+  const order = await OrderRepository.findById(orderId);
+  if (!order) return null;
 
-    return {
-      order_id: order.id,
-      items: items.map(i => ({
-        product_id: i.product_id,
-        product_name: i.product_name || null,
-        quantity: i.quantity,
-        price: i.price
-      })),
-      total_price: order.total_price,
-      status: order.status,
-      shipping_address: order.shipping_address,
-      payment: payments.length ? {
-        payment_id: payments[0].id,
-        method: payments[0].method,
-        status: payments[0].status,
-        transaction_id: payments[0].transaction_id,
-        paid_at: payments[0].created_at
-      } : null
-    };
-  },
+  const items = await OrderItemRepository.findByOrder(orderId);
+  const payments = await PaymentRepository.findByOrder(orderId);
+
+  return {
+    order_id: order.id,
+    items: items.map(i => ({
+      product_id: i.product_id,
+      product_name: i.product_name || null,
+      quantity: i.quantity,
+      price: i.price
+    })),
+    total_price: order.total_price,
+    discount_amount: order.discount_amount ?? 0,       // ⭐ THÊM VÀO
+    final_price: order.final_price ?? (order.total_price - order.discount_amount), // ⭐ THÊM VÀO
+    status: order.status,
+    shipping_address: order.shipping_address,
+    payment: payments.length
+      ? {
+          payment_id: payments[0].id,
+          method: payments[0].method,
+          status: payments[0].status,
+          transaction_id: payments[0].transaction_id,
+          paid_at: payments[0].created_at
+        }
+      : null
+  };
+},
+
 
   async cancelOrder(orderId, reason = null) {
     const extra = { 
@@ -203,7 +212,64 @@ async getOrderById(orderId) {
       status: order.status,
       cancelled_at: order.cancelled_at
     };
-  }
+  },
+  async listAllOrders({ page = null, limit = null } = {}) {
+    const { rows, total } = await OrderRepository.findAll({ page, limit });
+
+    const orders = await Promise.all(
+      rows.map(async r => {
+        const items = await OrderItemRepository.findByOrder(r.id);
+        const normalizedItems = items.map(it => ({
+          product_id: it.product_id,
+          product_name: it.product_name ?? null,
+          quantity: it.quantity,
+          price: it.price
+        }));
+
+        return {
+          order_id: r.id,
+          total_price: r.total_price,
+          discount_amount: r.discount_amount ?? 0,
+          final_price: r.final_price ?? (r.total_price - (r.discount_amount || 0)),
+          status: r.status,
+          created_at: r.created_at,
+          shipping_address: r.shipping_address,
+          payment: r.payment ?? null,
+          items: normalizedItems
+        };
+      })
+    );
+
+    return { orders, total };
+  },
+
+  // --- NEW: set order to shipping
+  async setOrderShipping(orderId) {
+    if (!orderId) throw new Error('order_id required');
+
+    const order = await OrderRepository.updateStatus(null, orderId, 'shipping');
+    if (!order) throw new Error('Order not found');
+
+    return {
+      order_id: order.id,
+      status: order.status,
+    };
+  },
+
+  // --- NEW: set order to completed
+  async setOrderCompleted(orderId) {
+    if (!orderId) throw new Error('order_id required');
+
+    const order = await OrderRepository.updateStatus(null, orderId, 'completed');
+    if (!order) throw new Error('Order not found');
+
+    return {
+      order_id: order.id,
+      status: order.status,
+      completed_at: order.completed_at
+    };
+  },
+
 };
 
 module.exports = OrderService;

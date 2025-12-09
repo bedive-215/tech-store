@@ -43,7 +43,7 @@ export default function Orders() {
 
   const getProgressIndex = (status) => {
     if (!status) return -1;
-    return PROGRESS_STEPS.indexOf(status);
+    return PROGRESS_STEPS.indexOf(String(status).toLowerCase());
   };
 
   // ======= Fetch product =======
@@ -65,13 +65,27 @@ export default function Orders() {
   // ======= Normalize order =======
   const normalizeOrder = (o) => {
     if (!o) return null;
+    const total_price_raw = o.total_price ?? o.total_amount ?? 0;
+    const discount_amount_raw = o.discount_amount ?? o.discount ?? 0;
+    const final_price_raw = o.final_price ?? o.final_amount ?? (Number(total_price_raw) - Number(discount_amount_raw));
+
+    const items = Array.isArray(o.items) ? o.items.map((it) => ({
+      product_id: it.product_id ?? it.productId ?? it.id ?? null,
+      product_name: it.product_name ?? it.product_name ?? it.name ?? null,
+      quantity: Number(it.quantity ?? it.qty ?? 1),
+      price: Number(it.price ?? it.unit_price ?? 0),
+      raw: it,
+    })) : [];
+
     return {
       order_id: o.order_id ?? o.id ?? o._id ?? null,
       status: o.status ?? "unknown",
-      total_price: o.total_price ?? o.total_amount ?? 0,
+      total_price: Number(total_price_raw ?? 0),
+      discount_amount: Number(discount_amount_raw ?? 0),
+      final_price: Number(final_price_raw ?? 0),
       created_at: o.created_at ?? o.createdAt ?? o.date ?? null,
-      items: o.items ?? [],
-      shipping_address: o.shipping_address ?? "",
+      items,
+      shipping_address: o.shipping_address ?? o.shippingAddress ?? "",
       payment: o.payment ?? {},
       raw: o,
     };
@@ -176,12 +190,12 @@ export default function Orders() {
 
   // ======= Filtered lists =======
   const activeOrders = useMemo(
-    () => orders.filter((o) => (o.status ?? "").toLowerCase() !== "cancelled"),
+    () => orders.filter((o) => (String(o.status ?? "").toLowerCase() !== "cancelled")),
     [orders]
   );
 
   const cancelledOrders = useMemo(
-    () => orders.filter((o) => (o.status ?? "").toLowerCase() === "cancelled"),
+    () => orders.filter((o) => (String(o.status ?? "").toLowerCase() === "cancelled")),
     [orders]
   );
 
@@ -191,7 +205,7 @@ export default function Orders() {
 
   // ======= Status color =======
   const getStatusColor = (status) => {
-    switch(status?.toLowerCase()) {
+    switch(String(status).toLowerCase()) {
       case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-300";
       case "paid": return "bg-blue-100 text-blue-800 border-blue-300";
       case "shipping": return "bg-purple-100 text-purple-800 border-purple-300";
@@ -207,6 +221,8 @@ export default function Orders() {
     const product = item.productInfo;
     const avatar = product?.media?.find((m) => m.is_primary)?.url ?? product?.media?.[0]?.url ?? null;
     const remainingItems = (order.items?.length ?? 1) - 1;
+
+    const hasDiscount = Number(order.discount_amount) > 0 && Number(order.total_price) > Number(order.final_price);
 
     return (
       <div
@@ -238,7 +254,7 @@ export default function Orders() {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3 className="font-bold text-gray-900 text-lg truncate group-hover:text-orange-600 transition-colors">
-                {product?.name ?? "Sản phẩm"}
+                {product?.name ?? item.product_name ?? "Sản phẩm"}
               </h3>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${getStatusColor(order.status)}`}>
                 {STATUS_LABEL[order.status] ?? order.status}
@@ -262,10 +278,17 @@ export default function Orders() {
 
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
               <div>
-                <div className="text-xs text-gray-500 mb-1">Tổng tiền</div>
+                <div className="text-xs text-gray-500 mb-1">Tổng</div>
                 <div className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                  {formatPrice(order.total_price)}
+                  {formatPrice(order.final_price)}
                 </div>
+
+                {hasDiscount && (
+                  <div className="text-sm text-gray-500 mt-1">
+                    <span className="line-through mr-2">{formatPrice(order.total_price)}</span>
+                    <span className="text-red-600 font-semibold">-{formatPrice(order.discount_amount)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -444,8 +467,8 @@ export default function Orders() {
                     </div>
                   </div>
                   <div className="bg-gradient-to-br from-orange-50 to-pink-50 rounded-xl p-4 border border-orange-200">
-                    <div className="text-sm text-gray-500 mb-1">Tổng tiền</div>
-                    <div className="text-lg font-bold text-orange-600">{formatPrice(currentOrder.total_price)}</div>
+                    <div className="text-sm text-gray-500 mb-1">Tổng cuối (Thanh toán)</div>
+                    <div className="text-lg font-bold text-orange-600">{formatPrice(currentOrder.final_price)}</div>
                   </div>
                 </div>
 
@@ -477,6 +500,7 @@ export default function Orders() {
                     {currentOrder.items.map((item, idx) => {
                       const p = item.productInfo;
                       const img = p?.media?.find((m) => m.is_primary)?.url ?? p?.media?.[0]?.url ?? null;
+                      const lineTotal = Number(item.quantity) * Number(item.price);
                       return (
                         <div key={idx} className="bg-white rounded-lg p-3 flex items-center gap-4 border">
                           {img ? (
@@ -485,13 +509,32 @@ export default function Orders() {
                             <div className="w-20 h-20 bg-gray-200 rounded-lg" />
                           )}
                           <div className="flex-1">
-                            <div className="font-semibold truncate">{p?.name ?? "Sản phẩm"}</div>
+                            <div className="font-semibold truncate">{p?.name ?? item.product_name ?? "Sản phẩm"}</div>
                             <div className="text-sm text-gray-500">SL: {item.quantity} × {formatPrice(item.price)}</div>
                           </div>
-                          <div className="font-bold text-orange-600">{formatPrice(item.quantity * (item.price ?? 0))}</div>
+                          <div className="font-bold text-orange-600">{formatPrice(lineTotal)}</div>
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-5 mb-6 border">
+                  <h3 className="text-lg font-semibold mb-3">Tóm tắt thanh toán</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tạm tính:</span>
+                      <span className="font-medium">{formatPrice(currentOrder.total_price)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Giảm giá:</span>
+                      <span className="font-medium text-red-600">-{formatPrice(currentOrder.discount_amount)}</span>
+                    </div>
+                    {/* If you have shipping/cod fee, show here. */}
+                    <div className="flex justify-between pt-2 border-t">
+                      <span className="text-gray-700 font-semibold">Thành tiền:</span>
+                      <span className="font-semibold text-orange-600">{formatPrice(currentOrder.final_price)}</span>
+                    </div>
                   </div>
                 </div>
 

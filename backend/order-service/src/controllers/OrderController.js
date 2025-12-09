@@ -17,7 +17,7 @@ const OrderController = {
     }
   },
 
-async list(req, res) {
+  async list(req, res) {
     try {
       const { user_id: userId, order_id: orderId, page, limit, status } = req.query;
 
@@ -64,6 +64,46 @@ async list(req, res) {
       const result = await OrderService.cancelOrder(orderId, reason);
       return res.json(result);
     } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  },
+
+  // --- NEW: listAll (admin)
+  async listAll(req, res) {
+    try {
+      // optional pagination support via query
+      const { page, limit } = req.query;
+      const result = await OrderService.listAllOrders({
+        page: page ? Number(page) : null,
+        limit: limit ? Number(limit) : null
+      });
+      return res.json(result);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // --- NEW: set shipping
+  async setShipping(req, res) {
+    try {
+      const orderId = req.params.id;
+      const result = await OrderService.setOrderShipping(orderId);
+      return res.json(result);
+    } catch (err) {
+      console.error(err);
+      return res.status(400).json({ error: err.message });
+    }
+  },
+
+  // --- NEW: set completed
+  async setCompleted(req, res) {
+    try {
+      const orderId = req.params.id;
+      const result = await OrderService.setOrderCompleted(orderId);
+      return res.json(result);
+    } catch (err) {
+      console.error(err);
       return res.status(400).json({ error: err.message });
     }
   }

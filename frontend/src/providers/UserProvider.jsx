@@ -21,52 +21,65 @@ const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Lấy thông tin cá nhân (GET /me)
-const fetchMyInfo = useCallback(async () => {
-  setLoading(true);
-  setError(null);
-
-  try {
-    const res = await userService.getUserInfo();
-
-    const serverUser = res.data?.user ?? res.data?.data ?? null;
-    if (!serverUser) {
-      throw new Error("Invalid user data from server");
+  // helper lấy token (tìm trong user trước, nếu không có thì localStorage)
+  const getToken = () => {
+    if (user && (user.token || user.access_token)) {
+      return user.token ?? user.access_token;
     }
+    return (
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("token") ||
+      null
+    );
+  };
 
-    const normalized = {
-      user_id: serverUser.user_id ?? serverUser.id ?? serverUser._id ?? null,
+  // Lấy thông tin cá nhân (GET /me)
+  const fetchMyInfo = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      // ⚡ GIỮ ĐÚNG TÊN GIỐNG UI
-      full_name: serverUser.full_name ?? serverUser.name ?? "",
-      email: serverUser.email ?? "",
-      phone_number: serverUser.phone_number ?? serverUser.phone ?? "",
-      date_of_birth: serverUser.date_of_birth ?? "",
+    try {
+      const res = await userService.getUserInfo();
 
-      avatar:
-        serverUser.avatar
-          ? serverUser.avatar.startsWith("http") || serverUser.avatar.startsWith("data:")
-            ? serverUser.avatar
-            : `${API_BASE_URL}${serverUser.avatar}`
-          : null,
+      const serverUser = res.data?.user ?? res.data?.data ?? null;
+      if (!serverUser) {
+        throw new Error("Invalid user data from server");
+      }
 
-      address: serverUser.address ?? "",
-      role: serverUser.role ?? null,
-    };
+      const normalized = {
+        user_id: serverUser.user_id ?? serverUser.id ?? serverUser._id ?? null,
 
-    setUser(normalized);
-    return normalized;
-  } catch (err) {
-    const msg = err.response?.data?.message || "Không thể tải thông tin người dùng";
-    setError(msg);
-    setUser(null);
-    toast.error(msg);
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-}, []);
+        // ⚡ GIỮ ĐÚNG TÊN GIỐNG UI
+        full_name: serverUser.full_name ?? serverUser.name ?? "",
+        email: serverUser.email ?? "",
+        phone_number: serverUser.phone_number ?? serverUser.phone ?? "",
+        date_of_birth: serverUser.date_of_birth ?? "",
 
+        avatar:
+          serverUser.avatar
+            ? serverUser.avatar.startsWith("http") ||
+              serverUser.avatar.startsWith("data:")
+              ? serverUser.avatar
+              : `${API_BASE_URL}${serverUser.avatar}`
+            : null,
+
+        address: serverUser.address ?? "",
+        role: serverUser.role ?? null,
+      };
+
+      setUser(normalized);
+      return normalized;
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Không thể tải thông tin người dùng";
+      setError(msg);
+      setUser(null);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Cập nhật thông tin cá nhân + avatar (PATCH /me)
   const updateMyInfo = async (payload) => {
@@ -74,10 +87,15 @@ const fetchMyInfo = useCallback(async () => {
     setError(null);
     try {
       const response = await userService.updateUserInfo(payload);
-      const updatedUser = response.data.data;
-      setUser(updatedUser);
+      const updatedUser = response.data.data ?? response.data?.user ?? response.data;
+      // Nếu server trả về object user, normalize cơ bản (giữ nguyên key UI)
+      const normalized = {
+        ...user,
+        ...updatedUser,
+      };
+      setUser(normalized);
       toast.success("Cập nhật thông tin thành công!");
-      return updatedUser;
+      return normalized;
     } catch (err) {
       const msg = err.response?.data?.message || "Cập nhật thất bại";
       setError(msg);
@@ -93,7 +111,7 @@ const fetchMyInfo = useCallback(async () => {
     setLoading(true);
     try {
       const response = await userService.getUserById(userId);
-      return response.data.data;
+      return response.data.data ?? response.data;
     } catch (err) {
       const msg = err.response?.data?.message || "Không tìm thấy người dùng";
       toast.error(msg);
@@ -107,6 +125,7 @@ const fetchMyInfo = useCallback(async () => {
   const fetchListUsers = async (params = {}) => {
     setLoading(true);
     try {
+      // note: nếu cần token, có thể lấy từ getToken() và sửa userService.getListOfUser
       const response = await userService.getListOfUser(params);
       return response.data;
     } catch (err) {
@@ -136,6 +155,71 @@ const fetchMyInfo = useCallback(async () => {
     }
   };
 
+  //
+  // --------------- Reviews related (mới thêm) ----------------
+  //
+
+  // GET /product/:product_id - Lấy reviews theo product
+  const fetchReviewsByProduct = async (productId, params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await userService.getReviewsByProduct(productId, params);
+      // server có thể trả data ở nhiều shape
+      return response.data.data ?? response.data ?? [];
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được đánh giá";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // POST / - Thêm review (yêu cầu auth)
+  // payload: { product_id, rating, comment, ... }
+  const addReview = async (payload, options = {}) => {
+    // options có thể chứa token nếu muốn override
+    setLoading(true);
+    setError(null);
+    try {
+      const token = options.token ?? getToken();
+      const response = await userService.addReview(payload, token);
+      const created = response.data.data ?? response.data;
+      toast.success("Đăng đánh giá thành công");
+      return created;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Đăng đánh giá thất bại";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // DELETE /:id - Xóa review của user (yêu cầu auth)
+  const deleteReview = async (reviewId, options = {}) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return false;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const token = options.token ?? getToken();
+      await userService.deleteUserReview(reviewId, token);
+      toast.success("Xóa đánh giá thành công");
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Xóa đánh giá thất bại";
+      setError(msg);
+      toast.error(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Reset lỗi
   const clearError = () => setError(null);
 
@@ -157,6 +241,11 @@ const fetchMyInfo = useCallback(async () => {
     removeUser,
     logout,
     setUser,
+
+    // Reviews
+    fetchReviewsByProduct,
+    addReview,
+    deleteReview,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

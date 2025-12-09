@@ -1,4 +1,3 @@
-// src/services/orderService.js
 import apiClient from "@/api/apiClient";
 
 /** BASE URL */
@@ -88,6 +87,14 @@ export const orderService = {
     return apiClient.get(ORDER_BASE, config);
   },
 
+  // --- NEW: Lấy tất cả orders (admin) ---
+  // params: optional pagination { page, limit } or other filters
+  listAllOrders: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ORDER_BASE}/admin/all`, config);
+  },
+
   getOrderDetail: (id, token) => {
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
@@ -100,6 +107,26 @@ export const orderService = {
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
     return apiClient.put(`${ORDER_BASE}/${id}/cancel`, body, config);
+  },
+
+  // --- NEW: Đặt status => shipping ---
+  // body is optional (e.g. { tracking_number: 'xxx' }), token required for admin
+  setOrderShipping: (id, body = {}, token) => {
+    if (!id) throw new Error("order id is required");
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    return apiClient.put(`${ORDER_BASE}/${id}/ship`, body, config);
+  },
+
+  // --- NEW: Đặt status => completed ---
+  // body is optional, token required for admin
+  setOrderCompleted: (id, body = {}, token) => {
+    if (!id) throw new Error("order id is required");
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    return apiClient.put(`${ORDER_BASE}/${id}/complete`, body, config);
   },
 
   /* ===================================
