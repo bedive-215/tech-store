@@ -6,12 +6,13 @@ class PaymentController {
         try {
             const { order_id, amount } = req.body;
             const user_id = req.user.id;
-            const data = await paymentService.createPayment(order_id, user_id, amount);
+            const {vnpayUrl, payment_id} = await paymentService.createPayment(order_id, user_id, amount);
 
             return res.status(200).json({
                 success: true,
                 message: "Payment created successfully",
-                data
+                vnpayUrl,
+                payment_id
             });
         } catch (error) {
             console.log('Payment Error:', error);
