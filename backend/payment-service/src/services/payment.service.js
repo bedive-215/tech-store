@@ -1,12 +1,15 @@
 import models from "../models/index.js";
 import { AppError } from '../middlewares/errorHandler.middleware.js';
+import RabbitMQ from "../configs/rabbitmq.config.js";
 import 'dotenv/config';
+
 import { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } from 'vnpay';
 
 class PaymentService {
 
     constructor() {
         this.Payment = models.Payment;
+        this.RabbitMQ = RabbitMQ;
     }
 
     generateTxnRef(orderId, useTimestamp = true) {

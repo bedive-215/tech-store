@@ -295,6 +295,52 @@ services:
       - ../../backend/cart-service/.env
     networks:
       - kong-net
+  
+  # Payment database
+  payment-database:
+    image: mysql:8.0
+    container_name: payment-database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payment_service
+    ports:
+      - "3305:3306"
+    volumes:
+      - payment-data:/var/lib/mysql
+      - ../../database/schemas/payment_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seeds/seed_payment_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    command: >
+      mysqld
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --init-connect='SET NAMES utf8mb4;'
+      --skip-character-set-client-handshake
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kong-net
+      
+  payment-service:
+    build:
+      context: ../../backend/payment-service
+      dockerfile: Dockerfile
+    image: payment-service:v1.0.0
+    container_name: payment-service
+    depends_on:
+      payment-database:
+        condition: service_healthy
+    ports:
+      - "4002:4002"
+    environment:
+      DATABASE_URL: "mysql://root:root@payment-database:3306/payment_service"
+    env_file:
+      - ../../backend/payment-service/.env
+    networks:
+      - kong-net
 
 volumes:
   auth-data:
@@ -303,6 +349,7 @@ volumes:
   product-data:
   rabbitmq-data:
   cart-data:
+  payment-data:
 
 networks:
   kong-net:
