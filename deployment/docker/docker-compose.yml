@@ -9,18 +9,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auth_service
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "3306:3306"
     volumes:
       - auth-data:/var/lib/mysql
       - ../../database/schemas/auth_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ../../database/seeds/seed_auth_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --init-connect='SET NAMES utf8mb4;'
       --skip-character-set-client-handshake
+      --default-time-zone='+07:00'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -57,18 +60,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: order_service
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "3307:3306"
     volumes:
       - order-data:/var/lib/mysql
       - ../../database/schemas/order_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ../../database/seeds/seed_order_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --init-connect='SET NAMES utf8mb4;'
       --skip-character-set-client-handshake
+      --default-time-zone='+07:00'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -210,18 +216,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: product_service
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "3308:3306"
     volumes:
       - product-data:/var/lib/mysql
       - ../../database/schemas/product_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ../../database/seeds/seed_product_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --init-connect='SET NAMES utf8mb4;'
       --skip-character-set-client-handshake
+      --default-time-zone='+07:00'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -257,18 +266,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: cart_service
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "3309:3306"
     volumes:
       - cart-data:/var/lib/mysql
       - ../../database/schemas/cart_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ../../database/seeds/seed_cart_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --init-connect='SET NAMES utf8mb4;'
       --skip-character-set-client-handshake
+      --default-time-zone='+07:00'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -304,18 +316,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: payment_service
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "3305:3306"
     volumes:
       - payment-data:/var/lib/mysql
       - ../../database/schemas/payment_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ../../database/seeds/seed_payment_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --init-connect='SET NAMES utf8mb4;'
       --skip-character-set-client-handshake
+      --default-time-zone='+07:00'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
