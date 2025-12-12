@@ -88,6 +88,10 @@ class PaymentService {
 
         const status = result.vnp_ResponseCode === "00" ? "success" : "failed";
 
+        if(status === 'success') {
+            await this.RabbitMQ.publish('payment_success', {order_id: payment.order_id});
+        }
+
         await payment.update({
             status,
             transaction_id: result.vnp_TransactionNo,

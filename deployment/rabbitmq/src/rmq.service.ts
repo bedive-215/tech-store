@@ -40,7 +40,7 @@ export class RabbitMQService implements OnModuleInit {
     const bindings = [
       { queue: RMQ_QUEUES.WISHLIST, key: RMQ_ROUTING_KEYS.WISHLIST },
       { queue: RMQ_QUEUES.PRODUCT, key: RMQ_ROUTING_KEYS.PRODUCT },
-
+      { queue: RMQ_QUEUES.ORDER, key: RMQ_ROUTING_KEYS.ORDER },
     ];
 
     for (const b of bindings) {
