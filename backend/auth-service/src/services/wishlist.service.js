@@ -52,12 +52,14 @@ class WishlistService {
     async initMessageHandlers() {
         await this.RabbitMQ.connect();
 
-        this.RabbitMQ.subscribe("product_detail", (data) => {
-            const { correlationId, products } = data;
-            const resolver = this._promiseMap.get(correlationId);
-            if (resolver) {
-                resolver(products);
-                this._promiseMap.delete(correlationId);
+        this.RabbitMQ.subscribe("wishlist_product_queue", (data, rk) => {
+            if (rk === 'product_detail') {
+                const { correlationId, products } = data;
+                const resolver = this._promiseMap.get(correlationId);
+                if (resolver) {
+                    resolver(products);
+                    this._promiseMap.delete(correlationId);
+                }
             }
         });
     }
@@ -77,6 +79,12 @@ class WishlistService {
 
         const dataPromise = new Promise(resolve => {
             this._promiseMap.set(correlationId, resolve);
+            setTimeout(() => {
+                if (this._promiseMap.has(correlationId)) {
+                    this._promiseMap.delete(correlationId);
+                    reject(new AppError("Product service timeout", 504));
+                }
+            }, 5000);
         });
 
         await this.RabbitMQ.publish("wishlist_product", {

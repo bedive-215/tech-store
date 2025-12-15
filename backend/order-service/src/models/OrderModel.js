@@ -5,7 +5,7 @@ class OrderModel {
     this.status = status;
     this.total_price = total_price;
     this.discount_amount = discount_amount;
-    this.final_price = final_price;   // thêm dòng này
+    this.final_price = final_price;
     this.created_at = created_at;
     this.updated_at = updated_at;
     this.shipping_address = shipping_address;

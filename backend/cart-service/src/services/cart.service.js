@@ -76,14 +76,14 @@ class CartService {
         return true;
     }
 
-    async removeItem (product_id, user_id) {
+    async removeItem(product_id, user_id) {
         const cart = await this.getOrCreateCart(user_id);
 
         const cartItem = await this.CartItem.findOne({
             where: { cart_id: cart.id, product_id: product_id },
         });
 
-        if(!cartItem) throw new AppError('Item not found in cart', 400);
+        if (!cartItem) throw new AppError('Item not found in cart', 400);
 
         await cartItem.destroy();
 
@@ -91,81 +91,88 @@ class CartService {
     }
 
     async initMessageHandlers() {
-        await this.RabbitMQ.subscribe('change_stock', async (data) => {
-            const { product_id, stock } = data;
-
-            if (!product_id || typeof stock !== "number") {
-                console.warn('Invalid data', data);
-                return;
-            }
-
+        await this.RabbitMQ.subscribe('product_queue', async (data, rk) => {
             try {
-                if(stock <= 0) {
-                    await this.CartItem.destroy({where: {product_id}});
+                switch (rk) {
+
+                    case 'change_stock': {
+                        const { product_id, stock } = data;
+
+                        if (!product_id || typeof stock !== "number") {
+                            console.warn('[change_stock] Invalid data', data);
+                            return;
+                        }
+
+                        if (stock <= 0) {
+                            await this.CartItem.destroy({ where: { product_id } });
+                            console.log(`[change_stock] Removed cart items of product ${product_id}`);
+                            return;
+                        }
+
+                        const [updatedCount] = await this.CartItem.update(
+                            { stock },
+                            { where: { product_id } }
+                        );
+
+                        console.log(`[change_stock] Updated stock for ${updatedCount} cart items of product ${product_id}`);
+                        break;
+                    }
+
+                    case 'change_price': {
+                        const { product_id, price } = data;
+
+                        if (!product_id || typeof price !== "number") {
+                            console.warn('[change_price] Invalid data', data);
+                            return;
+                        }
+
+                        const [updatedCount] = await this.CartItem.update(
+                            { price },
+                            { where: { product_id } }
+                        );
+
+                        console.log(`[change_price] Updated price for ${updatedCount} cart items of product ${product_id}`);
+                        break;
+                    }
+
+                    case 'delete_product': {
+                        const { product_id } = data;
+
+                        if (!product_id) {
+                            console.warn('[delete_product] Invalid data', data);
+                            return;
+                        }
+
+                        const deletedCount = await this.CartItem.destroy({
+                            where: { product_id }
+                        });
+
+                        console.log(`[delete_product] Deleted ${deletedCount} cart items of product ${product_id}`);
+                        break;
+                    }
+
+                    case 'change_name': {
+                        const { product_id, name } = data;
+
+                        if (!product_id || !name) {
+                            console.warn('[change_name] Invalid data', data);
+                            return;
+                        }
+
+                        const [updatedCount] = await this.CartItem.update(
+                            { product_name: name },
+                            { where: { product_id } }
+                        );
+
+                        console.log(`[change_name] Updated name for ${updatedCount} cart items of product ${product_id}`);
+                        break;
+                    }
+
+                    default:
+                        console.warn(`[RabbitMQ] Unknown routing key: ${rk}`, data);
                 }
-                const [updatedCount] = await this.CartItem.update(
-                    { stock },
-                    { where: { product_id } }
-                );
-
-                console.log(`Updated stock for ${updatedCount} cart items of product ${product_id}`);
             } catch (err) {
-                console.error('Failed to update CartItem stock', err);
-            }
-        });
-
-        await this.RabbitMQ.subscribe('change_price', async (data) => {
-            const { product_id, price } = data;
-
-            if (!product_id || typeof price !== "number") {
-                console.warn('Invalid data', data);
-                return;
-            }
-
-            try {
-                // Cập nhật price cho tất cả CartItem của product
-                const [updatedCount] = await this.CartItem.update(
-                    { price },
-                    { where: { product_id } }
-                );
-
-                console.log(`Updated price for ${updatedCount} cart items of product ${product_id}`);
-            } catch (err) {
-                console.error('Failed to update CartItem price', err);
-            }
-        });
-
-        await this.RabbitMQ.subscribe('delete_product', async (data) => {
-            const {product_id} = data;
-            if(!product_id) {console.warn('Invalid data', data); return}
-            try {
-                const deletedCount = await this.CartItem.destroy({
-                    where: {product_id}
-                });
-                console.log(`Deleted ${deletedCount} cart items for product ${product_id}`);
-            } catch (err) {
-                console.error("Failed to delete product in CartItem", err);
-            }
-        });
-
-        await this.RabbitMQ.subscribe('change_name', async (data) => {
-            const { product_id, name } = data;
-
-            if (!product_id) {
-                console.warn('Invalid data', data);
-                return;
-            }
-
-            try {
-                // Cập nhật name cho tất cả CartItem của product
-                const [updatedCount] = await this.CartItem.update(
-                    { product_name: name },
-                    { where: { product_id } }
-                );
-
-                console.log(`Updated price for ${updatedCount} cart items of product ${product_id}`);
-            } catch (err) {
-                console.error('Failed to update CartItem price', err);
+                console.error(`[RabbitMQ] Error handling routing key ${rk}`, err);
             }
         });
     }

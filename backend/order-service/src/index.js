@@ -1,43 +1,36 @@
+// src/index.js
 require("dotenv").config();
-const express = require("express");
-const cors = require("cors");   // <-- thêm dòng này
+
+const http = require("http");
+const app = require("./app");
+
 const env = require("./config/env");
 const { initDB, testConnection } = require("./config/db");
+const rabbitmq = require("./config/rabbitmq");
+const OrderService = require("./services/OrderService");
 
-// Routers
-const ordersRouter = require("./routes/orders");
-const paymentsRouter = require("./routes/payments");
-const couponsRouter = require("./routes/coupons");
+const PORT = env.port || 3000;
+
+const server = http.createServer(app);
 
 async function startServer() {
-  await initDB();
-  await testConnection();
+  try {
+    await initDB();
+    await testConnection();
+    console.log("Database connected");
 
-  const app = express();
-  app.use(express.json());
+    await rabbitmq.connect();
+    await OrderService.initMessageHandle();
+    console.log("RabbitMQ connected");
 
-  // ✅ Thêm cấu hình CORS
-  app.use(cors({
-    origin: "http://localhost:5173",   // cho phép frontend
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-  }));
+    server.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
 
-  // Routes
-  app.use("/api/v1/orders", ordersRouter);
-  app.use("/api/v1/payments", paymentsRouter);
-  app.use("/api/v1/coupons", couponsRouter);
-
-  app.get("/healthz", (req, res) => res.json({ status: "ok" }));
-
-  app.use((err, req, res, next) => {
-    console.error("[ERROR]", err);
-    res.status(err.status || 500).json({ error: err.message || "Internal server error" });
-  });
-
-  app.listen(env.port, () => {
-    console.log(`🚀 Server running on port ${env.port}`);
-  });
+  } catch (err) {
+    console.error("Server startup failed:", err);
+    process.exit(1);
+  }
 }
 
 startServer();

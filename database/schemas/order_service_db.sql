@@ -2,10 +2,10 @@
 CREATE TABLE IF NOT EXISTS orders (
     id VARCHAR(50) PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
-    status ENUM('pending','paid','shipping','completed','cancelled') NOT NULL DEFAULT 'pending',
+    status ENUM('pending','paid','shipping','completed','cancelled', 'confirmed') NOT NULL DEFAULT 'pending',
     total_price DECIMAL(15,2) NOT NULL,
     discount_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-        final_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    final_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     shipping_address TEXT,
     cancelled_at DATETIME,
     cancel_reason TEXT,
@@ -26,20 +26,6 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     INDEX idx_order_id (order_id),
     INDEX idx_product_id (product_id)
-);
-
--- Payments table
-CREATE TABLE IF NOT EXISTS payments (
-    id VARCHAR(50) PRIMARY KEY,
-    order_id VARCHAR(50) NOT NULL,
-    method ENUM('card','wallet','cod','momo','zalopay') NOT NULL,
-    status ENUM('success','failed','pending') NOT NULL DEFAULT 'pending',
-    transaction_id VARCHAR(255),
-    amount DECIMAL(15,2),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    INDEX idx_order_id (order_id),
-    INDEX idx_status (status)
 );
 
 -- Coupons table

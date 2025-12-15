@@ -1,26 +1,34 @@
 // src/app.js
-const express = require('express');
-const bodyParser = require('body-parser');
-//const auth = require('./middleware/auth');
-const ordersRouter = require('./routes/orders');
-const paymentsRouter = require('./routes/payments');
-const couponsRouter = require('./routes/coupons');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const authMiddleware = require("../src/middlewares/auth");
+
+// Routes
+const ordersRouter = require("./routes/orders");
+const couponsRouter = require("./routes/coupons");
 
 const app = express();
+
+// Middlewares
 app.use(bodyParser.json());
+app.use(express.json());
 
-// mount auth middleware for user endpoints
-//app.use('/api/v1', auth);
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-app.use('/api/v1/orders', ordersRouter);
-app.use('/api/v1/payments', paymentsRouter);
-app.use('/api/v1/coupons', couponsRouter);
+// Routes
+app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
+app.use("/api/v1/coupons", couponsRouter);
 
-// error handler
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+  console.error("[ERROR]", err);
+  res.status(err.status || 500).json({
+    error: err.message || "Internal server error"
+  });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+module.exports = app;

@@ -1,56 +1,129 @@
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../config/db');
+const rabbitmq = require('../config/rabbitmq');
+const crypto = require('crypto');
+
 const OrderRepository = require('../repositories/OrderRepository');
 const OrderItemRepository = require('../repositories/OrderItemRepository');
 const CouponRepository = require('../repositories/CouponRepository');
-const PaymentRepository = require('../repositories/PaymentRepository');
+
+const promiseMap = new Map();
 
 const OrderService = {
-  /**
-   * Create order with transaction
-   */
-  async createOrder(userId, { items = [], coupon_code = null, shipping_address = null, payment_method = null }) {
-    if (!items || items.length === 0) throw new Error('items required');
+
+  async createOrder(
+    userId,
+    { items = [], coupon_code = null, shipping_address = null }
+  ) {
+    if (!items.length) throw new Error('items required');
 
     const conn = await pool.getConnection();
+
     try {
       await conn.beginTransaction();
 
-      // Tính tổng giá
-      let totalPrice = 0;
-      items.forEach(it => {
-        totalPrice += Number(it.price) * Number(it.quantity);
+      // Calculate total price
+      const correlationId = crypto.randomUUID();
+      const dataPromise = new Promise((resolve, reject) => {
+        promiseMap.set(correlationId, resolve);
+        setTimeout(() => {
+          if (promiseMap.has(correlationId)) {
+            promiseMap.delete(correlationId);
+            reject(new AppError("Product service timeout", 504));
+          }
+        }, 5000);
       });
 
+      const productId = items.map((it) => it.product_id);
+      await rabbitmq.publish('check_price', {
+        product_id: productId,
+        correlationId
+      });
+
+      const products = await dataPromise;
+      const productMap = new Map(products.map(p => [p.id, p]));
+
+      let totalPrice = 0;
+
+      const mergedItems = items.map(it => {
+        const p = productMap.get(it.product_id);
+
+        if (!p || !p.exists) {
+          throw new AppError(`Product ${it.product_id} not found`, 404);
+        }
+
+        if (it.quantity > p.stock) {
+          throw new AppError(
+            `Product ${it.product_id} out of stock (available: ${p.stock})`,
+            400
+          );
+        }
+
+        const itemTotal = p.price * it.quantity;
+        totalPrice += itemTotal;
+
+        return {
+          product_id: it.product_id,
+          quantity: it.quantity,
+          price: p.price,
+          stock: p.stock,
+          total: itemTotal
+        };
+      });
       // Coupon
       let discountAmount = 0;
       let appliedCoupon = null;
+
       if (coupon_code) {
-        const coupon = await CouponRepository.findByCode(coupon_code);
-        if (!coupon) throw new Error('Coupon not found');
+        try {
+          const coupon = await CouponRepository.findByCode(conn, coupon_code);
 
-        const now = new Date();
-        if (coupon.start_at && new Date(coupon.start_at) > now) throw new Error('Coupon not started yet');
-        if (coupon.end_at && new Date(coupon.end_at) < now) throw new Error('Coupon expired');
-        if (coupon.quantity !== null && Number(coupon.quantity) <= 0) throw new Error('Coupon out of stock');
+          if (coupon) {
+            const now = new Date();
+            let isValid = true;
 
-        if (coupon.discount_percent) {
-          // Tính giảm giá chính xác dựa trên totalPrice
-          discountAmount = Math.floor((Number(coupon.discount_percent) / 100) * totalPrice);
+            if (coupon.start_at && new Date(coupon.start_at) > now) {
+              isValid = false;
+            }
+
+            if (coupon.end_at && new Date(coupon.end_at) < now) {
+              isValid = false;
+            }
+
+            if (coupon.quantity !== null && Number(coupon.quantity) <= 0) {
+              isValid = false;
+            }
+
+            if (isValid && coupon.discount_percent) {
+              discountAmount = Math.floor(
+                (Number(coupon.discount_percent) / 100) * totalPrice
+              );
+
+              appliedCoupon = {
+                code: coupon.code,
+                discount_amount: discountAmount
+              };
+
+              await CouponRepository.decreaseQuantity(conn, coupon.id);
+            }
+          }
+        } catch (err) {
+          console.warn(
+            '[COUPON] apply failed, continue without coupon:',
+            err.message
+          );
+
+          discountAmount = 0;
+          appliedCoupon = null;
         }
-
-        appliedCoupon = { code: coupon.code, discount_amount: discountAmount };
-
-        // Giảm số lượng coupon 1 lần
-        await CouponRepository.decreaseQuantity(conn, coupon.id);
       }
 
-      const finalPrice = Math.max(0, totalPrice - discountAmount);
 
-      // Tạo order
-      const orderId = `O-${uuidv4()}`;
+      const finalPrice = Math.max(0, totalPrice - discountAmount);
       const now = new Date();
-      const order = {
+      const orderId = `${uuidv4()}`;
+      // Create order
+      const order = await OrderRepository.create(conn, {
         id: orderId,
         user_id: userId,
         status: 'pending',
@@ -60,33 +133,26 @@ const OrderService = {
         created_at: now,
         updated_at: now,
         shipping_address: shipping_address || null
-      };
-
-      await OrderRepository.create(conn, order);
-
-      // Tạo order items
-      const itemsToInsert = items.map(it => ({
-        id: `OI-${uuidv4()}`,
+      });
+      // Trừ stock bên product
+      rabbitmq.publish('reserve_stock', {
+        order_id: orderId,
+        items: mergedItems.map(i => ({
+          product_id: i.product_id,
+          quantity: i.quantity
+        }))
+      });
+      // Create order items
+      const orderItems = mergedItems.map(it => ({
+        id: `${uuidv4()}`,
         order_id: orderId,
         product_id: it.product_id,
         quantity: it.quantity,
         price: it.price
       }));
-      if (itemsToInsert.length) await OrderItemRepository.bulkCreate(conn, itemsToInsert);
 
-      // Tạo payment pending nếu có
-      let payment = null;
-      if (payment_method) {
-        const paymentObj = {
-          id: `PAY-${uuidv4()}`,
-          order_id: orderId,
-          method: payment_method,
-          status: 'pending',
-          transaction_id: null,
-          created_at: now
-        };
-        await PaymentRepository.create(conn, paymentObj);
-        payment = paymentObj;
+      if (orderItems.length) {
+        await OrderItemRepository.bulkCreate(conn, orderItems);
       }
 
       await conn.commit();
@@ -95,10 +161,10 @@ const OrderService = {
         order_id: orderId,
         user_id: userId,
         total_price: totalPrice,
-        discount: discountAmount,
+        discount_amount: discountAmount,
         final_price: finalPrice,
         status: 'pending',
-        coupon: appliedCoupon, // trả thông tin coupon
+        coupon: appliedCoupon,
         created_at: now.toISOString()
       };
 
@@ -110,7 +176,6 @@ const OrderService = {
     }
   },
 
-
   async getOrderById(orderId) {
     if (!orderId) return null;
 
@@ -118,48 +183,110 @@ const OrderService = {
     if (!order) return null;
 
     const items = await OrderItemRepository.findByOrder(orderId);
-    const normalizedItems = items.map(it => ({
-      product_id: it.product_id,
-      product_name: it.product_name ?? null,
-      quantity: it.quantity,
-      price: it.price
-    }));
 
     return {
       order_id: order.id,
       total_price: order.total_price,
+      discount_amount: order.discount_amount ?? 0,
+      final_price: order.final_price,
       status: order.status,
-      created_at: order.created_at,
       shipping_address: order.shipping_address,
-      payment: order.payment ?? null,
-      items: normalizedItems
+      created_at: order.created_at,
+      items: items.map(it => ({
+        product_id: it.product_id,
+        product_name: it.product_name ?? null,
+        quantity: it.quantity,
+        price: it.price
+      }))
+    };
+  },
+
+  async cancelOrder(orderId, reason = null) {
+    const order = await OrderRepository.findByIdWithItems(orderId);
+    if (!order) throw new AppError('Order not found', 404);
+
+    if (order.status === 'cancelled') {
+      return {
+        order_id: order.id,
+        status: order.status,
+        cancelled_at: order.cancelled_at
+      };
+    }
+
+    await OrderRepository.updateStatus(
+      null,
+      orderId,
+      'cancelled',
+      {
+        cancelled_at: new Date(),
+        cancel_reason: reason
+      }
+    );
+
+    await rabbitmq.publish('restore_stock', {
+      order_id: orderId,
+      items: order.items.map(i => ({
+        product_id: i.product_id,
+        quantity: i.quantity
+      }))
+    });
+
+    return {
+      order_id: orderId,
+      status: 'cancelled',
+      cancelled_at: new Date()
+    };
+  },
+
+
+  async setOrderShipping(orderId) {
+    const order = await OrderRepository.updateStatus(null, orderId, 'shipping');
+    if (!order) throw new Error('Order not found');
+
+    return {
+      order_id: order.id,
+      status: order.status
+    };
+  },
+
+  async setOrderCompleted(orderId) {
+    const order = await OrderRepository.updateStatus(null, orderId, 'completed');
+    if (!order) throw new Error('Order not found');
+
+    return {
+      order_id: order.id,
+      status: order.status,
+      completed_at: order.completed_at
     };
   },
 
   async listUserOrders(userId, { page = 1, limit = 10, status = null } = {}) {
-    const { rows, total } = await OrderRepository.findByUser(userId, { page, limit, status });
+    const { rows, total } = await OrderRepository.findByUser(userId, {
+      page,
+      limit,
+      status
+    });
 
     const orders = await Promise.all(
-      rows.map(async r => {
-        const items = await OrderItemRepository.findByOrder(r.id);
-
-        const normalizedItems = items.map(it => ({
-          product_id: it.product_id,
-          product_name: it.product_name ?? null,
-          quantity: it.quantity,
-          price: it.price
-        }));
+      rows.map(async order => {
+        const items = await OrderItemRepository.findByOrder(order.id);
 
         return {
-          order_id: r.id,
-          total_price: r.total_price,
-          discount_amount: r.discount_amount ?? 0,
-          final_price: r.final_price ?? (r.total_price - r.discount_amount),  // ⭐ THÊM VÀO
-          status: r.status,
-          created_at: r.created_at,
-          shipping_address: r.shipping_address,
-          payment: r.payment ?? null,
-          items: normalizedItems
+          order_id: order.id,
+          total_price: order.total_price,
+          discount_amount: order.discount_amount ?? 0,
+          final_price:
+            order.final_price ??
+            (order.total_price - (order.discount_amount || 0)),
+          status: order.status,
+          created_at: order.created_at,
+          shipping_address: order.shipping_address,
+          items: items.map(it => ({
+            product_id: it.product_id,
+            product_name: it.product_name ?? null,
+            quantity: it.quantity,
+            price: it.price
+          }))
         };
       })
     );
@@ -178,13 +305,15 @@ const OrderService = {
       order_id: order.id,
       items: items.map(i => ({
         product_id: i.product_id,
-        product_name: i.product_name || null,
+        product_name: i.product_name ?? null,
         quantity: i.quantity,
         price: i.price
       })),
       total_price: order.total_price,
-      discount_amount: order.discount_amount ?? 0,       // ⭐ THÊM VÀO
-      final_price: order.final_price ?? (order.total_price - order.discount_amount), // ⭐ THÊM VÀO
+      discount_amount: order.discount_amount ?? 0,
+      final_price:
+        order.final_price ??
+        (order.total_price - (order.discount_amount || 0)),
       status: order.status,
       shipping_address: order.shipping_address,
       payment: payments.length
@@ -199,43 +328,29 @@ const OrderService = {
     };
   },
 
-
-  async cancelOrder(orderId, reason = null) {
-    const extra = {
-      cancelled_at: new Date(),
-      cancel_reason: reason || null
-    };
-    await OrderRepository.updateStatus(null, orderId, 'cancelled', extra);
-    const order = await OrderRepository.findById(orderId);
-    return {
-      order_id: order.id,
-      status: order.status,
-      cancelled_at: order.cancelled_at
-    };
-  },
   async listAllOrders({ page = null, limit = null } = {}) {
     const { rows, total } = await OrderRepository.findAll({ page, limit });
 
     const orders = await Promise.all(
-      rows.map(async r => {
-        const items = await OrderItemRepository.findByOrder(r.id);
-        const normalizedItems = items.map(it => ({
-          product_id: it.product_id,
-          product_name: it.product_name ?? null,
-          quantity: it.quantity,
-          price: it.price
-        }));
+      rows.map(async order => {
+        const items = await OrderItemRepository.findByOrder(order.id);
 
         return {
-          order_id: r.id,
-          total_price: r.total_price,
-          discount_amount: r.discount_amount ?? 0,
-          final_price: r.final_price ?? (r.total_price - (r.discount_amount || 0)),
-          status: r.status,
-          created_at: r.created_at,
-          shipping_address: r.shipping_address,
-          payment: r.payment ?? null,
-          items: normalizedItems
+          order_id: order.id,
+          total_price: order.total_price,
+          discount_amount: order.discount_amount ?? 0,
+          final_price:
+            order.final_price ??
+            (order.total_price - (order.discount_amount || 0)),
+          status: order.status,
+          created_at: order.created_at,
+          shipping_address: order.shipping_address,
+          items: items.map(it => ({
+            product_id: it.product_id,
+            product_name: it.product_name ?? null,
+            quantity: it.quantity,
+            price: it.price
+          }))
         };
       })
     );
@@ -243,32 +358,59 @@ const OrderService = {
     return { orders, total };
   },
 
-  // --- NEW: set order to shipping
-  async setOrderShipping(orderId) {
-    if (!orderId) throw new Error('order_id required');
+  async initMessageHandle() {
+    await rabbitmq.subscribe('order_status_queue', async (data, rk) => {
+      try {
+        if (rk !== 'payment_success') return;
 
-    const order = await OrderRepository.updateStatus(null, orderId, 'shipping');
-    if (!order) throw new Error('Order not found');
+        const { order_id } = data;
+        if (!order_id) {
+          console.warn('[ORDER] payment_success missing order_id', data);
+          return;
+        }
 
-    return {
-      order_id: order.id,
-      status: order.status,
-    };
-  },
+        await OrderRepository.updateStatus(null, order_id, 'paid', { paid_at: new Date() });
+        console.log(`[ORDER] Order ${order_id} marked as PAID`);
+      } catch (err) {
+        console.error('[ORDER] Failed to handle payment_success', err);
+      }
+    });
 
-  // --- NEW: set order to completed
-  async setOrderCompleted(orderId) {
-    if (!orderId) throw new Error('order_id required');
+    await rabbitmq.subscribe('check_price_queue', async (data, rk) => {
+      try {
+        if (rk !== 'price_result') return;
+        const { products, correlationId } = data;
+        const resolver = promiseMap.get(correlationId);
+        if (resolver) {
+          resolver(products);
+          promiseMap.delete(correlationId);
+        }
 
-    const order = await OrderRepository.updateStatus(null, orderId, 'completed');
-    if (!order) throw new Error('Order not found');
+      } catch (err) {
+        console.error('[PRODUCT_PRICE] Failed to handle check price of products', err);
+      }
+    });
 
-    return {
-      order_id: order.id,
-      status: order.status,
-      completed_at: order.completed_at
-    };
-  },
+    await rabbitmq.subscribe('reserve_stock_queue', async (data, rk) => {
+      const { order_id, reason } = data;
+
+      if (rk === 'stock_reserved') {
+        await OrderRepository.updateStatus(
+          pool,
+          order_id,
+          'confirmed'
+        );
+      }
+
+      if (rk === 'stock_failed') {
+        await OrderRepository.updateStatus(
+          pool,
+          order_id,
+          'cancelled'
+        );
+      }
+    });
+  }
 
 };
 

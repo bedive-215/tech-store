@@ -1,5 +1,5 @@
-import amqp from "amqplib";
-import 'dotenv/config';
+const amqp = require("amqplib");
+require("dotenv").config();
 
 class RabbitMQ {
     constructor() {
@@ -62,4 +62,4 @@ class RabbitMQ {
     }
 }
 
-export default new RabbitMQ();
+module.exports = new RabbitMQ();

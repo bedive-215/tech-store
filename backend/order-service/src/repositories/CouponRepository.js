@@ -1,13 +1,14 @@
 const pool = require('../config/db');
 
 const CouponRepository = {
-  async findByCode(code) {
-    const [rows] = await pool.execute(
+  async findByCode(conn, code) {
+    const [rows] = await conn.execute(
       'SELECT * FROM coupons WHERE code = ? LIMIT 1',
       [code]
     );
     return rows[0];
   },
+
 
   async create(coupon) {
     const sql = `
@@ -26,37 +27,37 @@ const CouponRepository = {
     return coupon;
   },
 
-async list({ active, page = 1, limit = 20 }) {
-  let sql = "";
-  let params = [];
+  async list({ active, page = 1, limit = 20 }) {
+    let sql = "";
+    let params = [];
 
-  try {
-    const limitNum = Number(limit);
-    const pageNum = Number(page);
-    const offsetNum = (pageNum - 1) * limitNum;
+    try {
+      const limitNum = Number(limit);
+      const pageNum = Number(page);
+      const offsetNum = (pageNum - 1) * limitNum;
 
-    sql = `SELECT * FROM coupons WHERE 1 = 1`;
+      sql = `SELECT * FROM coupons WHERE 1 = 1`;
 
-    if (active) {
-      sql += ` AND start_at <= NOW() AND end_at >= NOW()`;
+      if (active) {
+        sql += ` AND start_at <= NOW() AND end_at >= NOW()`;
+      }
+
+      // ✅ Inline offset + limit để MySQL2 chuẩn
+      sql += ` ORDER BY start_at DESC LIMIT ${offsetNum}, ${limitNum}`;
+
+      console.log("📌 SQL:", sql);
+
+      const [rows] = await pool.execute(sql);
+      return rows;
+
+    } catch (err) {
+      console.error("🔥 [CouponRepository.list] ERROR");
+      console.error("SQL:", sql);
+      console.error(err);
+      throw err;
     }
-
-    // ✅ Inline offset + limit để MySQL2 chuẩn
-    sql += ` ORDER BY start_at DESC LIMIT ${offsetNum}, ${limitNum}`;
-
-    console.log("📌 SQL:", sql);
-
-    const [rows] = await pool.execute(sql);
-    return rows;
-
-  } catch (err) {
-    console.error("🔥 [CouponRepository.list] ERROR");
-    console.error("SQL:", sql);
-    console.error(err);
-    throw err;
   }
-}
-,
+  ,
 
 
 

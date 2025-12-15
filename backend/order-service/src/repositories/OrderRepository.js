@@ -95,38 +95,38 @@ const OrderRepository = {
     }
   },
 
- async findByUser(userId, { page = 1, limit = 10, status } = {}) {
-  if (!userId) return { rows: [], total: 0 };
+  async findByUser(userId, { page = 1, limit = 10, status } = {}) {
+    if (!userId) return { rows: [], total: 0 };
 
-  const limitNum = Number(limit) || 10;
-  const pageNum = Number(page) || 1;
-  const offsetNum = (pageNum - 1) * limitNum;
+    const limitNum = Number(limit) || 10;
+    const pageNum = Number(page) || 1;
+    const offsetNum = (pageNum - 1) * limitNum;
 
-  let where = 'WHERE user_id = ?';
-  const params = [userId];
+    let where = 'WHERE user_id = ?';
+    const params = [userId];
 
-  if (status) {
-    where += ' AND status = ?';
-    params.push(status);
-  }
+    if (status) {
+      where += ' AND status = ?';
+      params.push(status);
+    }
 
-  const sql = `SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT ${offsetNum}, ${limitNum}`;
-  console.log('DEBUG findByUser SQL:', sql);
-  console.log('DEBUG findByUser PARAMS:', params);
+    const sql = `SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT ${offsetNum}, ${limitNum}`;
+    console.log('DEBUG findByUser SQL:', sql);
+    console.log('DEBUG findByUser PARAMS:', params);
 
-  try {
-    const [rows] = await pool.execute(sql, params);
-    const countSql = `SELECT COUNT(*) AS total FROM orders ${where}`;
-    console.log('DEBUG countSql:', countSql);
-    console.log('DEBUG countSql PARAMS:', params);
-    const [countRows] = await pool.execute(countSql, params);
-    const total = countRows[0]?.total || 0;
-    return { rows, total };
-  } catch (err) {
-    console.error('🔥 SQL EXEC ERROR in findByUser:', err);
-    throw err;
-  }
-},
+    try {
+      const [rows] = await pool.execute(sql, params);
+      const countSql = `SELECT COUNT(*) AS total FROM orders ${where}`;
+      console.log('DEBUG countSql:', countSql);
+      console.log('DEBUG countSql PARAMS:', params);
+      const [countRows] = await pool.execute(countSql, params);
+      const total = countRows[0]?.total || 0;
+      return { rows, total };
+    } catch (err) {
+      console.error('🔥 SQL EXEC ERROR in findByUser:', err);
+      throw err;
+    }
+  },
 
   async updateStatus(connOrPool, orderId, status, extraFields = {}) {
     const conn = connOrPool || pool;
@@ -153,7 +153,37 @@ const OrderRepository = {
       console.error('🔥 SQL ERROR (updateStatus):', err.message, 'orderId:', orderId, 'status:', status);
       throw err;
     }
+  },
+
+  async findByIdWithItems(orderId) {
+    if (!orderId) return null;
+
+    try {
+      const [orders] = await pool.execute(
+        'SELECT * FROM orders WHERE id = ?',
+        [orderId]
+      );
+
+      if (!orders.length) return null;
+
+      const order = orders[0];
+
+      const [items] = await pool.execute(
+        `SELECT product_id, quantity, price 
+       FROM order_items 
+       WHERE order_id = ?`,
+        [orderId]
+      );
+
+      order.items = items;
+      return order;
+
+    } catch (err) {
+      console.error('SQL ERROR (findByIdWithItems):', err.message);
+      throw err;
+    }
   }
+
 };
 
 module.exports = OrderRepository;

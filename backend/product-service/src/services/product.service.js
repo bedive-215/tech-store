@@ -2,8 +2,9 @@ import models from "../models/index.js";
 import { Op } from "sequelize";
 import { AppError } from "../middlewares/errorHandler.middleware.js";
 import RabbitMQ from "../configs/rabbitmq.config.js";
+import sequelize from "../configs/db.config.js";
 
-const { Product, Brand, Category, ProductMedia, Review, UserInfo } = models;
+const { Product, Brand, Category, ProductMedia, FlashSale, FlashSaleItem } = models;
 
 class ProductService {
 
@@ -12,8 +13,9 @@ class ProductService {
         this.Brand = Brand;
         this.Category = Category;
         this.ProductMedia = ProductMedia;
-        this.UserInfo = UserInfo;
         this.RabbitMQ = RabbitMQ;
+        this.FlashSale = FlashSale;
+        this.FlashSaleItem = FlashSaleItem;
     }
 
     async getProducts(query) {
@@ -251,43 +253,233 @@ class ProductService {
     }
 
     async initMessageHandlers() {
-        await this.RabbitMQ.subscribe("wishlist_product", async (msg) => {
-            const productIds = msg.products;
-            const correlationId = msg.correlationId;
-            if (productIds.length === 0) {
-                return await this.RabbitMQ.publish("product_detail", {
-                    products: [],
+        await this.RabbitMQ.subscribe("wishlist_product_queue", async (data, rk) => {
+            if (rk === 'wishlist_product') {
+                const productIds = data.products;
+                const correlationId = data.correlationId;
+                if (productIds.length === 0) {
+                    return await this.RabbitMQ.publish("product_detail", {
+                        products: [],
+                        correlationId
+                    });
+                }
+                if (!productIds || !Array.isArray(productIds) || !correlationId) {
+                    console.error("Invalid productIds:", productIds);
+                    return;
+                }
+
+                const products = await this.Product.findAll({
+                    where: { id: productIds },
+                    include: [
+                        { model: this.Brand, attributes: ["id", "name"] },
+                        { model: this.Category, attributes: ["id", "name"] },
+                        { model: this.ProductMedia, as: "media", attributes: ["url", "is_primary"] }
+                    ]
+                });
+
+                const result = products.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    price: p.price,
+                    brand: p.Brand?.name,
+                    category: p.Category?.name,
+                    media: p.media?.[0]?.url ?? null
+                }));
+
+                await this.RabbitMQ.publish("product_detail", {
+                    products: result,
                     correlationId
                 });
             }
-            if (!productIds || !Array.isArray(productIds) || !correlationId) {
-                console.error("Invalid productIds:", productIds);
-                return;
+        });
+
+        await this.RabbitMQ.subscribe('check_price_queue', async (data, rk) => {
+            if (rk !== 'check_price') return;
+            try {
+                const { product_id: productIds, correlationId } = data;
+
+                if (!correlationId || !Array.isArray(productIds)) {
+                    console.error('[CHECK_PRICE] invalid payload', data);
+                    return;
+                }
+
+                if (productIds.length === 0) {
+                    await this.RabbitMQ.publish('price_result', {
+                        products: [],
+                        correlationId
+                    });
+                    return;
+                }
+
+                const now = new Date();
+
+                // product gốc
+                const products = await this.Product.findAll({
+                    where: { id: productIds },
+                    attributes: ['id', 'price', 'stock'],
+                    raw: true
+                });
+
+                const productMap = new Map(products.map(p => [p.id, p]));
+
+                // Lấy flash sale items đang active
+                const flashSaleItems = await this.FlashSaleItem.findAll({
+                    include: [{
+                        model: this.FlashSale,
+                        as: 'flash_sale',
+                        where: {
+                            start_at: { [Op.lte]: now },
+                            end_at: { [Op.gte]: now }
+                        },
+                        attributes: []
+                    }],
+                    where: {
+                        product_id: productIds
+                    },
+                    attributes: ['product_id', 'sale_price', 'stock_limit'],
+                    raw: true
+                });
+
+                // Map flash sale theo product_id
+                const flashMap = new Map();
+
+                for (const fs of flashSaleItems) {
+                    const current = flashMap.get(fs.product_id);
+                    // lấy giá sale thấp nhất nếu có nhiều flash sale
+                    if (!current || Number(fs.sale_price) < Number(current.sale_price)) {
+                        flashMap.set(fs.product_id, fs);
+                    }
+                }
+
+                // Merge kết quả
+                const result = productIds.map(id => {
+                    const product = productMap.get(id);
+                    if (!product) {
+                        return { id, exists: false };
+                    }
+
+                    const flash = flashMap.get(id);
+
+                    if (flash) {
+                        return {
+                            id,
+                            exists: true,
+                            price: Number(flash.sale_price),
+                            stock: Number(flash.stock_limit),
+                            is_flash_sale: true
+                        };
+                    }
+
+                    return {
+                        id,
+                        exists: true,
+                        price: Number(product.price),
+                        stock: Number(product.stock),
+                        is_flash_sale: false
+                    };
+                });
+
+                await this.RabbitMQ.publish('price_result', {
+                    products: result,
+                    correlationId
+                });
+
+            } catch (err) {
+                console.error('[CHECK_PRICE] error', err);
+            }
+        });
+
+        await this.RabbitMQ.subscribe('reserve_stock_queue', async (data, rk) => {
+            try {
+                switch (rk) {
+                    case 'reserve_stock':
+                        await this.handleReserveStock(data);
+                        break;
+
+                    case 'restore_stock':
+                        await this.handleRestoreStock(data);
+                        break;
+
+                    default:
+                        console.warn('[STOCK] unknown routing key:', rk);
+                }
+            } catch (err) {
+                console.error('[STOCK] handler error', err);
+            }
+        });
+    }
+
+    async handleReserveStock(data) {
+        const { order_id, items } = data;
+
+        if (!order_id || !Array.isArray(items) || items.length === 0) {
+            console.error('[RESERVE_STOCK] invalid payload', data);
+            return;
+        }
+
+        const t = await sequelize.transaction();
+        try {
+            for (const { product_id, quantity } of items) {
+                const product = await Product.findOne({
+                    where: { id: product_id },
+                    lock: t.LOCK.UPDATE,
+                    transaction: t
+                });
+
+                if (!product) throw new Error(`Product ${product_id} not found`);
+                if (product.stock < quantity)
+                    throw new Error(`Product ${product_id} insufficient stock`);
+
+                await product.update(
+                    { stock: product.stock - quantity },
+                    { transaction: t }
+                );
             }
 
-            const products = await this.Product.findAll({
-                where: { id: productIds },
-                include: [
-                    { model: this.Brand, attributes: ["id", "name"] },
-                    { model: this.Category, attributes: ["id", "name"] },
-                    { model: this.ProductMedia, as: "media", attributes: ["url", "is_primary"] }
-                ]
-            });
+            await t.commit();
 
-            const result = products.map((p) => ({
-                id: p.id,
-                name: p.name,
-                price: p.price,
-                brand: p.Brand?.name,
-                category: p.Category?.name,
-                media: p.media?.[0]?.url ?? null
-            }));
+            await RabbitMQ.publish('stock_reserved', { order_id });
 
-            await this.RabbitMQ.publish("product_detail", {
-                products: result,
-                correlationId
+        } catch (err) {
+            await t.rollback();
+
+            await RabbitMQ.publish('stock_failed', {
+                order_id,
+                reason: err.message
             });
-        });
+        }
+    }
+
+    async handleRestoreStock(data) {
+        const { order_id, items } = data;
+
+        if (!order_id || !Array.isArray(items) || items.length === 0) {
+            console.error('[RESTORE_STOCK] invalid payload', data);
+            return;
+        }
+
+        const t = await sequelize.transaction();
+        try {
+            for (const { product_id, quantity } of items) {
+                const product = await Product.findOne({
+                    where: { id: product_id },
+                    lock: t.LOCK.UPDATE,
+                    transaction: t
+                });
+
+                if (product) {
+                    await product.update(
+                        { stock: product.stock + quantity },
+                        { transaction: t }
+                    );
+                }
+            }
+
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            console.error('[RESTORE_STOCK] failed', err);
+        }
     }
 }
 

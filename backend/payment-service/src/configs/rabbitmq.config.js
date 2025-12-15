@@ -42,30 +42,21 @@ class RabbitMQ {
     }
 
     // Subscribe (Pub/Sub)
-    async subscribe(routingKey, callback) {
+    async subscribe(queue_name, callback) {
         if (!this.channel) await this.connect();
 
-        const exchangeName = process.env.EXCHANGE_NAME;
-
-        // Tạo queue tự động (server-generated name)
-        const q = await this.channel.assertQueue("", {
-            exclusive: true,
-            durable: false
-        });
-
-        const queueName = q.queue;
-
-        await this.channel.bindQueue(queueName, exchangeName, routingKey);
-
-        // Consume messages
-        this.channel.consume(
-            queueName,
-            (msg) => {
-                if (msg) {
-                    const content = JSON.parse(msg.content.toString());
-                    callback(content, msg.fields.routingKey);
+        this.channel.consume(queue_name, (msg) => {
+            if (msg) {
+                try {
+                    const data = JSON.parse(msg.content.toString());
+                    callback(data, msg.fields.routingKey);
+                    this.channel.ack(msg);
+                } catch (err) {
+                    console.error(err);
+                    this.channel.nack(msg, false, false);
                 }
-            },
+            }
+        },
             { noAck: false }
         );
     }
