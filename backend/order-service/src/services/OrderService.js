@@ -73,7 +73,6 @@ const OrderService = {
       // Coupon
       let discountAmount = 0;
       let appliedCoupon = null;
-
       if (coupon_code) {
         try {
           const coupon = await CouponRepository.findByCode(conn, coupon_code);
@@ -94,18 +93,39 @@ const OrderService = {
               isValid = false;
             }
 
-            if (isValid && coupon.discount_percent) {
-              discountAmount = Math.floor(
-                (Number(coupon.discount_percent) / 100) * totalPrice
-              );
-
-              appliedCoupon = {
-                code: coupon.code,
-                discount_amount: discountAmount
-              };
-
-              await CouponRepository.decreaseQuantity(conn, coupon.id);
+            if (coupon.min_order_value && Number(totalPrice) < Number(coupon.min_order_value)) {
+              isValid = false;
             }
+
+            if (isValid) {
+              if (coupon.discount_type === 'PERCENT') {
+                const rawDiscount = Math.floor(
+                  (Number(coupon.discount_value) / 100) * totalPrice
+                );
+
+                if (coupon.max_discount) {
+                  discountAmount = Math.min(rawDiscount, Number(coupon.max_discount));
+                } else {
+                  discountAmount = rawDiscount;
+                }
+
+              } else if (coupon.discount_type === 'FIXED') {
+                discountAmount = Number(coupon.discount_value);
+              }
+              discountAmount = Math.min(discountAmount, totalPrice);
+
+              if (discountAmount > 0) {
+                appliedCoupon = {
+                  id: coupon.id,
+                  code: coupon.code,
+                  discount_type: coupon.discount_type,
+                  discount_value: coupon.discount_value,
+                  discount_amount: discountAmount
+                };
+                await CouponRepository.decreaseQuantity(conn, coupon.id);
+              }
+            }
+
           }
         } catch (err) {
           console.warn(
@@ -213,6 +233,13 @@ const OrderService = {
       };
     }
 
+    // Hoan lai coupon
+    if (order.coupon_code && order.status === 'pending') {
+      await CouponRepository.increaseQuantity(
+        order.coupon_code
+      );
+    }
+    // Doi trang thai sang cancel
     await OrderRepository.updateStatus(
       null,
       orderId,
@@ -222,7 +249,7 @@ const OrderService = {
         cancel_reason: reason
       }
     );
-
+    // Gui su kien restore de hoan lai so luong san pham
     await rabbitmq.publish('restore_stock', {
       order_id: orderId,
       items: order.items.map(i => ({
@@ -410,6 +437,24 @@ const OrderService = {
         );
       }
     });
+
+    await rabbitmq.subscribe('payment_order_amount_queue', async (data, rk) => {
+      if(rk !== 'order_amount_get') return;
+      const {order_id, correlationId} = data;
+      const order = await OrderRepository.findById(order_id);
+      if(!order) {
+        await rabbitmq.publish('order_amount_result', {
+          amount: null,
+          correlationId
+        });
+      }
+
+      const amount = order.final_price;
+      await rabbitmq.publish('order_amount_result', {
+        amount,
+        correlationId
+      });
+    })
   }
 
 };

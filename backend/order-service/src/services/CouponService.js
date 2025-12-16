@@ -2,92 +2,94 @@ const { v4: uuidv4 } = require('uuid');
 const CouponRepository = require('../repositories/CouponRepository');
 
 const CouponService = {
-  async validateCoupon(code, total_amount) {
-  const coupon = await CouponRepository.findByCode(code);
-  if (!coupon) return { valid: false, reason: 'not_found' };
 
-  // debug: log coupon to inspect fields (tạm thời)
-  // console.log('coupon', coupon);
+  async validateCoupon(conn, code, totalAmount) {
+    const coupon = await CouponRepository.findByCode(conn, code);
+    if (!coupon) return { valid: false, reason: 'not_found' };
 
-  const now = Date.now();
+    const now = Date.now();
+    const start = new Date(coupon.start_at).getTime();
+    const end = new Date(coupon.end_at).getTime();
 
-  const safeParse = (d) => {
-    if (!d) return null;
-    const s = String(d).trim();
-    if (!s || s === '0000-00-00 00:00:00') return null;
-    // replace space with T so Date parses as local ISO-like string
-    // (avoids some engine quirks). If DB stored UTC and you want UTC, append 'Z'.
-    const isoLike = s.replace(' ', 'T');
-    const t = new Date(isoLike).getTime();
-    return Number.isNaN(t) ? null : t;
-  };
+    if (start > now) return { valid: false, reason: 'not_started' };
+    if (end < now) return { valid: false, reason: 'expired' };
 
-  const startMs = safeParse(coupon.start_at) || 0;
-  const endMs = safeParse(coupon.end_at) || Infinity;
+    if (coupon.quantity !== null && coupon.quantity <= 0) {
+      return { valid: false, reason: 'out_of_quantity' };
+    }
 
-  if (startMs && startMs > now) {
-    return { valid: false, reason: 'not_started' };
-  }
-  if (endMs && endMs < now) {
-    return { valid: false, reason: 'expired' };
-  }
+    if (coupon.min_order_value && totalAmount < coupon.min_order_value) {
+      return { valid: false, reason: 'min_order_not_met' };
+    }
 
-  // treat null quantity as unlimited (change if you want)
-  if (coupon.quantity !== null && coupon.quantity !== undefined && Number(coupon.quantity) <= 0) {
-    return { valid: false, reason: 'no_quantity' };
-  }
+    let discountAmount = 0;
 
-  const discount_value = Number(coupon.discount_percent) || 0;
-  const discount_amount = Math.floor((discount_value / 100) * Number(total_amount || 0));
+    if (coupon.discount_type === 'PERCENT') {
+      discountAmount = Math.floor(
+        totalAmount * coupon.discount_value / 100
+      );
 
-  return {
-    valid: true,
-    discount_type: 'percent',
-    discount_value,
-    discount_amount,
-    final_amount: Number(total_amount || 0) - discount_amount,
-    expires_at: coupon.end_at
-  };
-},
+      if (coupon.max_discount) {
+        discountAmount = Math.min(discountAmount, coupon.max_discount);
+      }
+    }
 
-  async createCoupon({ code, discount_type, discount_value, usage_limit, expires_at }) {
-    const id = `CP-${uuidv4()}`;
+    if (coupon.discount_type === 'FIXED') {
+      discountAmount = coupon.discount_value;
+    }
+
+    discountAmount = Math.min(discountAmount, totalAmount);
+
+    return {
+      valid: true,
+      coupon_id: coupon.id,
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      discount_amount: discountAmount,
+      final_amount: totalAmount - discountAmount,
+      expires_at: coupon.end_at
+    };
+  },
+
+  async createCoupon(data) {
+    const id = `${uuidv4()}`;
 
     const coupon = {
       id,
-      code,
-      discount_percent: discount_type === 'percent' ? Number(discount_value) : 0,
-      start_at: new Date(),
-      end_at: expires_at ? new Date(expires_at) : new Date(Date.now() + 365*86400*1000),
-      quantity: usage_limit || 0
+      code: data.code,
+      discount_type: data.discount_type, // 'PERCENT' | 'FIXED'
+      discount_value: data.discount_value,
+      max_discount: data.max_discount || null,
+      min_order_value: data.min_order_value || 0,
+      start_at: data.start_at || new Date(),
+      end_at: data.end_at,
+      quantity: data.quantity ?? 0
     };
 
     await CouponRepository.create(coupon);
 
     return {
       coupon_id: id,
-      code,
-      created_at: new Date().toISOString()
+      code: coupon.code
     };
   },
 
-  async listCoupons({ active, page, limit }) {
-    try {
-      const rows = await CouponRepository.list({ active, page, limit });
+  async listCoupons(params) {
+    const rows = await CouponRepository.list(params);
 
-      return rows.map(r => ({
-        coupon_id: r.id,
-        code: r.code,
-        discount_type: 'percent',
-        discount_value: r.discount_percent,
-        expires_at: r.end_at
-      }));
-    } catch (err) {
-      console.error("🔥 [CouponService.listCoupons] ERROR");
-      console.error(err);
-      throw err;
-    }
+    return rows.map(c => ({
+      coupon_id: c.id,
+      code: c.code,
+      discount_type: c.discount_type,
+      discount_value: c.discount_value,
+      max_discount: c.max_discount,
+      min_order_value: c.min_order_value,
+      quantity: c.quantity,
+      expires_at: c.end_at
+    }));
   },
+
   async deleteCoupon(id) {
     await CouponRepository.deleteById(id);
     return { status: 'deleted', coupon_id: id };

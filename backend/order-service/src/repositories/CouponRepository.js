@@ -1,78 +1,70 @@
 const pool = require('../config/db');
 
 const CouponRepository = {
+
   async findByCode(conn, code) {
     const [rows] = await conn.execute(
-      'SELECT * FROM coupons WHERE code = ? LIMIT 1',
+      `SELECT * FROM coupons WHERE code = ? LIMIT 1`,
       [code]
     );
     return rows[0];
   },
 
-
   async create(coupon) {
     const sql = `
       INSERT INTO coupons
-      (id, code, discount_percent, start_at, end_at, quantity)
-      VALUES (?, ?, ?, ?, ?, ?)
+      (id, code, discount_type, discount_value, max_discount,
+       min_order_value, start_at, end_at, quantity)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
     await pool.execute(sql, [
       coupon.id,
       coupon.code,
-      coupon.discount_percent,
+      coupon.discount_type,
+      coupon.discount_value,
+      coupon.max_discount,
+      coupon.min_order_value,
       coupon.start_at,
       coupon.end_at,
       coupon.quantity
     ]);
+
     return coupon;
   },
 
   async list({ active, page = 1, limit = 20 }) {
-    let sql = "";
-    let params = [];
+    const offset = (Number(page) - 1) * Number(limit);
 
-    try {
-      const limitNum = Number(limit);
-      const pageNum = Number(page);
-      const offsetNum = (pageNum - 1) * limitNum;
-
-      sql = `SELECT * FROM coupons WHERE 1 = 1`;
-
-      if (active) {
-        sql += ` AND start_at <= NOW() AND end_at >= NOW()`;
-      }
-
-      // ✅ Inline offset + limit để MySQL2 chuẩn
-      sql += ` ORDER BY start_at DESC LIMIT ${offsetNum}, ${limitNum}`;
-
-      console.log("📌 SQL:", sql);
-
-      const [rows] = await pool.execute(sql);
-      return rows;
-
-    } catch (err) {
-      console.error("🔥 [CouponRepository.list] ERROR");
-      console.error("SQL:", sql);
-      console.error(err);
-      throw err;
+    let sql = `SELECT * FROM coupons WHERE 1=1`;
+    if (active) {
+      sql += ` AND start_at <= NOW() AND end_at >= NOW()`;
     }
-  }
-  ,
 
+    sql += ` ORDER BY created_at DESC LIMIT ?, ?`;
 
-
-
-
-  async deleteById(id) {
-    await pool.execute(`DELETE FROM coupons WHERE id = ?`, [id]);
-    return { id };
+    const [rows] = await pool.execute(sql, [offset, Number(limit)]);
+    return rows;
   },
 
   async decreaseQuantity(conn, id) {
     await conn.execute(
-      `UPDATE coupons SET quantity = quantity - 1 WHERE id = ? AND quantity > 0`,
+      `UPDATE coupons 
+       SET quantity = quantity - 1 
+       WHERE id = ? AND quantity > 0`,
       [id]
     );
+  },
+
+  async increaseQuantity(code) {
+    await pool.execute(
+      `UPDATE coupons SET quantity = quantity + 1 WHERE code = ?`,
+      [code]
+    );
+  },
+
+  async deleteById(id) {
+    await pool.execute(`DELETE FROM coupons WHERE id = ?`, [id]);
   }
 };
 
