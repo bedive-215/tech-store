@@ -43,6 +43,8 @@ export class RabbitMQService implements OnModuleInit {
       { queue: RMQ_QUEUES.ORDER, key: RMQ_ROUTING_KEYS.ORDER },
       { queue: RMQ_QUEUES.PRODUCT_PRICE, key: RMQ_ROUTING_KEYS.PRODUCT_PRICE },
       { queue: RMQ_QUEUES.RESERVE_STOCK, key: RMQ_ROUTING_KEYS.RESERVE_STOCK },
+      { queue: RMQ_QUEUES.PAYMENT, key: RMQ_ROUTING_KEYS.PAYMENT },
+
     ];
 
     for (const b of bindings) {
