@@ -67,6 +67,8 @@ const OrderService = {
           quantity: it.quantity,
           price: p.price,
           stock: p.stock,
+          name: p.name,
+          product_name: p.name,
           total: itemTotal
         };
       });
@@ -159,7 +161,7 @@ const OrderService = {
         order_id: orderId,
         items: mergedItems.map(i => ({
           product_id: i.product_id,
-          quantity: i.quantity
+          quantity: i.quantity,
         }))
       });
       // Create order items
@@ -168,7 +170,8 @@ const OrderService = {
         order_id: orderId,
         product_id: it.product_id,
         quantity: it.quantity,
-        price: it.price
+        price: it.price,
+        product_name: it.name
       }));
 
       if (orderItems.length) {
@@ -326,8 +329,6 @@ const OrderService = {
     if (!order) return null;
 
     const items = await OrderItemRepository.findByOrder(orderId);
-    const payments = await PaymentRepository.findByOrder(orderId);
-
     return {
       order_id: order.id,
       items: items.map(i => ({
@@ -343,15 +344,6 @@ const OrderService = {
         (order.total_price - (order.discount_amount || 0)),
       status: order.status,
       shipping_address: order.shipping_address,
-      payment: payments.length
-        ? {
-          payment_id: payments[0].id,
-          method: payments[0].method,
-          status: payments[0].status,
-          transaction_id: payments[0].transaction_id,
-          paid_at: payments[0].created_at
-        }
-        : null
     };
   },
 

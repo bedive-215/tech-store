@@ -4,19 +4,20 @@ const OrderItemRepository = {
   async bulkCreate(conn, items) {
     if (!items || items.length === 0) return [];
 
-    const placeholders = items.map(() => '(?,?,?,?,?)').join(',');
+    const placeholders = items.map(() => '(?,?,?,?,?,?)').join(',');
     const params = [];
     items.forEach(it => {
       params.push(
         it.id,
         it.order_id,
         it.product_id,
+        it.product_name,
         parseInt(it.quantity, 10),
         parseFloat(it.price)
       );
     });
 
-    const sql = `INSERT INTO order_items (id, order_id, product_id, quantity, price) VALUES ${placeholders}`;
+    const sql = `INSERT INTO order_items (id, order_id, product_id, product_name, quantity, price) VALUES ${placeholders}`;
     await conn.execute(sql, params);
     return items;
   },

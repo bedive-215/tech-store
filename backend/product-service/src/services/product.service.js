@@ -316,7 +316,7 @@ class ProductService {
                 // product gốc
                 const products = await this.Product.findAll({
                     where: { id: productIds },
-                    attributes: ['id', 'price', 'stock'],
+                    attributes: ['id', 'price', 'stock', 'name'],
                     raw: true
                 });
 
@@ -363,6 +363,7 @@ class ProductService {
                     if (flash) {
                         return {
                             id,
+                            name: product.name,
                             exists: true,
                             price: Number(flash.sale_price),
                             stock: Number(flash.stock_limit),
@@ -373,12 +374,13 @@ class ProductService {
                     return {
                         id,
                         exists: true,
+                        name: product.name,
                         price: Number(product.price),
                         stock: Number(product.stock),
                         is_flash_sale: false
                     };
                 });
-
+                // console.log(result);
                 await this.RabbitMQ.publish('price_result', {
                     products: result,
                     correlationId

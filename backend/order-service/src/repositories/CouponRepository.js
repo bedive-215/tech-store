@@ -35,17 +35,16 @@ const CouponRepository = {
 
   async list({ active, page = 1, limit = 20 }) {
     const offset = (Number(page) - 1) * Number(limit);
-
     let sql = `SELECT * FROM coupons WHERE 1=1`;
     if (active) {
       sql += ` AND start_at <= NOW() AND end_at >= NOW()`;
     }
-
     sql += ` ORDER BY created_at DESC LIMIT ?, ?`;
 
-    const [rows] = await pool.execute(sql, [offset, Number(limit)]);
+    const [rows] = await pool.query(sql, [offset, Number(limit)]);
     return rows;
   },
+
 
   async decreaseQuantity(conn, id) {
     await conn.execute(
