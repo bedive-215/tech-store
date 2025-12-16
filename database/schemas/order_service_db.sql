@@ -32,10 +32,19 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS coupons (
     id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(255) NOT NULL UNIQUE,
-    discount_percent INT NOT NULL,
+    discount_type ENUM('PERCENT', 'FIXED') NOT NULL,
+    -- Giá trị giảm:
+    --  PERCENT  -> 10 (tức 10%)
+    --  FIXED    -> 50000 (tức 50.000đ)
+    discount_value INT NOT NULL,
+    max_discount INT NULL,
+    min_order_value INT DEFAULT 0,
     start_at DATETIME NOT NULL,
     end_at DATETIME NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_code (code),
-    INDEX idx_dates (start_at, end_at)
+    INDEX idx_dates (start_at, end_at),
+    INDEX idx_type (discount_type)
 );
