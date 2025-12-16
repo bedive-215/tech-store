@@ -2,6 +2,7 @@ import models from "../models/index.js";
 import { AppError } from '../middlewares/errorHandler.middleware.js';
 import RabbitMQ from "../configs/rabbitmq.config.js";
 import 'dotenv/config';
+import crypto from 'crypto';
 
 import { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } from 'vnpay';
 
@@ -10,6 +11,7 @@ class PaymentService {
     constructor() {
         this.Payment = models.Payment;
         this.RabbitMQ = RabbitMQ;
+        this._promiseMap = new Map();
     }
 
     generateTxnRef(orderId, useTimestamp = true) {
@@ -20,10 +22,33 @@ class PaymentService {
         return orderId;
     }
 
-    async createPayment(order_id, user_id, amount) {
-        if (!order_id || !user_id || !amount) throw new AppError('Data are required', 400);
+    async createPayment(order_id, user_id) {
+        if (!order_id || !user_id) throw new AppError('Data are required', 400);
 
         const txnRef = this.generateTxnRef(order_id);
+
+        const correlationId = crypto.randomUUID();
+
+        const amountPromise = new Promise((resolve, reject) => {
+            this._promiseMap.set(correlationId, resolve);
+
+            setTimeout(() => {
+                if (this._promiseMap.has(correlationId)) {
+                    this._promiseMap.delete(correlationId);
+                    reject(new AppError("Order service timeout", 504));
+                }
+            }, 5000);
+        });
+
+        await this.RabbitMQ.publish('order_amount_get', {
+            order_id,
+            correlationId
+        });
+
+        const amount = await amountPromise;
+        if (!amount) {
+            throw new AppError('Order service did not return an amount', 400);
+        }
 
         const payment = await this.Payment.create({
             txn_ref: txnRef,
@@ -88,8 +113,8 @@ class PaymentService {
 
         const status = result.vnp_ResponseCode === "00" ? "success" : "failed";
 
-        if(status === 'success') {
-            await this.RabbitMQ.publish('payment_success', {order_id: payment.order_id});
+        if (status === 'success') {
+            await this.RabbitMQ.publish('payment_success', { order_id: payment.order_id });
         }
 
         await payment.update({
@@ -99,6 +124,18 @@ class PaymentService {
         });
 
         return payment;
+    }
+
+    async initMessageHandlers() {
+        this.RabbitMQ.subscribe('payment_order_amount_queue', (data, rk) => {
+            if (rk !== 'order_amount_result') return;
+            const { correlationId, amount } = data;
+            const resolver = this._promiseMap.get(correlationId);
+            if (resolver) {
+                resolver(amount);
+                this._promiseMap.delete(correlationId);
+            }
+        });
     }
 }
 

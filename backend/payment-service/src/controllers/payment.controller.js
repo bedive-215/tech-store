@@ -4,9 +4,9 @@ class PaymentController {
 
     async createPayment(req, res, next) {
         try {
-            const { order_id, amount } = req.body;
+            const { order_id } = req.body;
             const user_id = req.user.id;
-            const {vnpayUrl, payment_id} = await paymentService.createPayment(order_id, user_id, amount);
+            const {vnpayUrl, payment_id} = await paymentService.createPayment(order_id, user_id);
 
             return res.status(200).json({
                 success: true,
