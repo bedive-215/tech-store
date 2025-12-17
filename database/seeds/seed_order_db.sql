@@ -51,61 +51,23 @@ INSERT INTO orders (id, user_id, status, total_price, discount_amount, created_a
 -- ============================================
 -- ORDER ITEMS
 -- ============================================
-INSERT INTO order_items (id, order_id, product_id, quantity, price) VALUES
+INSERT INTO order_items (id, order_id, product_id, product_name, quantity, price) VALUES
 -- Order 1 items
-('d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a', 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', 'p1111111-1111-1111-1111-111111111111', 2, 500000.00),
-('e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b', 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', 'p2222222-2222-2222-2222-222222222222', 1, 375000.00),
+('d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a', 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', 'p1111111-1111-1111-1111-111111111111', 'Điện thoại iPhone 15 Pro', 2, 500000.00),
+('e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b', 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', 'p2222222-2222-2222-2222-222222222222', 'Laptop Dell XPS 13', 1, 375000.00),
 
 -- Order 2 items
-('f4a5b6c7-d8e9-4f0a-1b2c-3d4e5f6a7b8c', 'a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d', 'p3333333-3333-3333-3333-333333333333', 1, 850000.00),
+('f4a5b6c7-d8e9-4f0a-1b2c-3d4e5f6a7b8c', 'a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d', 'p3333333-3333-3333-3333-333333333333', 'Tai nghe Sony WH-1000XM5', 1, 850000.00),
 
 -- Order 3 items
-('a5b6c7d8-e9f0-4a1b-2c3d-4e5f6a7b8c9d', 'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', 'p4444444-4444-4444-4444-444444444444', 1, 2000000.00),
-('b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e', 'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', 'p5555555-5555-5555-5555-555555555555', 2, 250000.00),
+('a5b6c7d8-e9f0-4a1b-2c3d-4e5f6a7b8c9d', 'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', 'p4444444-4444-4444-4444-444444444444', 'Máy ảnh Canon EOS R7', 1, 2000000.00),
+('b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e', 'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', 'p5555555-5555-5555-5555-555555555555', 'Loa Bluetooth JBL Charge 5', 2, 250000.00),
 
 -- Order 4 items
-('c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f', 'c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f', 'p6666666-6666-6666-6666-666666666666', 3, 150000.00),
+('c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f', 'c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f', 'p6666666-6666-6666-6666-666666666666', 'Đồng hồ thông minh Apple Watch', 3, 150000.00),
 
 -- Order 5 items
-('d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a', 'd0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a', 'p7777777-7777-7777-7777-777777777777', 1, 3200000.00),
-
--- Order 6 items
-('e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b', 'e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b', 'p8888888-8888-8888-8888-888888888888', 2, 600000.00),
-('f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c', 'e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b', 'p9999999-9999-9999-9999-999999999999', 1, 600000.00),
-
--- Order 7 items
-('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 1, 450000.00),
-('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c', 'pbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 1, 500000.00),
-
--- Order 8 items
-('c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d', 'pcccccc-cccc-cccc-cccc-cccccccccccc', 2, 750000.00),
-
--- Order 9 items
-('d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a', 'b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8e', 'pdddddd-dddd-dddd-dddd-dddddddddddd', 1, 680000.00),
-
--- Order 10 items
-('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 'c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f', 'peeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 1, 1500000.00),
-('f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', 'c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f', 'pffffff-ffff-ffff-ffff-ffffffffffff', 2, 300000.00),
-
--- Order 11 items
-('a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d', 'd6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a', 'p0000000-0000-0000-0000-000000000001', 3, 400000.00),
-
--- Order 12 items
-('b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', 'e7f8a9b0-c1d2-4e3f-4a5b-6c7d8e9f0a1b', 'p0000000-0000-0000-0000-000000000002', 2, 270000.00),
-
--- Order 13 items
-('c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f', 'f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c', 'p0000000-0000-0000-0000-000000000003', 1, 890000.00),
-
--- Order 14 items
-('d0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a', 'a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d', 'p0000000-0000-0000-0000-000000000004', 1, 1200000.00),
-('e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b', 'a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d', 'p0000000-0000-0000-0000-000000000005', 1, 450000.00),
-
--- Order 15 items (cancelled)
-('f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c', 'b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e', 'p0000000-0000-0000-0000-000000000006', 2, 375000.00),
-
--- Order 16 items (cancelled)
-('a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d', 'c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f', 'p0000000-0000-0000-0000-000000000007', 1, 320000.00);
-
+('d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a', 'd0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a', 'p7777777-7777-7777-7777-777777777777', 'TV Samsung QLED 55 inch', 1, 3200000.00);
 
 -- ============================================
 -- VERIFICATION QUERIES
@@ -117,9 +79,7 @@ SELECT
 UNION ALL
 SELECT 'Orders', COUNT(*) FROM orders
 UNION ALL
-SELECT 'Order Items', COUNT(*) FROM order_items
-UNION ALL
-SELECT 'Payments', COUNT(*) FROM payments;
+SELECT 'Order Items', COUNT(*) FROM order_items;
 
 -- Check orders summary by status
 SELECT 
