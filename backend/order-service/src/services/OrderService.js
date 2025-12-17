@@ -29,7 +29,7 @@ const OrderService = {
         setTimeout(() => {
           if (promiseMap.has(correlationId)) {
             promiseMap.delete(correlationId);
-            reject(new AppError("Product service timeout", 504));
+            reject(new Error("Product service timeout", 504));
           }
         }, 5000);
       });
@@ -49,11 +49,11 @@ const OrderService = {
         const p = productMap.get(it.product_id);
 
         if (!p || !p.exists) {
-          throw new AppError(`Product ${it.product_id} not found`, 404);
+          throw new Error(`Product ${it.product_id} not found`, 404);
         }
 
         if (it.quantity > p.stock) {
-          throw new AppError(
+          throw new Error(
             `Product ${it.product_id} out of stock (available: ${p.stock})`,
             400
           );
@@ -226,7 +226,7 @@ const OrderService = {
 
   async cancelOrder(orderId, reason = null) {
     const order = await OrderRepository.findByIdWithItems(orderId);
-    if (!order) throw new AppError('Order not found', 404);
+    if (!order) throw new Error('Order not found', 404);
 
     if (order.status === 'cancelled') {
       return {
