@@ -18,6 +18,7 @@ class ProductService {
         this.FlashSaleItem = FlashSaleItem;
     }
 
+
     async getProducts(query) {
         let {
             page = 1,
@@ -32,15 +33,11 @@ class ProductService {
 
         page = Number(page) || 1;
         limit = Number(limit) || 20;
-
         const offset = (page - 1) * limit;
+        const now = new Date();
 
         const where = {};
-
-        if (search) {
-            where.name = { [Op.like]: `%${search}%` };
-        }
-
+        if (search) where.name = { [Op.like]: `%${search}%` };
         if (min_price || max_price) {
             where.price = {};
             if (min_price) where.price[Op.gte] = Number(min_price);
@@ -67,6 +64,24 @@ class ProductService {
                 where: { type: "image", is_primary: true },
                 required: false,
                 limit: 1
+            },
+            {
+                model: this.FlashSaleItem,
+                as: "FlashSaleItems",
+                attributes: ["sale_price", "stock_limit"],
+                required: false,
+                include: [
+                    {
+                        model: this.FlashSale,
+                        as: "flash_sale",
+                        attributes: ["id", "name", "start_at", "end_at"],
+                        where: {
+                            start_at: { [Op.lte]: now },
+                            end_at: { [Op.gte]: now }
+                        },
+                        required: true
+                    }
+                ]
             }
         ];
 
@@ -76,8 +91,7 @@ class ProductService {
             rating_desc: ["rating_avg", "DESC"],
             newest: ["created_at", "DESC"]
         };
-
-        let order = [sortMap[sort] || ["created_at", "DESC"]];
+        const order = [sortMap[sort] || ["created_at", "DESC"]];
 
         const { rows, count } = await this.Product.findAndCountAll({
             where,
@@ -88,18 +102,33 @@ class ProductService {
             distinct: true
         });
 
-        const products = rows.map(p => ({
-            product_id: p.id,
-            name: p.name,
-            price: p.price,
-            stock: p.stock,
-            brand: p.Brand?.name,
-            category: p.Category?.name,
-            image: p.media?.length ? p.media[0].url : null
-        }));
+        const products = rows.map(p => {
+            // Lấy FlashSaleItem nếu có
+            const flashSaleItem = p.FlashSaleItems?.[0];
+            return {
+                product_id: p.id,
+                name: p.name,
+                price: p.price, // giữ giá gốc
+                stock: p.stock,
+                brand: p.Brand?.name,
+                category: p.Category?.name,
+                image: p.media?.length ? p.media[0].url : null,
+                flash_sale: flashSaleItem
+                    ? {
+                        sale_price: flashSaleItem.sale_price,
+                        stock_limit: flashSaleItem.stock_limit,
+                        flash_sale_id: flashSaleItem.flash_sale.id,
+                        flash_sale_name: flashSaleItem.flash_sale.name,
+                        start_at: flashSaleItem.flash_sale.start_at,
+                        end_at: flashSaleItem.flash_sale.end_at
+                    }
+                    : null
+            };
+        });
 
         return { products, total: count, page, limit };
     }
+
 
     async getProductById(productId) {
         const product = await this.Product.findOne({

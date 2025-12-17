@@ -37,7 +37,12 @@ class UserService {
 
         if (full_name !== undefined) user.full_name = full_name;
         if (phone_number !== undefined) user.phone_number = phone_number;
-        if (date_of_birth !== undefined) user.date_of_birth = date_of_birth;
+        if (date_of_birth !== undefined) {
+            const dob = new Date(date_of_birth);
+            if (!isNaN(dob)) {
+                user.date_of_birth = dob.toISOString().split('T')[0];
+            }
+        }
 
         await user.save();
 
