@@ -128,31 +128,36 @@ const OrderRepository = {
     }
   },
 
-  async updateStatus(connOrPool, orderId, status, extraFields = {}) {
-    const conn = connOrPool || pool;
-    try {
-      const sets = ['status = ?', 'updated_at = ?'];
-      const params = [status, new Date()];
+  async updateStatus(conn, orderId, status, extra = {}) {
+    const c = conn || pool;
 
-      for (const k of Object.keys(extraFields)) {
-        sets.push(`${k} = ?`);
-        params.push(extraFields[k]);
-      }
+    const fields = ['status = ?', 'updated_at = ?'];
+    const values = [status, new Date()];
 
-      params.push(orderId);
-      const sql = `UPDATE orders SET ${sets.join(', ')} WHERE id = ?`;
-      const [result] = await conn.execute(sql, params);
-
-      // optional: check affectedRows
-      if (result && result.affectedRows === 0) {
-        return null; // not found
-      }
-
-      return this.findById(orderId);
-    } catch (err) {
-      console.error('🔥 SQL ERROR (updateStatus):', err.message, 'orderId:', orderId, 'status:', status);
-      throw err;
+    if (status === 'paid') {
+      fields.push('paid_at = ?');
+      values.push(extra.paid_at || new Date());
     }
+
+    if (status === 'cancelled') {
+      fields.push('cancelled_at = ?');
+      values.push(extra.cancelled_at || new Date());
+
+      if (extra.cancel_reason) {
+        fields.push('cancel_reason = ?');
+        values.push(extra.cancel_reason);
+      }
+    }
+
+    values.push(orderId);
+
+    const sql = `
+    UPDATE orders
+    SET ${fields.join(', ')}
+    WHERE id = ?
+  `;
+
+    return c.execute(sql, values);
   },
 
   async findByIdWithItems(orderId) {
