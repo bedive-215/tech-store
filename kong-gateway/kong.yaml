@@ -38,9 +38,7 @@ services:
   read_timeout: 60000
   retries: 5
   routes:
-  - hosts:
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: auth-routes
     path_handling: v0
     paths:
@@ -53,10 +51,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - auth-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: review-routes
     path_handling: v0
     paths:
@@ -69,10 +64,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - localhost
-    - auth-service
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: user-routes
     path_handling: v0
     paths:
@@ -85,10 +77,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - localhost
-    - auth-service
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: wishlist-routes
     path_handling: v0
     paths:
@@ -111,10 +100,7 @@ services:
   read_timeout: 60000
   retries: 5
   routes:
-  - hosts:
-    - cart-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: cart-routes
     path_handling: v0
     paths:
@@ -137,10 +123,7 @@ services:
   read_timeout: 60000
   retries: 5
   routes:
-  - hosts:
-    - order-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: coupon-routes
     path_handling: v0
     paths:
@@ -153,10 +136,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - order-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: order-routes
     path_handling: v0
     paths:
@@ -179,10 +159,7 @@ services:
   read_timeout: 60000
   retries: 5
   routes:
-  - hosts:
-    - payment-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: payment-routes
     path_handling: v0
     paths:
@@ -205,10 +182,7 @@ services:
   read_timeout: 60000
   retries: 5
   routes:
-  - hosts:
-    - product-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: brand-routes
     path_handling: v0
     paths:
@@ -221,10 +195,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - product-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: category-routes
     path_handling: v0
     paths:
@@ -237,10 +208,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - localhost
-    - product-service
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: flash-sale-routes
     path_handling: v0
     paths:
@@ -253,10 +221,7 @@ services:
     request_buffering: true
     response_buffering: true
     strip_path: false
-  - hosts:
-    - product-service
-    - localhost
-    https_redirect_status_code: 426
+  - https_redirect_status_code: 426
     name: product-routes
     path_handling: v0
     paths:
