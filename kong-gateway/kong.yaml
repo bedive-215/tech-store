@@ -1,4 +1,32 @@
 _format_version: "3.0"
+plugins:
+- config:
+    credentials: true
+    exposed_headers:
+    - Authorization
+    headers:
+    - Authorization
+    - Content-Type
+    - X-Requested-With
+    max_age: 3600
+    methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+    origins:
+    - http://localhost:5173,http://localhost:8081
+    preflight_continue: false
+    private_network: false
+  enabled: true
+  name: cors
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
 services:
 - connect_timeout: 60000
   enabled: true

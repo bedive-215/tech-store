@@ -270,11 +270,13 @@ class AuthService {
   async oauthLogin({ token, phone_number, date_of_birth }) {
     if (!token) throw new AppError('Token is required', 400);
 
+    // 1. Verify Google token
     const googleData = await this.verifyGoogleToken(token);
     const { email, provider_uid, name } = googleData;
 
-    // 1. Tìm user theo email
+    // 2. Find or create user
     let user = await this.User.findOne({ where: { email } });
+
     if (!user) {
       user = await this.User.create({
         email,
@@ -286,18 +288,13 @@ class AuthService {
       });
     }
 
-    // 2. Tìm info OAuth
-    let oauth = await this.UserOAuth.findOne({
-      where: { provider_uid }
+    // 3. OAuth mapping
+    const [oauth] = await this.UserOAuth.findOrCreate({
+      where: { provider_uid },
+      defaults: { user_id: user.id }
     });
 
-    if (!oauth) {
-      await this.UserOAuth.create({
-        user_id: user.id,
-        provider_uid,
-      });
-    }
-
+    // 4. Update missing profile fields (if client sends)
     let updated = false;
 
     if (!user.phone_number && phone_number) {
@@ -312,7 +309,24 @@ class AuthService {
 
     if (updated) await user.save();
 
-    // 4. Tạo JWT
+    // 5. CHECK PROFILE COMPLETENESS
+    const missingFields = {
+      phone_number: !user.phone_number,
+      date_of_birth: !user.date_of_birth,
+    };
+
+    const isProfileComplete = !missingFields.phone_number && !missingFields.date_of_birth;
+
+    if (!isProfileComplete) {
+      return {
+        status: 'INCOMPLETE_PROFILE',
+        message: 'Additional information required',
+        user_id: user.id,
+        missing_fields: missingFields,
+      };
+    }
+
+    // 6. PROFILE OK → ISSUE TOKENS
     const payload = {
       user_id: user.id,
       email: user.email,
@@ -324,11 +338,13 @@ class AuthService {
     const refreshToken = generateRefreshToken(payload);
 
     user.refresh_token = refreshToken;
-    user.refresh_token_expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    user.refresh_token_expires_at = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    );
     await user.save();
 
     return {
-      message: "OAuth login successful",
+      message: 'OAuth login successful',
       accessToken,
       refreshToken,
       user: {
@@ -338,10 +354,11 @@ class AuthService {
         phone_number: user.phone_number,
         date_of_birth: user.date_of_birth,
         role: user.role,
-        avatar: user.avatar
-      }
+        avatar: user.avatar,
+      },
     };
   }
+
 
   async sendResetPasswordCode(email) {
     if (!email) throw new AppError('Email is required', 400);
