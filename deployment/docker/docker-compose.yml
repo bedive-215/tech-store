@@ -322,7 +322,6 @@ services:
     volumes:
       - payment-data:/var/lib/mysql
       - ../../database/schemas/payment_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ../../database/seeds/seed_payment_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
       mysqld
