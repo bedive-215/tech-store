@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS orders (
     final_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     shipping_address TEXT,
     cancelled_at DATETIME,
+    paid_at DATETIME NULL AFTER status,
     cancel_reason TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
