@@ -14,7 +14,7 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const {refreshToken, ...result} = await AuthService.login(email, password);
+    const { refreshToken, ...result } = await AuthService.login(email, password);
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -66,28 +66,36 @@ export const checkAuth = async (req, res, next) => {
 export const logout = async (req, res, next) => {
   try {
     await AuthService.clearRefreshToken(req.user.id);
-    
+
     res.clearCookie("refreshToken", {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: '/'
     });
-    
-    return res.status(200).json({ 
+
+    return res.status(200).json({
       status: 'success',
-      message: "Logged out successfully" 
+      message: "Logged out successfully"
     });
   } catch (err) {
     next(err);
-  }  
+  }
 };
 
 export const oauthLogin = async (req, res, next) => {
   try {
     const data = await AuthService.oauthLogin(req.body);
 
-    // set cookie refresh token
+    if (data.status === 'INCOMPLETE_PROFILE') {
+      return res.status(200).json({
+        status: 'incomplete',
+        message: data.message,
+        user_id: data.user_id,
+        missing_fields: data.missing_fields,
+      });
+    }
+
     res.cookie("refreshToken", data.refreshToken, {
       httpOnly: true,
       sameSite: "strict",
@@ -106,6 +114,7 @@ export const oauthLogin = async (req, res, next) => {
     next(err);
   }
 };
+
 
 export const sendResetPasswordCode = async (req, res, next) => {
   try {
