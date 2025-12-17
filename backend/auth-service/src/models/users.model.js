@@ -27,7 +27,7 @@ export default (sequelize) => {
         phone_number: {
             type: DataTypes.STRING(20),
             unique: true,
-            allowNull: false
+            allowNull: true
         },
         role: {
             type: DataTypes.ENUM("user", "admin"),

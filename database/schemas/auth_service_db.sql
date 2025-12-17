@@ -4,7 +4,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) DEFAULT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
-    phone_number VARCHAR(20) UNIQUE DEFAULT NULL,
+    phone_number VARCHAR(20) DEFAULT NULL,
     role ENUM('user','admin') NOT NULL DEFAULT 'user',
     date_of_birth DATE,
     email_verified BOOLEAN DEFAULT FALSE,
