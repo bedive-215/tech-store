@@ -290,6 +290,18 @@ const OrderService = {
     };
   },
 
+  async setOrderConfirmed(orderId) {
+    const order = await OrderRepository.updateStatus(null, orderId, 'confirmed');
+    if (!order) throw new Error('Order not found');
+
+    return {
+      order_id: order.id,
+      status: order.status,
+      updated_at: order.updated_at
+    };
+  },
+
+
   async listUserOrders(userId, { page = 1, limit = 10, status = null } = {}) {
     const { rows, total } = await OrderRepository.findByUser(userId, {
       page,

@@ -105,6 +105,18 @@ const OrderController = {
       console.error(err);
       return res.status(400).json({ error: err.message });
     }
+  },
+
+  // --- NEW: set confirmed
+  async setConfirmed(req, res) {
+    try {
+      const orderId = req.params.id;
+      const result = await OrderService.setOrderConfirmed(orderId);
+      return res.json(result);
+    } catch (err) {
+      console.error(err);
+      return res.status(400).json({ error: err.message });
+    }
   }
 };
 

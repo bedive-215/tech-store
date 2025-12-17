@@ -131,6 +131,11 @@ const OrderRepository = {
   async updateStatus(conn, orderId, status, extra = {}) {
     const c = conn || pool;
 
+    // Lấy order trước
+    const [rows] = await c.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+    const order = rows[0];
+    if (!order) return null;
+
     const fields = ['status = ?', 'updated_at = ?'];
     const values = [status, new Date()];
 
@@ -151,13 +156,11 @@ const OrderRepository = {
 
     values.push(orderId);
 
-    const sql = `
-    UPDATE orders
-    SET ${fields.join(', ')}
-    WHERE id = ?
-  `;
+    const sql = `UPDATE orders SET ${fields.join(', ')} WHERE id = ?`;
+    await c.execute(sql, values);
 
-    return c.execute(sql, values);
+    const [updatedRows] = await c.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+    return updatedRows[0];
   },
 
   async findByIdWithItems(orderId) {

@@ -24,4 +24,7 @@ router.put('/:id/ship', OrderController.setShipping);
 // Set order status => completed
 router.put('/:id/complete', OrderController.setCompleted);
 
+// Set order status => confirmed
+router.put('/:id/confirmed', OrderController.setConfirmed);
+
 module.exports = router;
