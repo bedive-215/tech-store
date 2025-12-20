@@ -36,7 +36,7 @@ const OrderRepository = {
       await c.execute(sql, params);
       console.log("=== ORDER CREATED SUCCESSFULLY ===");
     } catch (err) {
-      console.error("🔥 SQL ERROR (create):", err.message);
+      console.error("SQL ERROR (create):", err.message);
       throw err;
     }
 
@@ -51,7 +51,7 @@ const OrderRepository = {
       console.log('>> findById result rows:', rows.length);
       return rows[0] || null;
     } catch (err) {
-      console.error('🔥 SQL ERROR (findById):', err.message, 'orderId:', orderId);
+      console.error('SQL ERROR (findById):', err.message, 'orderId:', orderId);
       throw err;
     }
   },
@@ -90,7 +90,7 @@ const OrderRepository = {
 
       return { rows, total };
     } catch (err) {
-      console.error('🔥 SQL ERROR (findAll):', err.message);
+      console.error('SQL ERROR (findAll):', err.message);
       throw err;
     }
   },
@@ -123,7 +123,7 @@ const OrderRepository = {
       const total = countRows[0]?.total || 0;
       return { rows, total };
     } catch (err) {
-      console.error('🔥 SQL EXEC ERROR in findByUser:', err);
+      console.error('SQL EXEC ERROR in findByUser:', err);
       throw err;
     }
   },
@@ -190,7 +190,69 @@ const OrderRepository = {
       console.error('SQL ERROR (findByIdWithItems):', err.message);
       throw err;
     }
-  }
+  },
+
+  async findPaidOrdersByDateRange(startDate, endDate) {
+    const sql = `
+    SELECT final_price
+    FROM orders
+    WHERE status = 'paid'
+      AND paid_at BETWEEN ? AND ?
+  `;
+
+    const [rows] = await pool.execute(sql, [startDate, endDate]);
+    return rows;
+  },
+
+  async revenueByDay(startDate, endDate) {
+    const sql = `
+    SELECT 
+      DATE(paid_at) AS date,
+      SUM(final_price) AS revenue,
+      COUNT(*) AS total_orders
+    FROM orders
+    WHERE status = 'paid'
+      AND paid_at BETWEEN ? AND ?
+    GROUP BY DATE(paid_at)
+    ORDER BY DATE(paid_at)
+  `;
+
+    const [rows] = await pool.execute(sql, [startDate, endDate]);
+    return rows;
+  },
+
+  async revenueByMonth(year) {
+    const sql = `
+    SELECT 
+      MONTH(paid_at) AS month,
+      SUM(final_price) AS revenue,
+      COUNT(*) AS total_orders
+    FROM orders
+    WHERE status = 'paid'
+      AND YEAR(paid_at) = ?
+    GROUP BY MONTH(paid_at)
+    ORDER BY month
+  `;
+
+    const [rows] = await pool.execute(sql, [year]);
+    return rows;
+  },
+
+  async revenueByYear() {
+    const sql = `
+    SELECT 
+      YEAR(paid_at) AS year,
+      SUM(final_price) AS revenue,
+      COUNT(*) AS total_orders
+    FROM orders
+    WHERE status = 'paid'
+    GROUP BY YEAR(paid_at)
+    ORDER BY year
+  `;
+
+    const [rows] = await pool.execute(sql);
+    return rows;
+  },
 
 };
 

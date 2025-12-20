@@ -7,6 +7,7 @@ const authMiddleware = require("../src/middlewares/auth");
 // Routes
 const ordersRouter = require("./routes/orders");
 const couponsRouter = require("./routes/coupons");
+const analyticsRouter = require("./routes/analytic");
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cors({
 
 // Routes
 app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
+app.use("/api/v1/analytics", authMiddleware.auth, authMiddleware.checkRole('admin'), analyticsRouter);
 app.use("/api/v1/coupons", couponsRouter);
 
 app.use((err, req, res, next) => {

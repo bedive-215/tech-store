@@ -19,10 +19,10 @@ async function testConnection() {
   try {
     const conn = await pool.getConnection();
     await conn.ping();
-    console.log("✅ MySQL connection OK");
+    console.log("MySQL connection OK");
     conn.release();
   } catch (err) {
-    console.error("❌ MySQL connection failed:", err);
+    console.error("MySQL connection failed:", err);
     process.exit(1);
   }
 }
@@ -41,7 +41,7 @@ async function initDB() {
 
     // Tạo database nếu chưa có
     await conn.query(`CREATE DATABASE IF NOT EXISTS \`${env.db.database}\`;`);
-    console.log(`✅ Database '${env.db.database}' checked/created`);
+    console.log(`Database '${env.db.database}' checked/created`);
 
     // Connect vào database vừa tạo
     await conn.changeUser({ database: env.db.database });
@@ -50,11 +50,11 @@ async function initDB() {
     const sqlFile = path.join(__dirname, "../../sql/init.sql");
     const sql = fs.readFileSync(sqlFile, "utf8");
     await conn.query(sql);
-    console.log("✅ Tables initialized from init.sql");
+    console.log("Tables initialized from init.sql");
 
     await conn.end();
   } catch (err) {
-    console.error("❌ initDB failed:", err);
+    console.error("InitDB failed:", err);
     process.exit(1);
   }
 }
