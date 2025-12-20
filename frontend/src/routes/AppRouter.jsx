@@ -1,3 +1,4 @@
+// src/AppRouter.jsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -41,6 +42,10 @@ import CustomerInfo from "@/pages/user/CustomerInfo";
 // ===== NEW: user orders pages =====
 import Orders from "@/pages/user/Orders"; // /user/orders
 
+// Payment result pages (public)
+import PaymentSuccess from "@/pages/user/PaymentSuccess";
+import PaymentFailed from "@/pages/user/PaymentFailed";
+
 // Errors
 import NotFound from "@/pages/error/NotFound";
 import Forbidden from "@/pages/error/Forbidden";
@@ -49,10 +54,14 @@ import Forbidden from "@/pages/error/Forbidden";
 import { ROUTERS } from "@/utils/constants";
 
 const routeConfig = [
-  // PUBLIC
+  // PUBLIC (auth)
   { path: ROUTERS.PUBLIC.LOGIN, element: Login, layout: AuthLayout },
   { path: ROUTERS.PUBLIC.REGISTER, element: Register, layout: AuthLayout },
   { path: ROUTERS.PUBLIC.FORGOT_PASSWORD, element: ForgotPassword, layout: AuthLayout },
+
+  // PUBLIC (payment result) - no layout so they render standalone
+  { path: ROUTERS.PUBLIC.PAYMENT_SUCCESS, element: PaymentSuccess }, // /payment-success
+  { path: ROUTERS.PUBLIC.PAYMENT_FAILED, element: PaymentFailed },   // /payment-failed
 
   // USER
   { path: ROUTERS.USER.HOME, element: Home, layout: UserLayout },
@@ -60,7 +69,7 @@ const routeConfig = [
   { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout },
   { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout },
 
-  // ➕ 3 trang mới
+  // ➕ 3 trang mới (user)
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
@@ -93,6 +102,7 @@ const AppRouter = () => {
       {routeConfig.map((route) => {
         const Page = route.element;
 
+        // If a layout is provided, wrap the Page with it.
         const Wrapped = route.layout
           ? () => (
               <route.layout>

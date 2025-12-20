@@ -9,7 +9,7 @@ import "@/index.css";
 // Providers
 import { AuthProvider } from "@/providers/AuthProvider.jsx";
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import { PaymentProvider } from "@/providers/PaymentProvider";
+import  PaymentProvider  from "@/providers/PaymentProvider";
 import UserProvider from "@/providers/UserProvider";
 import ProductProvider from "@/providers/ProductProvider";
 
@@ -18,6 +18,9 @@ import { OrderProvider } from "@/providers/OrderProvider";
 
 // NEW: FlashSaleProvider
 import FlashSaleProvider from "@/providers/FlashSaleProvider";
+
+// 🎯 NEW: CartProvider
+import CartProvider from "@/providers/CartProvider";
 
 console.log("🚀 Rendering App...");
 
@@ -31,13 +34,16 @@ root.render(
           <UserProvider>
             <PaymentProvider>
               <ProductProvider>
-                {/* ⭐ BỌC OrderProvider Ở NGOÀI CustomerInfo, Cart, Checkout,... */}
-                <OrderProvider>
-                  {/* ⭐ BỌC FlashSaleProvider để useFlashSale có thể dùng ở toàn app (đặc biệt admin) */}
-                  <FlashSaleProvider>
-                    <App />
-                  </FlashSaleProvider>
-                </OrderProvider>
+                {/* ⭐ BỌC CartProvider ở đây để toàn app con (Product, Cart, Checkout, CustomerInfo...) có thể dùng useCart */}
+                <CartProvider>
+                  {/* ⭐ BỌC OrderProvider Ở NGOÀI CustomerInfo, Cart, Checkout,... */}
+                  <OrderProvider>
+                    {/* ⭐ BỌC FlashSaleProvider để useFlashSale có thể dùng ở toàn app (đặc biệt admin) */}
+                    <FlashSaleProvider>
+                      <App />
+                    </FlashSaleProvider>
+                  </OrderProvider>
+                </CartProvider>
               </ProductProvider>
             </PaymentProvider>
           </UserProvider>
