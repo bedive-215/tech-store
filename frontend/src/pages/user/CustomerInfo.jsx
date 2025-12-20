@@ -1,11 +1,13 @@
-// src/pages/user/CustomerInfo.jsx
+// File: src/pages/user/CustomerInfo.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Store, MapPin, CreditCard, Wallet, Landmark, CheckCircle } from "lucide-react";
+import { Store, MapPin, CheckCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { useOrder } from "@/providers/OrderProvider";
 import { orderService } from "@/services/orderService";
+import { paymentService } from "@/services/paymentService";
 import { useAuth } from "@/hooks/useAuth";
+import OrderSummary from "./OrderSummary"; // <- new
 
 export default function CustomerInfo({
   cartItems = [],
@@ -73,14 +75,12 @@ export default function CustomerInfo({
     createOrderFromContext = null;
   }
 
-  // helper lấy số từ value (trả về Number hoặc null)
   const toNumberOrNull = (v) => {
     if (v === null || v === undefined) return null;
     if (typeof v === "number") {
       return Number.isFinite(v) ? v : null;
     }
     if (typeof v === "string") {
-      // remove non-digit except - and .
       const cleaned = v.replace(/[^\d.-]/g, "");
       const n = Number(cleaned);
       return Number.isFinite(n) ? n : null;
@@ -88,7 +88,6 @@ export default function CustomerInfo({
     return null;
   };
 
-  // helper: thu thập candidate numeric fields from an object (shallow)
   const collectCandidates = (obj) => {
     const keys = ["final_price", "finalPrice", "finalprice", "total_amount", "totalAmount", "totalamount", "total_price", "totalPrice", "totalprice"];
     const res = [];
@@ -102,14 +101,10 @@ export default function CustomerInfo({
     return res;
   };
 
-  // 🔥 NORMALIZE ORDER - LẤY ĐÚNG final_price (ưu tiên giá > 0 ở các vị trí nested)
   const normalizeOrder = (serverOrder) => {
     if (!serverOrder) return null;
 
-    // candidates from top level
     const topCandidates = collectCandidates(serverOrder);
-
-    // candidates from nested likely places
     const nestedPlaces = [serverOrder.raw, serverOrder.data, serverOrder.order, serverOrder.result];
     const nestedCandidates = nestedPlaces.reduce((acc, place) => {
       if (place && typeof place === "object") {
@@ -118,10 +113,8 @@ export default function CustomerInfo({
       return acc;
     }, []);
 
-    // merge candidates preserving order: topCandidates then nestedCandidates
     const allCandidates = [...topCandidates, ...nestedCandidates];
 
-    // pick first >0 if exists, otherwise first finite (including 0)
     let final_price = null;
     for (const c of allCandidates) {
       if (Number.isFinite(c) && c > 0) {
@@ -138,11 +131,9 @@ export default function CustomerInfo({
       }
     }
     if (final_price === null) {
-      // fallback to specific fields if still null
       final_price = toNumberOrNull(serverOrder.final_price) ?? toNumberOrNull(serverOrder.total_amount) ?? 0;
     }
 
-    // total_price / discount similar strategy
     let total_price = toNumberOrNull(serverOrder.total_price);
     if (total_price === null) {
       total_price = toNumberOrNull(serverOrder.raw?.total_price) ?? toNumberOrNull(serverOrder.data?.total_price) ?? toNumberOrNull(serverOrder.order?.total_price) ?? 0;
@@ -172,18 +163,22 @@ export default function CustomerInfo({
   const fallbackCreateOrder = async (payload) => {
     const res = await orderService.createOrder(payload);
     const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
-    return normalizeOrder(serverOrder);
+    return normalizeOrder(serverOrder) ?? serverOrder;
   };
 
   const createOrder = createOrderFromContext ?? fallbackCreateOrder;
 
+  // Chỉ giữ lại 3 phương thức thanh toán
   const paymentOptions = [
-    { key: "cod", label: "Thanh toán khi nhận hàng", icon: <Wallet size={22} /> },
-    { key: "bank", label: "Chuyển khoản ngân hàng", icon: <Landmark size={22} /> },
-    { key: "momo", label: "Ví MoMo", icon: <CreditCard size={22} /> },
-    { key: "vnpay", label: "VNPay", icon: <CreditCard size={22} /> },
-    { key: "zalopay", label: "ZaloPay", icon: <CreditCard size={22} /> },
+    { key: "cod", label: "Thanh toán khi nhận hàng", icon: <WalletIcon /> },
+    { key: "bank", label: "Chuyển khoản ngân hàng", icon: <BankIcon /> },
+    { key: "momo", label: "Ví MoMo", icon: <CardIcon /> },
   ];
+
+  // small in-file icon components to avoid extra imports in the extracted file
+  function WalletIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21V17H3V7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+  function BankIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 11L12 3L21 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 11V19H19V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+  function CardIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M2 10H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 
   const updateForm = (patch) => setForm((s) => ({ ...s, ...patch }));
 
@@ -202,8 +197,6 @@ export default function CustomerInfo({
   };
 
   const toggleSelect = (id) => updateItem(id, { selected: !localCartItems.find(i => i.id === id)?.selected });
-
-  const removeItem = (id) => setLocalCartItems(prev => prev.filter(i => i.id !== id));
 
   const buildShippingAddress = () => {
     if (form.shippingAddress && form.shippingAddress.trim()) return form.shippingAddress.trim();
@@ -226,15 +219,14 @@ export default function CustomerInfo({
     }));
 
     const payload = {
-      user_id: user?.user_id || user?.id || user?._id || null,
       items,
       coupon_code: form.couponCode || undefined,
       shipping_address: buildShippingAddress(),
-      payment_method: form.paymentMethod,
       note: form.note || undefined,
       customer_name: form.name || undefined,
       customer_phone: form.phone || undefined,
       customer_email: form.email || undefined,
+      payment_method: form.paymentMethod || undefined,
       invoice:
         form.needInvoice === "yes"
           ? {
@@ -263,8 +255,7 @@ export default function CustomerInfo({
     const example = {
       items: [{ product_id: "P123", quantity: 2, price: 500000 }],
       coupon_code: "NEWYEAR2024",
-      shipping_address: "123 Nguyen Trai, Q1, HCMC",
-      payment_method: "momo"
+      shipping_address: "123 Nguyen Trai, Q1, HCMC"
     };
 
     const items = example.items.map((it, idx) => ({
@@ -281,13 +272,38 @@ export default function CustomerInfo({
     updateForm({
       couponCode: example.coupon_code,
       shippingAddress: example.shipping_address,
-      paymentMethod: example.payment_method,
     });
 
     toast.success("Đã áp payload mẫu.");
   };
 
-  // handleSubmit là async - chỉ dùng await ở trong hàm async
+  const getAuthToken = () => {
+    return (
+      user?.token ||
+      user?.access_token ||
+      user?.accessToken ||
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("token") ||
+      null
+    );
+  };
+
+  const extractVnpayUrlFromResponse = (res) => {
+    // many backends put url in different places — try common shapes
+    if (!res) return null;
+    // axios response often has data
+    const d = res.data ?? res;
+    // try common keys
+    return (
+      (d && (d.vnpayUrl || d.vnpayURL || d.vnpay_url || d.vnpayUrl || d.vnpayUrl)) ||
+      (d && d.data && (d.data.vnpayUrl || d.data.vnpay_url)) ||
+      (d && d.vnpayurl) ||
+      (d && d.payment_url) ||
+      (d && d.vnpay_url) ||
+      null
+    );
+  };
+
   const handleSubmit = async () => {
     if (!validate()) return;
 
@@ -297,18 +313,14 @@ export default function CustomerInfo({
 
     setLoading(true);
     try {
-      // createOrder có thể trả về object đã normalized (nếu dùng context) hoặc raw server response
       const orderRes = await createOrder(payload);
       console.log("✅ ORDER TRẢ VỀ (raw):", orderRes);
 
-      // Normalize - dùng normalizeOrder cho orderRes chính và các vị trí nested
       let normalized = normalizeOrder(orderRes);
       if (!normalized || !Number.isFinite(Number(normalized.final_price)) || Number(normalized.final_price) === 0) {
-        // try other nested places just in case (take first non-zero if possible)
-        normalized = normalizeOrder(orderRes?.raw) || normalizeOrder(orderRes?.data) || normalizeOrder(orderRes?.order) || normalizeOrder({ ...orderRes });
+        normalized = normalizeOrder(orderRes?.raw) || normalizeOrder(orderRes?.data) || normalizeOrder(orderRes?.order) || normalizeOrder({ ...orderRes }) || normalized;
       }
 
-      // ensure numbers
       const finalNormalized = {
         ...normalized,
         total_price: Number.isFinite(Number(normalized?.total_price)) ? Number(normalized.total_price) : (Number(orderRes?.total_price) || 0),
@@ -323,7 +335,90 @@ export default function CustomerInfo({
       setShowSuccessModal(true);
       toast.success("Đặt hàng thành công!");
 
-      if (typeof goPayment === "function") goPayment(finalNormalized);
+      // Nếu chọn COD thì không gọi payment API
+      if (form.paymentMethod === "cod") {
+        setLoading(false);
+        return;
+      }
+
+      // nếu callback goPayment được truyền (component cha muốn override), gọi trước/không gọi tiếp
+      if (typeof goPayment === "function") {
+        try {
+          // nếu goPayment trả về truthy và tự xử lý thanh toán thì dừng ở đây
+          const handled = await goPayment(finalNormalized);
+          if (handled) {
+            setLoading(false);
+            return;
+          }
+          // nếu goPayment không xử lý (falsy), tiếp tục xử lý mặc định ở dưới
+        } catch (e) {
+          // ignore and continue to default payment flow
+          console.warn("goPayment threw, fallback to default payment flow", e);
+        }
+      }
+
+      // DEFAULT: tạo payment qua API và redirect tới vnpayUrl nếu backend trả về
+      const orderId = finalNormalized.order_id ?? finalNormalized.id ?? finalNormalized._id;
+      const amount = Number(finalNormalized.final_price ?? finalNormalized.total_price ?? finalNormalized.amount ?? 0);
+
+      if (!orderId || !Number.isFinite(amount) || amount <= 0) {
+        toast.error("Không có order_id hoặc amount hợp lệ để thanh toán.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const token = getAuthToken();
+        const payRes = await paymentService.createPayment(
+          { 
+            order_id: String(orderId), 
+            amount: amount,
+            payment_method: form.paymentMethod 
+          },
+          token
+        );
+
+        // Thử nhiều chỗ khác nhau để lấy vnpayUrl hoặc payment url
+        let paymentUrl = null;
+        // response shapes: axios -> res.data, or direct object
+        paymentUrl = extractVnpayUrlFromResponse(payRes) || extractVnpayUrlFromResponse(payRes?.data) || extractVnpayUrlFromResponse(payRes?.data?.data);
+
+        // Also try common key names from your example: payRes.data.vnpayUrl
+        if (!paymentUrl && payRes?.data && (payRes.data.vnpayUrl || payRes.data.vnpayURL || payRes.data.vnpay_url || payRes.data.payment_url)) {
+          paymentUrl = payRes.data.vnpayUrl || payRes.data.vnpay_url || payRes.data.vnpayURL || payRes.data.payment_url;
+        }
+
+        // Example you provided uses "vnpayUrl" at top-level in response.data
+        if (!paymentUrl && typeof payRes === "object") {
+          // search naive
+          const tryFind = (obj) => {
+            if (!obj || typeof obj !== "object") return null;
+            if (obj.vnpayUrl || obj.vnpay_url || obj.payment_url || obj.vnpayURL || obj.momoUrl || obj.momo_url) 
+              return obj.vnpayUrl || obj.vnpay_url || obj.payment_url || obj.vnpayURL || obj.momoUrl || obj.momo_url;
+            for (const k of Object.keys(obj)) {
+              if (typeof obj[k] === "object") {
+                const found = tryFind(obj[k]);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+          paymentUrl = paymentUrl || tryFind(payRes);
+        }
+
+        if (paymentUrl) {
+          // Redirect to payment gateway
+          window.location.href = paymentUrl;
+          return;
+        } else {
+          toast.error("Không lấy được URL thanh toán từ server.");
+          console.warn("payment create response:", payRes);
+        }
+      } catch (e) {
+        console.error("❌ Lỗi tạo thanh toán:", e);
+        toast.error(e?.response?.data?.message || "Tạo thanh toán thất bại");
+      }
+
     } catch (err) {
       console.error("❌ LỖI ĐẶT HÀNG:", err);
       toast.error(err?.response?.data?.message || "Đặt hàng thất bại");
@@ -342,7 +437,7 @@ export default function CustomerInfo({
     if (!createdOrder) return;
     const id = createdOrder.order_id ?? createdOrder.id ?? createdOrder._id;
     if (id) {
-      navigate(`/orders/${id}`);
+      navigate(`user/orders`);
     } else {
       closeModal();
     }
@@ -374,7 +469,7 @@ export default function CustomerInfo({
         <div className="rounded-2xl shadow-lg p-8 bg-white">
           <h2 className="text-2xl font-bold mb-4">Thông Tin Đặt Hàng</h2>
 
-          {/* 🔥 HIỂN THỊ THÔNG TIN ĐƠN HÀNG ĐÃ TẠO */}
+          {/* HIỂN THỊ THÔNG TIN ĐƠN HÀNG ĐÃ TẠO */}
           {createdOrder && (
             <div className="mb-4 p-4 rounded bg-green-50 border border-green-200">
               <div className="font-semibold text-green-800 mb-2">✅ Đặt hàng thành công</div>
@@ -411,63 +506,55 @@ export default function CustomerInfo({
             </div>
           )}
 
-          {/* Items */}
+          {/* Items - Chỉ hiển thị thông tin, không cho chỉnh sửa */}
           <div className="mb-6">
             <h3 className="font-semibold mb-3">Sản phẩm</h3>
             {localCartItems.length === 0 && <div className="text-gray-500">Không có sản phẩm nào.</div>}
             <div className="space-y-3">
               {localCartItems.map(item => (
-                <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <input type="checkbox" checked={!!item.selected} onChange={() => toggleSelect(item.id)} style={{ accentColor: "#F97316" }} />
+                <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
+                  <input 
+                    type="checkbox" 
+                    checked={!!item.selected} 
+                    onChange={() => toggleSelect(item.id)} 
+                    style={{ accentColor: "#F97316" }} 
+                  />
                   <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
                   <div className="flex-1">
-                    <div className="mb-1">
-                      <input
-                        value={item.name}
-                        onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                        className="w-full px-2 py-1 border rounded"
-                      />
-                    </div>
-
-                    <div className="flex gap-2 items-center">
-                      <div>
-                        <label className="text-xs text-gray-500">product_id</label>
-                        <input
-                          value={item.product_id}
-                          onChange={(e) => updateItem(item.id, { product_id: e.target.value })}
-                          className="px-2 py-1 border rounded w-40"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs text-gray-500">Số lượng</label>
+                    <div className="font-medium text-gray-800 mb-2">{item.name}</div>
+                    
+                    <div className="flex gap-4 items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-600">Số lượng:</span>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => updateQuantity(item.id, -1)} className="px-2 py-1 border rounded">-</button>
-                          <input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(e) => updateItem(item.id, { quantity: Math.max(1, Number(e.target.value) || 1) })}
-                            className="w-16 text-center px-2 py-1 border rounded"
-                          />
-                          <button onClick={() => updateQuantity(item.id, +1)} className="px-2 py-1 border rounded">+</button>
+                          <button 
+                            onClick={() => updateQuantity(item.id, -1)} 
+                            className="px-2 py-1 border rounded hover:bg-gray-100"
+                            disabled={item.quantity <= 1}
+                          >
+                            -
+                          </button>
+                          <span className="w-12 text-center font-medium">{item.quantity}</span>
+                          <button 
+                            onClick={() => updateQuantity(item.id, +1)} 
+                            className="px-2 py-1 border rounded hover:bg-gray-100"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
 
                       <div>
-                        <label className="text-xs text-gray-500">Giá (VND)</label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={item.price}
-                          onChange={(e) => updateItem(item.id, { price: Number(e.target.value) || 0 })}
-                          className="px-2 py-1 border rounded w-32"
-                        />
+                        <span className="text-gray-600">Đơn giá:</span>
+                        <span className="ml-2 font-medium text-orange-600">{formatPrice(item.price)}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-600">Thành tiền:</span>
+                        <span className="ml-2 font-semibold text-orange-600">{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     </div>
                   </div>
-
-                  <button onClick={() => removeItem(item.id)} className="text-red-500">Xóa</button>
                 </div>
               ))}
             </div>
@@ -523,7 +610,7 @@ export default function CustomerInfo({
             <textarea placeholder="Ghi chú" value={form.note} onChange={(e) => updateForm({ note: e.target.value })} className="w-full px-4 py-2 border rounded mt-3" />
           </div>
 
-          {/* Voucher & invoice & payment */}
+          {/* Voucher & invoice */}
           <div className="mb-4">
             <div className="flex gap-3 mb-3">
               <input type="text" placeholder="Mã giảm giá" value={form.couponCode} onChange={(e) => updateForm({ couponCode: e.target.value })} className="flex-1 px-4 py-2 border rounded" />
@@ -545,88 +632,26 @@ export default function CustomerInfo({
               )}
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">Phương thức thanh toán</h4>
-              <div className="grid grid-cols-2 gap-3">
-                {paymentOptions.map(opt => (
-                  <button key={opt.key} type="button" onClick={() => updateForm({ paymentMethod: opt.key })} className={`p-3 rounded border ${form.paymentMethod === opt.key ? "bg-orange-500 text-white" : "bg-white"}`}>
-                    <div className="flex items-center gap-2 justify-center">{opt.icon}<span>{opt.label}</span></div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Payment & Order summary moved to OrderSummary component */}
+            <OrderSummary
+              paymentOptions={paymentOptions}
+              paymentMethod={form.paymentMethod}
+              onSelectPayment={(pm) => updateForm({ paymentMethod: pm })}
+              totalAmount={totalAmount}
+              computedSelected={computedSelected}
+              formatPrice={formatPrice}
+              loading={loading}
+              onSubmit={handleSubmit}
+              createdOrder={createdOrder}
+              showSuccessModal={showSuccessModal}
+              closeModal={closeModal}
+              viewOrder={viewOrder}
+            />
+
           </div>
 
-          {/* Summary & submit */}
-          <div className="border-t pt-4">
-            <div className="flex justify-between mb-3">
-              <span>Sản phẩm ({computedSelected.length})</span>
-              <span className="font-semibold">{formatPrice(totalAmount ?? (createdOrder?.final_price ?? 0))}</span>
-            </div>
-
-            <button onClick={handleSubmit} disabled={loading} className="w-full py-3 rounded-xl font-semibold text-lg" style={{ background: "linear-gradient(135deg, #F97316, #C2410C)", color: "#FFF" }}>
-              {loading ? "Đang xử lý..." : "Xác nhận & Đặt hàng"}
-            </button>
-          </div>
         </div>
       </div>
-
-      {/* 🔥 SUCCESS MODAL - HIỂN THỊ final_price */}
-      {showSuccessModal && createdOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={closeModal} />
-
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
-            <div className="flex flex-col items-center gap-4">
-              <div className="bg-green-100 rounded-full p-3">
-                <CheckCircle size={48} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold">Đặt hàng thành công!</h3>
-              
-              <div className="text-center">
-                <div className="text-sm text-gray-600">Mã đơn hàng</div>
-                <div className="font-medium">{createdOrder.order_id ?? "—"}</div>
-              </div>
-
-              {/* Hiển thị chi tiết giá */}
-              <div className="w-full bg-gray-50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tổng tiền hàng:</span>
-                  <span>{formatPrice(createdOrder.total_price ?? 0)}</span>
-                </div>
-                {createdOrder.discount > 0 && (
-                  <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Giảm giá:</span>
-                      <span className="text-red-600">-{formatPrice(createdOrder.discount)}</span>
-                    </div>
-                    {createdOrder.coupon && (
-                      <div className="text-xs text-gray-500 text-center">
-                        Mã: {createdOrder.coupon.code}
-                      </div>
-                    )}
-                  </>
-                )}
-                <div className="border-t pt-2 flex justify-between">
-                  <span className="font-semibold">Thành tiền:</span>
-                  <span className="text-orange-500 font-bold text-lg">
-                    {formatPrice(createdOrder.final_price)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="w-full flex gap-3 mt-2">
-                <button onClick={viewOrder} className="flex-1 py-2 rounded-lg bg-white border hover:bg-gray-50">
-                  Xem đơn hàng
-                </button>
-                <button onClick={closeModal} className="flex-1 py-2 rounded-lg" style={{ background: "linear-gradient(135deg, #F97316, #C2410C)", color: "#FFF" }}>
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

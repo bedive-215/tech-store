@@ -19,9 +19,12 @@ const schema = yup.object({
   password: yup.string().required("auth.required").min(6, "auth.minPassword"),
 });
 
-// Validation schema for Google extra info
+// Validation schema for extra info (static)
 const extraSchema = yup.object({
-  phone_number: yup.string().required("Số điện thoại không được bỏ trống"),
+  phone_number: yup
+    .string()
+    .required("Số điện thoại không được bỏ trống")
+    .matches(/^[0-9]{10,11}$/, "Số điện thoại phải có 10-11 chữ số"),
   date_of_birth: yup
     .string()
     .required("Ngày sinh không được bỏ trống")
@@ -30,7 +33,7 @@ const extraSchema = yup.object({
 
 export default function Login() {
   const { t } = useTranslation();
-  const { login } = useAuth(); // chỉ dùng login email/password
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -38,7 +41,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Google
+  // Google OAuth
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || null;
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -48,7 +51,8 @@ export default function Login() {
 
   // Extra info modal state
   const [showExtraForm, setShowExtraForm] = useState(false);
-  const [googleToken, setGoogleToken] = useState(null);
+  const [tempToken, setTempToken] = useState(null);
+  const [missingFields, setMissingFields] = useState(null);
 
   const {
     register,
@@ -61,7 +65,11 @@ export default function Login() {
     handleSubmit: handleSubmitExtra,
     formState: { errors: extraErrors },
     reset: resetExtraForm,
-  } = useForm({ resolver: yupResolver(extraSchema) });
+    clearErrors: clearExtraErrors,
+  } = useForm({ 
+    resolver: yupResolver(extraSchema),
+    mode: "onChange"
+  });
 
   // ====================== HANDLE EMAIL/PASSWORD ======================
   const onSubmit = async (data) => {
@@ -92,10 +100,9 @@ export default function Login() {
     }
   };
 
-  // ====================== HANDLE GOOGLE ======================
+  // ====================== HANDLE GOOGLE GSI SETUP ======================
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
-
     if (googleClientLoaded.current) return;
 
     const script = document.createElement("script");
@@ -105,11 +112,11 @@ export default function Login() {
 
     script.onload = () => {
       googleClientLoaded.current = true;
-      console.log("GSI script loaded");
+      console.log("✅ GSI script loaded");
     };
     script.onerror = () => {
       googleClientLoaded.current = false;
-      console.error("Failed to load GSI script");
+      console.error("❌ Failed to load GSI script");
     };
 
     document.body.appendChild(script);
@@ -121,14 +128,13 @@ export default function Login() {
     try {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: (response) => {
+        callback: async (response) => {
           const idToken = response?.credential;
           if (!idToken) {
             setErrorMessage("Không nhận được token từ Google");
             return;
           }
-          setGoogleToken(idToken);
-          setShowExtraForm(true); // hiện form nhập thêm
+          await handleGoogleTokenReceived(idToken);
         },
       });
 
@@ -137,15 +143,18 @@ export default function Login() {
           window.google.accounts.id.renderButton(googleButtonRef.current, {
             theme: "outline",
             size: "large",
+            text: "continue_with",
+            locale: "vi",
           });
         }
       } catch (err) {
-        console.warn("renderButton failed:", err);
+        console.warn("⚠️ renderButton failed:", err);
       }
 
       gsiInitialized.current = true;
+      console.log("✅ GSI initialized");
     } catch (err) {
-      console.error("GSI initialize error:", err);
+      console.error("❌ GSI initialize error:", err);
     }
   };
 
@@ -159,95 +168,182 @@ export default function Login() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleGoogleLogin = () => {
-    setErrorMessage("");
-    if (GOOGLE_CLIENT_ID && window.google && gsiInitialized.current) {
-      window.google.accounts.id.prompt();
-    } else {
-      window.location.href = `${API_URL}/api/v1/auth/login/oauth`;
-    }
-  };
-
-  // ====================== HANDLE EXTRA INFO SUBMIT ======================
-  const onSubmitExtra = async (data) => {
-    if (!googleToken) {
-      setErrorMessage("Token Google không tồn tại");
-      return;
-    }
-
+  // ====================== HANDLE GOOGLE TOKEN RECEIVED ======================
+  const handleGoogleTokenReceived = async (idToken) => {
     try {
       setOauthLoading(true);
       setErrorMessage("");
 
+      console.log("📤 Sending Google token to server...");
+
+      // Bước 1: Gửi token lên server
       const res = await axios.post(`${API_URL}/api/v1/auth/login/oauth`, {
-        phone_number: data.phone_number,
-        date_of_birth: data.date_of_birth,
-        token: googleToken,
+        token: idToken,
       });
 
-      // ========== LƯU TOKEN VÀO LOCALSTORAGE ==========
-      // Lấy token từ response (kiểm tra nhiều trường hợp)
-      const accessToken = 
-        res?.data?.access_token || 
-        res?.data?.accessToken || 
-        res?.data?.token ||
-        res?.data?.data?.access_token ||
-        res?.data?.data?.token;
+      console.log("📥 OAuth response:", res.data);
 
-      const refreshToken = 
-        res?.data?.refresh_token || 
-        res?.data?.refreshToken ||
-        res?.data?.data?.refresh_token;
+      // Kiểm tra nếu cần thêm thông tin
+      if (res.data.status === "incomplete" || res.data.code === "PROFILE_INCOMPLETE") {
+        // Trường hợp cần thêm thông tin
+        const missing = res.data.missing_fields || {};
+        const tempTok = res.data.temp_token || idToken; // Lưu temp_token hoặc token ban đầu
 
-      // Lưu access token vào localStorage
-      if (accessToken) {
-        localStorage.setItem("access_token", accessToken);
-        console.log("✅ Access token đã được lưu vào localStorage");
-      } else {
-        console.warn("⚠️ Không tìm thấy access_token trong response");
+        console.log("⚠️ Profile incomplete. Missing fields:", missing);
+        console.log("🔑 Temp token:", tempTok);
+
+        setMissingFields(missing);
+        setTempToken(tempTok);
+        setShowExtraForm(true);
+        setOauthLoading(false);
+        return;
       }
 
-      // Lưu refresh token nếu có
-      if (refreshToken) {
-        localStorage.setItem("refresh_token", refreshToken);
-        console.log("✅ Refresh token đã được lưu vào localStorage");
-      }
-
-      // Lưu thông tin user nếu cần
-      const userInfo = res?.data?.user || res?.data?.data?.user;
-      if (userInfo) {
-        localStorage.setItem("user", JSON.stringify(userInfo));
-        console.log("✅ User info đã được lưu vào localStorage");
-      }
-
-      // Lấy role để điều hướng
-      const role =
-        res?.data?.user?.role || 
-        res?.data?.role || 
-        res?.data?.data?.user?.role ||
-        res?.data?.data?.role ||
-        "user";
-
-      // Điều hướng theo role
-      if (role === "admin") {
-        navigate(ROUTERS.ADMIN.DASHBOARD);
-      } else if (role === "user") {
-        navigate(ROUTERS.USER.HOME);
-      } else {
-        navigate("/");
-      }
+      // Nếu đăng nhập thành công hoàn toàn
+      console.log("✅ Login successful!");
+      handleSuccessfulLogin(res.data);
     } catch (err) {
-      console.error("Extra info submit error:", err);
-      const msg = err?.response?.data?.message || err?.message || "Google login failed";
-      setErrorMessage(msg);
-    } finally {
+      console.error("❌ Google token error:", err);
+      
+      // Kiểm tra xem có phải lỗi yêu cầu bổ sung thông tin không
+      if (err?.response?.data?.code === "PROFILE_INCOMPLETE") {
+        const missing = {};
+        const requiredFields = err.response.data.required_fields || [];
+        
+        requiredFields.forEach(field => {
+          missing[field] = true;
+        });
+
+        const tempTok = err.response.data.temp_token || null;
+
+        console.log("⚠️ Profile incomplete (from error). Missing fields:", missing);
+        console.log("🔑 Temp token:", tempTok);
+
+        setMissingFields(missing);
+        setTempToken(tempTok);
+        setShowExtraForm(true);
+      } else {
+        const msg = err?.response?.data?.message || err?.message || "Google login failed";
+        setErrorMessage(msg);
+      }
+      
       setOauthLoading(false);
-      setShowExtraForm(false);
-      setGoogleToken(null);
-      resetExtraForm();
     }
   };
 
+  // ====================== HANDLE EXTRA INFO SUBMIT ======================
+  const onSubmitExtra = async (formData) => {
+    try {
+      setOauthLoading(true);
+      setErrorMessage("");
+
+      console.log("📝 Form data:", formData);
+      console.log("🔑 Using temp token:", tempToken);
+      console.log("📋 Missing fields:", missingFields);
+
+      // Chuẩn bị payload với token và thông tin bổ sung
+      const payload = {
+        token: tempToken, // Gửi temp_token như là token
+      };
+
+      // Chỉ thêm những field thực sự thiếu
+      if (missingFields?.phone_number) {
+        payload.phone_number = formData.phone_number;
+      }
+
+      if (missingFields?.date_of_birth) {
+        payload.date_of_birth = formData.date_of_birth;
+      }
+
+      console.log("📤 Submitting extra info to /api/v1/auth/login/oauth");
+      console.log("📦 Payload:", payload);
+
+      // Gửi lại request đến endpoint OAuth với thông tin đầy đủ
+      const res = await axios.post(
+        `${API_URL}/api/v1/auth/login/oauth`,
+        payload
+      );
+
+      console.log("✅ Complete profile response:", res.data);
+
+      // Xử lý đăng nhập thành công
+      handleSuccessfulLogin(res.data);
+    } catch (err) {
+      console.error("❌ Extra info submit error:", err);
+      console.error("❌ Error response:", err?.response?.data);
+      
+      const msg = err?.response?.data?.message || err?.message || "Không thể hoàn tất đăng ký. Vui lòng thử lại.";
+      setErrorMessage(msg);
+      setOauthLoading(false);
+    }
+  };
+
+  // ====================== HANDLE SUCCESSFUL LOGIN ======================
+  const handleSuccessfulLogin = (data) => {
+    console.log("🎉 Processing successful login...");
+    
+    // Lưu access token
+    const accessToken = 
+      data?.access_token || 
+      data?.accessToken || 
+      data?.token ||
+      data?.data?.access_token ||
+      data?.data?.token;
+
+    const refreshToken = 
+      data?.refresh_token || 
+      data?.refreshToken ||
+      data?.data?.refresh_token;
+
+    if (accessToken) {
+      localStorage.setItem("access_token", accessToken);
+      console.log("✅ Access token saved");
+    } else {
+      console.warn("⚠️ No access token in response");
+    }
+
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+      console.log("✅ Refresh token saved");
+    }
+
+    // Lưu user info
+    const userInfo = data?.user || data?.data?.user;
+    if (userInfo) {
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      console.log("✅ User info saved:", userInfo);
+    }
+
+    // Lấy role và điều hướng
+    const role =
+      data?.user?.role || 
+      data?.role || 
+      data?.data?.user?.role ||
+      data?.data?.role ||
+      "user";
+
+    console.log("👤 User role:", role);
+
+    // Reset states
+    setShowExtraForm(false);
+    setTempToken(null);
+    setMissingFields(null);
+    resetExtraForm();
+    clearExtraErrors();
+    setOauthLoading(false);
+
+    // Navigate
+    console.log("🚀 Navigating to dashboard...");
+    if (role === "admin") {
+      navigate(ROUTERS.ADMIN.DASHBOARD);
+    } else if (role === "user") {
+      navigate(ROUTERS.USER.HOME);
+    } else {
+      navigate("/");
+    }
+  };
+
+  // ====================== RENDER ======================
   return (
     <div className="w-full bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2">
@@ -300,7 +396,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-300">
                   Mật khẩu
                 </label>
                 <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
@@ -324,39 +420,62 @@ export default function Login() {
                 )}
               </div>
 
-              {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+              {errorMessage && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errorMessage}</p>
+                </div>
+              )}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-white font-semibold 
                   bg-gradient-to-r from-orange-500 to-orange-700 
-                  hover:from-orange-600 hover:to-orange-800 shadow-md active:scale-95 transition"
+                  hover:from-orange-600 hover:to-orange-800 shadow-md active:scale-95 transition
+                  disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn size={18} />
                 {loading ? "Đang xử lý..." : "Đăng nhập"}
               </button>
             </form>
 
+            {/* DIVIDER */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                  Hoặc
+                </span>
+              </div>
+            </div>
+
             {/* GOOGLE LOGIN */}
-            <div className="mt-4">
-              <div ref={googleButtonRef} className="mb-3 flex justify-center"></div>
+            <div className="space-y-3">
+              <div ref={googleButtonRef} className="flex justify-center"></div>
             
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 {GOOGLE_CLIENT_ID
-                  ? "Sử dụng Google Identity Services (client-side). Nếu gặp lỗi, kiểm tra Authorized JavaScript origins trong Google Cloud Console."
-                  : "Không tìm thấy Google Client ID — luồng server-side OAuth sẽ được dùng."}
+                  ? "Đăng nhập nhanh với tài khoản Google"
+                  : "Google Client ID chưa được cấu hình"}
               </p>
             </div>
 
             {/* EXTRA LINKS */}
-            <div className="mt-6 text-center text-sm">
-              <Link to="/forgot-password" className="text-orange-600 hover:underline font-medium">
+            <div className="mt-6 text-center text-sm space-y-2">
+              <Link 
+                to="/forgot-password" 
+                className="block text-orange-600 hover:text-orange-700 dark:hover:text-orange-500 hover:underline font-medium"
+              >
                 Quên mật khẩu?
               </Link>
-              <div className="mt-2">
+              <div>
                 <span className="text-gray-600 dark:text-gray-300">Chưa có tài khoản? </span>
-                <Link to="/register" className="text-orange-600 hover:underline font-semibold">
+                <Link 
+                  to="/register" 
+                  className="text-orange-600 hover:text-orange-700 dark:hover:text-orange-500 hover:underline font-semibold"
+                >
                   Đăng ký ngay
                 </Link>
               </div>
@@ -366,63 +485,110 @@ export default function Login() {
       </div>
 
       {/* EXTRA INFO MODAL */}
-      {showExtraForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-md shadow-lg">
-            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">
-              Thêm thông tin cần thiết
+      {showExtraForm && missingFields && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+              Hoàn tất thông tin
             </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Vui lòng cung cấp thêm thông tin để hoàn tất đăng ký
+            </p>
+
             <form onSubmit={handleSubmitExtra(onSubmitExtra)} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">
-                  Số điện thoại
-                </label>
-                <input
-                  type="text"
-                  {...registerExtra("phone_number")}
-                  placeholder="Nhập số điện thoại..."
-                  className="w-full border rounded-xl px-3 py-2 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/40"
-                />
-                {extraErrors.phone_number && (
-                  <p className="text-red-500 text-xs mt-1">{extraErrors.phone_number.message}</p>
-                )}
-              </div>
+              {/* Phone Number - chỉ hiện nếu thiếu */}
+              {missingFields.phone_number && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Số điện thoại <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...registerExtra("phone_number")}
+                    placeholder="Ví dụ: 0912345678"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 
+                      text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/40
+                      focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                  />
+                  {extraErrors.phone_number && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {extraErrors.phone_number.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">
-                  Ngày sinh (YYYY-MM-DD)
-                </label>
-                <input
-                  type="date"
-                  {...registerExtra("date_of_birth")}
-                  className="w-full border rounded-xl px-3 py-2 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/40"
-                />
-                {extraErrors.date_of_birth && (
-                  <p className="text-red-500 text-xs mt-1">{extraErrors.date_of_birth.message}</p>
-                )}
-              </div>
+              {/* Date of Birth - chỉ hiện nếu thiếu */}
+              {missingFields.date_of_birth && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Ngày sinh <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    {...registerExtra("date_of_birth")}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 
+                      text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/40
+                      focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                  />
+                  {extraErrors.date_of_birth && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {extraErrors.date_of_birth.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <div className="flex justify-end gap-3 mt-4">
+              {errorMessage && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
+                  <p className="text-red-600 dark:text-red-400 text-sm">{errorMessage}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() => {
+                    console.log("🚫 Cancelling extra info form");
                     setShowExtraForm(false);
-                    setGoogleToken(null);
+                    setTempToken(null);
+                    setMissingFields(null);
                     resetExtraForm();
+                    clearExtraErrors();
+                    setErrorMessage("");
                   }}
-                  className="px-4 py-2 rounded-xl bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200"
+                  className="flex-1 px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700 
+                    text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-300 
+                    dark:hover:bg-gray-600 transition"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={oauthLoading}
-                  className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600"
+                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-700 
+                    text-white font-semibold hover:from-orange-600 hover:to-orange-800 
+                    shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {oauthLoading ? "Đang gửi..." : "Gửi thông tin"}
+                  {oauthLoading ? "Đang xử lý..." : "Hoàn tất"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* LOADING OVERLAY */}
+      {oauthLoading && !showExtraForm && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+              <p className="text-gray-700 dark:text-gray-300 font-medium">
+                Đang xử lý đăng nhập...
+              </p>
+            </div>
           </div>
         </div>
       )}

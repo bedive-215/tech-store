@@ -20,11 +20,6 @@ export default function Sidebar({ active = true, mode = "admin" }) {
       path: ROUTERS.ADMIN.USER_MANAGEMENT,
     },
     {
-      label: "Gói đăng ký",
-      icon: <CreditCard size={20} />,
-      path: ROUTERS.ADMIN.SUBSCRIPTION_PLANS,
-    },
-    {
       label: "Sản phẩm",
       icon: <Package size={20} />,
       path: ROUTERS.ADMIN.PRODUCTS,

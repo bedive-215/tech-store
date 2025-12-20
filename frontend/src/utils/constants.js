@@ -5,15 +5,12 @@ export const ROUTERS = {
     PAYMENTS: "/user/payments",
     CART: "/user/cart",
 
-    // ➕ Trang thêm mới
     CATEGORY: "/user/category",
     PROFILE: "/user/profile",
     PRODUCT: "/user/product/:id",
 
-    // ⭐ Trang nhập thông tin mua hàng
     CUSTOMER_INFO: "/user/customer-info",
 
-    // ➕ Trang quản lý đơn hàng (user)
     ORDERS: "/user/orders",
   },
 
@@ -24,8 +21,6 @@ export const ROUTERS = {
     DISCOUNTS: "/admin/discounts",
     ORDERS: "/admin/orders",
     FLASH_SALES: "/admin/flash-sales",
-
-    // ⭐ Thêm mới: trang quản lý sản phẩm
     PRODUCTS: "/admin/products",
   },
 
@@ -34,6 +29,10 @@ export const ROUTERS = {
     REGISTER: "/register",
     FORGOT_PASSWORD: "/forgot-password",
     NOT_FOUND: "/404",
+
+    // ⭐ Thêm mới 2 trang thành công / thất bại thanh toán
+    PAYMENT_SUCCESS: "/payment-success",
+    PAYMENT_FAILED: "/payment-failed",
   },
 
   PRIVATE: {

@@ -33,11 +33,14 @@ export const orderService = {
   /* ===================================
    *            ORDER SERVICE
    * =================================== */
+
+  // --- CREATE ORDER ---
   createOrder: (payload, token) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     if (payloadHasFile(payload)) {
       const formData = new FormData();
+
       Object.keys(payload).forEach((key) => {
         const value = payload[key];
         if (value === undefined || value === null) return;
@@ -81,20 +84,21 @@ export const orderService = {
     });
   },
 
+  // --- USER ORDERS ---
   listOrders: (params = {}, token) => {
     const config = { params };
     if (token) config.headers = { Authorization: `Bearer ${token}` };
     return apiClient.get(ORDER_BASE, config);
   },
 
-  // --- NEW: Lấy tất cả orders (admin) ---
-  // params: optional pagination { page, limit } or other filters
+  // --- ADMIN: ALL ORDERS ---
   listAllOrders: (params = {}, token) => {
     const config = { params };
     if (token) config.headers = { Authorization: `Bearer ${token}` };
     return apiClient.get(`${ORDER_BASE}/admin/all`, config);
   },
 
+  // --- ORDER DETAIL ---
   getOrderDetail: (id, token) => {
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
@@ -102,30 +106,49 @@ export const orderService = {
     return apiClient.get(`${ORDER_BASE}/${id}`, config);
   },
 
+  // --- CANCEL ORDER ---
   cancelOrder: (id, body = {}, token) => {
+    if (!id) throw new Error("order id is required");
+
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
+
     return apiClient.put(`${ORDER_BASE}/${id}/cancel`, body, config);
   },
 
-  // --- NEW: Đặt status => shipping ---
-  // body is optional (e.g. { tracking_number: 'xxx' }), token required for admin
-  setOrderShipping: (id, body = {}, token) => {
+  // --- NEW: CONFIRM ORDER ---
+  // map với router.put('/:id/confirmed')
+  // admin xác nhận đơn hàng
+  setOrderConfirmed: (id, body = {}, token) => {
     if (!id) throw new Error("order id is required");
+
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
+
+    return apiClient.put(`${ORDER_BASE}/${id}/confirmed`, body, config);
+  },
+
+  // --- SET STATUS => SHIPPING ---
+  setOrderShipping: (id, body = {}, token) => {
+    if (!id) throw new Error("order id is required");
+
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+
     return apiClient.put(`${ORDER_BASE}/${id}/ship`, body, config);
   },
 
-  // --- NEW: Đặt status => completed ---
-  // body is optional, token required for admin
+  // --- SET STATUS => COMPLETED ---
   setOrderCompleted: (id, body = {}, token) => {
     if (!id) throw new Error("order id is required");
+
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
+
     return apiClient.put(`${ORDER_BASE}/${id}/complete`, body, config);
   },
 

@@ -1,11 +1,15 @@
-// src/context/OrderContext.jsx
-import React, { createContext, useState, useContext, useCallback } from "react";
-import { orderService } from "@/services/orderService"; // bao gồm cả coupon service
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+} from "react";
+import { orderService } from "@/services/orderService";
 import { toast } from "react-toastify";
 
-// ----------------------------
-// Tạo Context
-// ----------------------------
+// ============================
+// Context
+// ============================
 export const OrderContext = createContext();
 
 export const useOrder = () => {
@@ -16,9 +20,9 @@ export const useOrder = () => {
   return context;
 };
 
-// ----------------------------
-// Chuẩn hoá Order
-// ----------------------------
+// ============================
+// Normalize Order
+// ============================
 const normalizeOrder = (serverOrder) => {
   if (!serverOrder) return null;
 
@@ -41,9 +45,9 @@ const normalizeOrder = (serverOrder) => {
   };
 };
 
-// ----------------------------
-// Provider chính
-// ----------------------------
+// ============================
+// Provider
+// ============================
 export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -52,15 +56,14 @@ export const OrderProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // ====================================================
-  // ORDER METHODS
+  // ORDER
   // ====================================================
 
-  // Tạo đơn hàng
-  const createOrder = async (payload) => {
+  const createOrder = async (payload, token) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await orderService.createOrder(payload);
+      const res = await orderService.createOrder(payload, token);
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
 
@@ -77,12 +80,11 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Lấy danh sách đơn hàng của user
-  const fetchOrders = useCallback(async (params = {}) => {
+  const fetchOrders = useCallback(async (params = {}, token) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await orderService.listOrders(params);
+      const res = await orderService.listOrders(params, token);
 
       const raw = res.data?.data ?? res.data ?? {};
       const serverList =
@@ -107,9 +109,7 @@ export const OrderProvider = ({ children }) => {
     }
   }, []);
 
-  // --- NEW: Lấy tất cả orders (admin) ---
-  // params: { page, limit, ... }, token optional if your API needs auth
-  const fetchAllOrders = useCallback(async (params = {}, token = null) => {
+  const fetchAllOrders = useCallback(async (params = {}, token) => {
     setLoading(true);
     setError(null);
     try {
@@ -138,12 +138,11 @@ export const OrderProvider = ({ children }) => {
     }
   }, []);
 
-  // Lấy chi tiết đơn hàng
-  const fetchOrderDetail = async (orderId) => {
+  const fetchOrderDetail = async (orderId, token) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await orderService.getOrderDetail(orderId);
+      const res = await orderService.getOrderDetail(orderId, token);
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
       setCurrentOrder(normalized);
@@ -158,16 +157,14 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Huỷ đơn hàng
-  const cancelOrder = async (orderId, payload = {}) => {
+  const cancelOrder = async (orderId, payload = {}, token) => {
     const ok = window.confirm("Bạn có chắc chắn muốn huỷ đơn hàng?");
     if (!ok) return false;
 
     setLoading(true);
     setError(null);
-
     try {
-      const res = await orderService.cancelOrder(orderId, payload);
+      const res = await orderService.cancelOrder(orderId, payload, token);
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
 
@@ -191,10 +188,42 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // --- NEW: Đặt order => shipping (admin)
-  // body optional (ví dụ { tracking_number }), token optional
-  const shipOrder = async (orderId, body = {}, token = null) => {
-    const ok = window.confirm("Bạn muốn chuyển trạng thái đơn này sang 'shipping'?");
+  // ============================
+  // CONFIRM ORDER (NEW)
+  // ============================
+  const confirmOrder = async (orderId, body = {}, token) => {
+    const ok = window.confirm("Xác nhận đơn hàng này?");
+    if (!ok) return false;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.setOrderConfirmed(orderId, body, token);
+      const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
+      const normalized = normalizeOrder(serverOrder);
+
+      setOrders((prev) =>
+        prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
+      );
+
+      if (currentOrder?.order_id === normalized.order_id) {
+        setCurrentOrder(normalized);
+      }
+
+      toast.success("Đã xác nhận đơn hàng");
+      return normalized;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Xác nhận đơn thất bại";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const shipOrder = async (orderId, body = {}, token) => {
+    const ok = window.confirm("Chuyển đơn sang trạng thái shipping?");
     if (!ok) return false;
 
     setLoading(true);
@@ -204,20 +233,18 @@ export const OrderProvider = ({ children }) => {
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
 
-      // Cập nhật list orders
       setOrders((prev) =>
         prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
       );
 
-      // Cập nhật currentOrder nếu trùng
       if (currentOrder?.order_id === normalized.order_id) {
         setCurrentOrder(normalized);
       }
 
-      toast.success("Đã chuyển trạng thái sang 'shipping'");
+      toast.success("Đã chuyển sang shipping");
       return normalized;
     } catch (err) {
-      const msg = err.response?.data?.message || "Cập nhật trạng thái failed";
+      const msg = err.response?.data?.message || "Cập nhật thất bại";
       toast.error(msg);
       setError(msg);
       throw err;
@@ -226,10 +253,8 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // --- NEW: Đặt order => completed (admin)
-  // body optional, token optional
-  const completeOrder = async (orderId, body = {}, token = null) => {
-    const ok = window.confirm("Bạn muốn đặt trạng thái đơn này là 'completed'?");
+  const completeOrder = async (orderId, body = {}, token) => {
+    const ok = window.confirm("Đánh dấu đơn hàng là completed?");
     if (!ok) return false;
 
     setLoading(true);
@@ -239,20 +264,18 @@ export const OrderProvider = ({ children }) => {
       const serverOrder = res.data?.data ?? res.data?.order ?? res.data;
       const normalized = normalizeOrder(serverOrder);
 
-      // Cập nhật list orders
       setOrders((prev) =>
         prev.map((o) => (o.order_id === normalized.order_id ? normalized : o))
       );
 
-      // Cập nhật currentOrder nếu trùng
       if (currentOrder?.order_id === normalized.order_id) {
         setCurrentOrder(normalized);
       }
 
-      toast.success("Đã đặt trạng thái 'completed'");
+      toast.success("Đã hoàn thành đơn hàng");
       return normalized;
     } catch (err) {
-      const msg = err.response?.data?.message || "Cập nhật trạng thái failed";
+      const msg = err.response?.data?.message || "Cập nhật thất bại";
       toast.error(msg);
       setError(msg);
       throw err;
@@ -262,15 +285,14 @@ export const OrderProvider = ({ children }) => {
   };
 
   // ====================================================
-  // COUPON METHODS (validate, create, list, remove)
+  // COUPON
   // ====================================================
 
-  // Validate Coupon
   const validateCoupon = async (payload, token) => {
     setLoading(true);
     try {
       const res = await orderService.coupon.validate(payload, token);
-      toast.success("Mã giảm giá hợp lệ!");
+      toast.success("Mã giảm giá hợp lệ");
       return res.data;
     } catch (err) {
       const msg = err.response?.data?.message || "Mã giảm giá không hợp lệ";
@@ -281,12 +303,11 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Tạo coupon
   const createCoupon = async (payload, token) => {
     setLoading(true);
     try {
       const res = await orderService.coupon.create(payload, token);
-      toast.success("Tạo coupon thành công!");
+      toast.success("Tạo coupon thành công");
       return res.data;
     } catch (err) {
       const msg = err.response?.data?.message || "Tạo coupon thất bại";
@@ -297,15 +318,13 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Lấy danh sách coupon
   const listCoupons = async (params = {}, token) => {
     setLoading(true);
     try {
       const res = await orderService.coupon.list(params, token);
-      console.log("COUPON LIST RAW:", res.data);
       return res.data;
     } catch (err) {
-      const msg = err.response?.data?.message || "Không lấy được danh sách coupon";
+      const msg = err.response?.data?.message || "Không lấy được coupon";
       toast.error(msg);
       throw err;
     } finally {
@@ -313,7 +332,6 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Xoá coupon
   const removeCoupon = async (id, token) => {
     const ok = window.confirm("Xoá coupon này?");
     if (!ok) return false;
@@ -321,8 +339,7 @@ export const OrderProvider = ({ children }) => {
     setLoading(true);
     try {
       await orderService.coupon.remove(id, token);
-      toast.success("Xoá coupon thành công!");
-
+      toast.success("Xoá coupon thành công");
       return true;
     } catch (err) {
       const msg = err.response?.data?.message || "Xoá coupon thất bại";
@@ -334,7 +351,7 @@ export const OrderProvider = ({ children }) => {
   };
 
   // ====================================================
-  // Helper
+  // Helpers
   // ====================================================
   const clearError = () => setError(null);
   const clearOrders = () => {
@@ -346,35 +363,41 @@ export const OrderProvider = ({ children }) => {
   // Provider value
   // ====================================================
   const value = {
-    // ORDER
+    // state
     orders,
     currentOrder,
     loading,
     error,
+
+    // order
     createOrder,
     fetchOrders,
+    fetchAllOrders,
     fetchOrderDetail,
     cancelOrder,
-    // NEW methods
-    fetchAllOrders,
+    confirmOrder, // ✅ NEW
     shipOrder,
     completeOrder,
-    // helpers
-    clearError,
-    clearOrders,
 
-    // COUPON
+    // coupon
     validateCoupon,
     createCoupon,
     listCoupons,
     removeCoupon,
 
+    // helpers
+    clearError,
+    clearOrders,
+
+    // setters
     setOrders,
     setCurrentOrder,
   };
 
   return (
-    <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
+    <OrderContext.Provider value={value}>
+      {children}
+    </OrderContext.Provider>
   );
 };
 

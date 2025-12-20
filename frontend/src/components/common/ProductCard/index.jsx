@@ -1,107 +1,153 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 /**
- * ProductCard:
- * - Trả về resolvedSrc được lưu trong state để tránh gán src liên tục gây vòng lặp.
- * - Nếu image load lỗi -> set một lần sang FALLBACK và không retry nữa.
+ * ProductCard
+ * - Tất cả card cao bằng nhau
+ * - UI gọn, giống Cellphones
+ * - Flash Sale chỉ là phần bổ sung
  */
 export default function ProductCard({ product }) {
-  const FALLBACK = "/default-product.png"; // đảm bảo file này tồn tại trong /public
+  const FALLBACK = "/default-product.png";
 
-  // state để giữ src hiện thời và cờ đã lỗi
   const [resolvedSrc, setResolvedSrc] = useState(FALLBACK);
   const [errored, setErrored] = useState(false);
 
-  // Normalize function (same as trước)
+  /* ================= IMAGE ================= */
   const normalizeImage = (img) => {
     if (!img) return FALLBACK;
-
     if (Array.isArray(img) && img.length > 0) img = img[0];
-
     if (typeof img === "object" && img !== null) {
       img = img.url ?? img.path ?? img.src ?? null;
     }
-
     if (typeof img !== "string") return FALLBACK;
 
     const matches = img.match(/https?:\/\/[^\s,;"]+/g);
-    if (matches && matches.length > 0) return matches[0];
-
-    const protoRel = img.match(/\/\/[^\s,;"]+/);
-    if (protoRel) return window.location.protocol + protoRel[0];
-
+    if (matches?.length) return matches[0];
     if (img.startsWith("/")) return img;
 
     return img;
   };
 
-  // Khi product.image thay đổi -> compute src một lần và set vào state (nếu khác)
   useEffect(() => {
     const img = normalizeImage(product?.image);
-    // Nếu đã bị lỗi trước đó và resolvedSrc đang là FALLBACK thì không override lại
     if (errored && resolvedSrc === FALLBACK) return;
-
     if (img !== resolvedSrc) {
       setResolvedSrc(img);
-      setErrored(false); // reset cờ lỗi vì đang cố tải nguồn mới
+      setErrored(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?.image]); // chỉ phụ thuộc image
+    // eslint-disable-next-line
+  }, [product?.image]);
 
-  // onError: chỉ set fallback 1 lần
-  const handleImgError = (e) => {
-    // tránh set state nếu đã là fallback
+  const handleImgError = () => {
     if (resolvedSrc === FALLBACK) return;
     setErrored(true);
     setResolvedSrc(FALLBACK);
   };
 
-  // format price helper
+  /* ================= PRICE ================= */
   const formatPrice = (p) => {
-    if (p === undefined || p === null || p === "") return "";
-    const num = typeof p === "number" ? p : Number(String(p).replace(/[^\d.-]/g, ""));
-    if (Number.isNaN(num)) return String(p);
+    if (!p) return "";
+    const num = Number(p);
+    if (Number.isNaN(num)) return "";
     return num.toLocaleString("vi-VN") + " ₫";
   };
 
-  return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 animate-fadeInUp">
-      <div className="relative">
-        {product?.badge && (
-          <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10">
-            {product.badge}
-          </span>
-        )}
+  /* ================= FLASH SALE ================= */
+  const flashSaleActive = useMemo(() => {
+    const fs = product?.flash_sale;
+    if (!fs) return false;
+    const now = new Date();
+    return now >= new Date(fs.start_at) && now <= new Date(fs.end_at);
+  }, [product?.flash_sale]);
 
-        {/* Image area */}
-        <div className="w-full h-60 bg-gray-200 flex items-center justify-center overflow-hidden rounded-t-xl">
+  const originalPrice = Number(product?.price ?? 0);
+  const salePrice = flashSaleActive
+    ? Number(product.flash_sale.sale_price)
+    : null;
+
+  const discountPercent = flashSaleActive
+    ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
+    : 0;
+
+  const flashSaleName = flashSaleActive
+    ? product.flash_sale.flash_sale_name.split("-")[0].trim()
+    : "";
+
+  /* ================= RENDER ================= */
+  return (
+    <div
+      className="
+        relative bg-white rounded-2xl overflow-hidden
+        shadow-sm hover:shadow-xl hover:-translate-y-1
+        transition-all duration-300
+        h-full flex flex-col
+      "
+    >
+      {/* FLASH SALE RIBBON */}
+      {flashSaleActive && (
+        <div className="absolute top-0 right-0 z-20 pointer-events-none">
+          <div
+            className="
+              bg-red-600 text-white text-[11px] font-semibold
+              px-14 py-1 rotate-45 translate-x-10 translate-y-4
+              shadow-md text-center
+            "
+          >
+            {flashSaleName}
+          </div>
+        </div>
+      )}
+
+      {/* IMAGE (CỐ ĐỊNH TỶ LỆ) */}
+      <div className="bg-gray-50 p-4">
+        <div className="aspect-square flex items-center justify-center">
           <img
             src={resolvedSrc}
-            alt={product?.name ?? "product"}
+            alt={product?.name}
             onError={handleImgError}
             loading="lazy"
-            className="w-full h-full object-contain"
+            className="
+              max-h-full max-w-full object-contain
+              transition-transform duration-300 hover:scale-105
+            "
           />
         </div>
       </div>
 
-      <div className="p-5">
-        <h3 className="text-gray-800 font-semibold text-base line-clamp-2 h-12">
+      {/* INFO (CỐ ĐỊNH CHIỀU CAO) */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* NAME – 2 dòng */}
+        <h3 className="text-gray-800 font-medium text-sm line-clamp-2 min-h-[40px]">
           {product?.name}
         </h3>
 
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-orange-500">{formatPrice(product?.price)}</span>
-          {product?.oldPrice && (
-            <span className="text-gray-500 line-through ml-2 text-sm">
-              {formatPrice(product?.oldPrice)}
+        {/* PRICE – luôn chiếm chỗ */}
+        <div className="mt-2 min-h-[56px]">
+          {flashSaleActive ? (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-red-600 text-lg font-bold">
+                  {formatPrice(salePrice)}
+                </span>
+                <span className="text-xs bg-red-100 text-red-600 font-semibold px-2 py-0.5 rounded">
+                  -{discountPercent}%
+                </span>
+              </div>
+              <span className="text-gray-400 text-sm line-through">
+                {formatPrice(originalPrice)}
+              </span>
+            </>
+          ) : (
+            <span className="text-orange-500 text-lg font-bold">
+              {formatPrice(originalPrice)}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 mt-3">
-          <span className="text-yellow-400">⭐ {product?.rating ?? "-"}</span>
-          <span className="text-gray-500 text-sm">({product?.reviews ?? 0})</span>
+        {/* META – đẩy xuống đáy */}
+        <div className="mt-auto pt-2 text-xs text-gray-500 flex items-center gap-2">
+          <span>⭐ {product?.rating ?? "-"}</span>
+          <span>({product?.reviews ?? 0} đánh giá)</span>
         </div>
       </div>
     </div>
