@@ -137,6 +137,19 @@ services:
     response_buffering: true
     strip_path: false
   - https_redirect_status_code: 426
+    name: analytic-routes
+    path_handling: v0
+    paths:
+    - /api/v1/analytics
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: false
+  - https_redirect_status_code: 426
     name: order-routes
     path_handling: v0
     paths:
