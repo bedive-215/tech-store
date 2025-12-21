@@ -556,12 +556,9 @@ class ProductService {
     async handleReserveStock(data) {
         const { order_id, items } = data;
 
-        if (!order_id || !Array.isArray(items) || items.length === 0) {
-            console.error('[RESERVE_STOCK] invalid payload', data);
-            return;
-        }
-
         const t = await sequelize.transaction();
+        const changedProducts = [];
+
         try {
             for (const { product_id, quantity } of items) {
                 const product = await Product.findOne({
@@ -574,15 +571,23 @@ class ProductService {
                 if (product.stock < quantity)
                     throw new Error(`Product ${product_id} insufficient stock`);
 
+                const newStock = product.stock - quantity;
+
                 await product.update(
-                    { stock: product.stock - quantity },
+                    { stock: newStock },
                     { transaction: t }
                 );
+
+                changedProducts.push({ product_id, stock: newStock });
             }
 
             await t.commit();
 
             await RabbitMQ.publish('stock_reserved', { order_id });
+
+            for (const p of changedProducts) {
+                await RabbitMQ.publish('change_stock', p);
+            }
 
         } catch (err) {
             await t.rollback();

@@ -29,7 +29,8 @@ class AuthService {
         ]
       }
     });
-    if (existing) throw new AppError('Email already registered', 400);
+    
+    if (existing) throw new AppError('Email or phone number already registered', 400);
 
     const password_hash = await bcrypt.hash(password, 12);
 
