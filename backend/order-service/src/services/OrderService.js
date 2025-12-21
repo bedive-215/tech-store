@@ -207,11 +207,28 @@ const OrderService = {
 
     const items = await OrderItemRepository.findByOrder(orderId);
 
+    // Lấy thông tin của user có order này
+    const correlationId = crypto.randomUUID();
+    const dataPromise = new Promise((resolve, reject) => {
+      promiseMap.set(correlationId, resolve);
+      setTimeout(() => {
+        if (promiseMap.has(correlationId)) {
+          promiseMap.delete(correlationId);
+          reject(new Error("Product service timeout", 504));
+        }
+      }, 5000);
+    });
+
+    await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+
+    const userInfo = await dataPromise;
+
     return {
       order_id: order.id,
       total_price: order.total_price,
       discount_amount: order.discount_amount ?? 0,
       final_price: order.final_price,
+      user: userInfo,
       status: order.status,
       shipping_address: order.shipping_address,
       created_at: order.created_at,
@@ -341,6 +358,23 @@ const OrderService = {
     if (!order) return null;
 
     const items = await OrderItemRepository.findByOrder(orderId);
+
+    // Lấy thông tin của user có order này
+    const correlationId = crypto.randomUUID();
+    const dataPromise = new Promise((resolve, reject) => {
+      promiseMap.set(correlationId, resolve);
+      setTimeout(() => {
+        if (promiseMap.has(correlationId)) {
+          promiseMap.delete(correlationId);
+          reject(new Error("Product service timeout", 504));
+        }
+      }, 5000);
+    });
+
+    await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+
+    const userInfo = await dataPromise;
+
     return {
       order_id: order.id,
       items: items.map(i => ({
@@ -349,6 +383,7 @@ const OrderService = {
         quantity: i.quantity,
         price: i.price
       })),
+      user: userInfo,
       total_price: order.total_price,
       discount_amount: order.discount_amount ?? 0,
       final_price:
@@ -443,10 +478,11 @@ const OrderService = {
     });
 
     await rabbitmq.subscribe('payment_order_amount_queue', async (data, rk) => {
-      if(rk !== 'order_amount_get') return;
-      const {order_id, correlationId} = data;
+      if (rk !== 'order_amount_get') return;
+      const { order_id, correlationId } = data;
+      // console.log(data);
       const order = await OrderRepository.findById(order_id);
-      if(!order) {
+      if (!order) {
         await rabbitmq.publish('order_amount_result', {
           amount: null,
           correlationId
@@ -458,9 +494,20 @@ const OrderService = {
         amount,
         correlationId
       });
-    })
-  }
+    });
 
+    rabbitmq.subscribe('user_info_queue', async (data, rk) => {
+      if (rk !== 'user_info_result') return;
+
+      const { correlationId, user } = data;
+
+      const resolver = promiseMap.get(correlationId);
+      if (resolver) {
+        resolver(user);
+        promiseMap.delete(correlationId);
+      }
+    });
+  }
 };
 
 module.exports = OrderService;

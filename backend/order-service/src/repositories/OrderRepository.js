@@ -139,9 +139,9 @@ const OrderRepository = {
     const fields = ['status = ?', 'updated_at = ?'];
     const values = [status, new Date()];
 
-    if (status === 'paid') {
+    if (status === 'paid' || status === 'completed') {
       fields.push('paid_at = ?');
-      values.push(extra.paid_at || new Date());
+      values.push(extra.paid_at || order.paid_at || new Date());
     }
 
     if (status === 'cancelled') {
@@ -196,7 +196,7 @@ const OrderRepository = {
     const sql = `
     SELECT final_price
     FROM orders
-    WHERE status = 'paid'
+    WHERE status IN ('paid', 'completed')
       AND paid_at BETWEEN ? AND ?
   `;
 
@@ -211,7 +211,7 @@ const OrderRepository = {
       SUM(final_price) AS revenue,
       COUNT(*) AS total_orders
     FROM orders
-    WHERE status = 'paid'
+    WHERE status IN ('paid', 'completed')
       AND paid_at BETWEEN ? AND ?
     GROUP BY DATE(paid_at)
     ORDER BY DATE(paid_at)
@@ -228,7 +228,7 @@ const OrderRepository = {
       SUM(final_price) AS revenue,
       COUNT(*) AS total_orders
     FROM orders
-    WHERE status = 'paid'
+    WHERE status IN ('paid', 'completed')
       AND YEAR(paid_at) = ?
     GROUP BY MONTH(paid_at)
     ORDER BY month
@@ -245,14 +245,14 @@ const OrderRepository = {
       SUM(final_price) AS revenue,
       COUNT(*) AS total_orders
     FROM orders
-    WHERE status = 'paid'
+    WHERE status IN ('paid', 'completed')
     GROUP BY YEAR(paid_at)
     ORDER BY year
   `;
 
     const [rows] = await pool.execute(sql);
     return rows;
-  },
+  }
 
 };
 

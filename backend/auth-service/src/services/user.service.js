@@ -1,10 +1,12 @@
 import models from "../models/index.js";
 import { AppError } from "../middlewares/errorHandler.middleware.js";
 import { uploadBufferToCloudinary } from '../utils/uploadImage.js'
+import rabbitmq from "../../../order-service/src/config/rabbitmq.js";
 
 class UserService {
     constructor() {
         this.User = models.User;
+        this.rabbitmq = rabbitmq;
     }
 
     async getUserInfo(id) {
@@ -128,6 +130,29 @@ class UserService {
             message: 'Delete user successfully',
             user_id: id
         };
+    }
+
+    async handelMessageQueue() {
+        rabbitmq.subscribe('user_info_queue', async (data, rk) => {
+            if (rk !== 'user_info_get') return;
+
+            const { user_id, correlationId } = data;
+
+            const user = await this.User.findByPk(user_id, {
+                attributes: ['id', 'full_name', 'email', 'phone_number']
+            });
+
+            await rabbitmq.publish('user_info_result', {
+                correlationId,
+                user: user ? {
+                    id: user.id,
+                    full_name: user.full_name,
+                    email: user.email,
+                    phone_number: user.phone_number
+                } : null
+            });
+            // console.log(user);
+        });
     }
 }
 

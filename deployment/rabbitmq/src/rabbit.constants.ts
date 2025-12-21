@@ -4,7 +4,8 @@ export const RMQ_QUEUES = {
   ORDER: 'order_status_queue',
   PRODUCT_PRICE: 'check_price_queue',
   RESERVE_STOCK: 'reserve_stock_queue',
-  PAYMENT: 'payment_order_amount_queue'
+  PAYMENT: 'payment_order_amount_queue',
+  USER: 'user_info_queue',
 };
 
 export const RMQ_ROUTING_KEYS = {
@@ -13,5 +14,6 @@ export const RMQ_ROUTING_KEYS = {
   ORDER: ['payment_success'],
   PRODUCT_PRICE: ['check_price', 'price_result'],
   RESERVE_STOCK: ['reserve_stock', 'stock_failed', 'stock_reserved', 'restore_stock'],
-  PAYMENT: ['order_amount_result', 'order_amount_get']
+  PAYMENT: ['order_amount_result', 'order_amount_get'],
+  USER: ['user_info_get', 'user_info_result']
 };
