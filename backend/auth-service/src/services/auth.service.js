@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import sendEmail from '../utils/sendMail.js';
 import models from '../models/index.js';
 import { AppError } from '../middlewares/errorHandler.middleware.js';
+import { Op } from 'sequelize';
 import 'dotenv/config';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 import axios from 'axios';
@@ -20,7 +21,14 @@ class AuthService {
 
   async register({ email, password, full_name, date_of_birth, phone_number }) {
 
-    const existing = await this.User.findOne({ where: { email } });
+    const existing = await this.User.findOne({
+      where: {
+        [Op.or]: [
+          { email },
+          { phone_number }
+        ]
+      }
+    });
     if (existing) throw new AppError('Email already registered', 400);
 
     const password_hash = await bcrypt.hash(password, 12);
