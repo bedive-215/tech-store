@@ -554,7 +554,7 @@ class ProductService {
     }
 
     async handleReserveStock(data) {
-        const { order_id, items } = data;
+        const { order_id, items, correlationId } = data;
 
         const t = await sequelize.transaction();
         const changedProducts = [];
@@ -583,7 +583,7 @@ class ProductService {
 
             await t.commit();
 
-            await RabbitMQ.publish('stock_reserved', { order_id });
+            await RabbitMQ.publish('stock_reserved', { order_id, correlationId });
 
             for (const p of changedProducts) {
                 await RabbitMQ.publish('change_stock', p);
@@ -599,15 +599,17 @@ class ProductService {
         }
     }
 
-    async handleRestoreStock(data) {
-        const { order_id, items } = data;
+    async handleReserveStock(data) {
+        const { order_id, items, correlationId } = data;
 
-        if (!order_id || !Array.isArray(items) || items.length === 0) {
-            console.error('[RESTORE_STOCK] invalid payload', data);
+        if (!order_id || !correlationId || !Array.isArray(items)) {
+            console.error('[RESERVE_STOCK] invalid payload', data);
             return;
         }
 
         const t = await sequelize.transaction();
+        const changedProducts = [];
+
         try {
             for (const { product_id, quantity } of items) {
                 const product = await Product.findOne({
@@ -616,20 +618,42 @@ class ProductService {
                     transaction: t
                 });
 
-                if (product) {
-                    await product.update(
-                        { stock: product.stock + quantity },
-                        { transaction: t }
-                    );
-                }
+                if (!product)
+                    throw new Error(`Product ${product_id} not found`);
+
+                if (product.stock < quantity)
+                    throw new Error(`Product ${product_id} insufficient stock`);
+
+                const newStock = product.stock - quantity;
+
+                await product.update({ stock: newStock }, { transaction: t });
+
+                changedProducts.push({ product_id, stock: newStock });
             }
 
             await t.commit();
+
+            await RabbitMQ.publish('stock_reserved', {
+                order_id,
+                correlationId
+            });
+
+            // sync cart
+            for (const p of changedProducts) {
+                await RabbitMQ.publish('change_stock', p);
+            }
+
         } catch (err) {
             await t.rollback();
-            console.error('[RESTORE_STOCK] failed', err);
+
+            await RabbitMQ.publish('stock_failed', {
+                order_id,
+                correlationId,
+                reason: err.message
+            });
         }
     }
+
 }
 
 export default new ProductService();
