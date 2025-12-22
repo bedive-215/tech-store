@@ -22,8 +22,8 @@ class PaymentService {
         return orderId;
     }
 
-    async createPayment(order_id, user_id) {
-        if (!order_id || !user_id) throw new AppError('Data are required', 400);
+    async createPayment(order_id, user_id, platform) {
+        if (!order_id || !user_id || !platform) throw new AppError('Data are required', 400);
 
         const txnRef = this.generateTxnRef(order_id);
 
@@ -55,6 +55,7 @@ class PaymentService {
             order_id,
             user_id,
             amount,
+            platform,
             status: "pending",
             metadata: {
                 sdk: "vnpay",

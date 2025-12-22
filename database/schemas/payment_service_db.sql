@@ -6,6 +6,7 @@ CREATE TABLE payments (
   amount BIGINT NOT NULL,
   currency VARCHAR(8) DEFAULT 'VND',
   status ENUM('pending', 'success', 'failed', 'refunded')NOT NULL DEFAULT 'pending',
+  platform ENUM('web', 'app') NOT NULL DEFAULT 'web',
   transaction_id VARCHAR(128),
   metadata JSON DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

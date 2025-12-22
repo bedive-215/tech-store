@@ -43,6 +43,12 @@ export default (sequelize) => {
         defaultValue: "pending",
       },
 
+      platform: {
+        type: DataTypes.ENUM("web", "app"),
+        allowNull: false,
+        defaultValue: "web"
+      },
+
       transaction_id: {
         type: DataTypes.STRING(128),
         allowNull: true,

@@ -4,9 +4,9 @@ class PaymentController {
 
     async createPayment(req, res, next) {
         try {
-            const { order_id } = req.body;
+            const { order_id, platform } = req.body;
             const user_id = req.user.id;
-            const {vnpayUrl, payment_id} = await paymentService.createPayment(order_id, user_id);
+            const { vnpayUrl, payment_id } = await paymentService.createPayment(order_id, user_id, platform);
 
             return res.status(200).json({
                 success: true,
@@ -22,20 +22,33 @@ class PaymentController {
 
     async paymentCallback(req, res, next) {
         try {
-            const query = req.query;
-            const payment = await paymentService.handleCallback(query);
+            const payment = await paymentService.handleCallback(req.query);
 
-            if (payment.status === 'success') {
-                return res.redirect(`http://localhost:5173/payment-success?order_id=${payment.order_id}`);
+            const isSuccess = payment.status === 'success';
+
+            if (payment.platform === 'web') {
+                return res.redirect(
+                    isSuccess
+                        ? `http://localhost:5173/payment-success?order_id=${payment.order_id}`
+                        : `http://localhost:5173/payment-failed?order_id=${payment.order_id}`
+                );
             }
 
-            // Thanh toán thất bại
-            return res.redirect(`http://localhost:5173/payment-failed?order_id=${payment.order_id}`);
+            if (payment.platform === 'app') {
+                // console.log('Payment in app.');
+                return res.redirect(
+                    isSuccess
+                        ? `http://localhost:8081/payment-success?order_id=${payment.order_id}`
+                        : `http://localhost:8081/payment-failed?order_id=${payment.order_id}`
+                );
+            }
 
-        } catch (error) {
-            next(error);
+            throw new Error('Unknown platform');
+        } catch (err) {
+            next(err);
         }
     }
+
 }
 
 export default new PaymentController();
