@@ -15,31 +15,22 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-    products,
-    loading,
-    error,
-    fetchProducts,
-  } = useProduct();
+  const { products, loading, error, fetchProducts } = useProduct();
 
+  /* ================== INIT AOS ================== */
   useEffect(() => {
     AOS.init({ duration: 900, once: true });
   }, []);
 
-  // parse URL query into params object and call fetchProducts
+  /* ================== FETCH PRODUCTS BY QUERY ================== */
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
 
-    // build params object expected by your API/provider
     const params = {};
 
-    // page & limit (defaults)
-    const page = searchParams.get("page") ?? "1";
-    const limit = searchParams.get("limit") ?? "20";
-    params.page = Number(page);
-    params.limit = Number(limit);
+    params.page = Number(searchParams.get("page") ?? 1);
+    params.limit = Number(searchParams.get("limit") ?? 20);
 
-    // other optional params
     const search = searchParams.get("search");
     if (search) params.search = search;
 
@@ -58,75 +49,82 @@ export default function Home() {
     const sort = searchParams.get("sort");
     if (sort) params.sort = sort;
 
-    // gọi fetchProducts với params object
-    // (giả sử fetchProducts chấp nhận object param; nếu provider của bạn khác hãy map tương ứng)
     fetchProducts(params);
   }, [location.search, fetchProducts]);
 
-  // helper: lấy id ưu tiên product_id -> id -> _id
+  /* ================== HELPERS ================== */
   const getProductId = (p) => p?.product_id ?? p?.id ?? p?._id ?? null;
 
-  // helper: normalize image (deal with null / array / concatenated urls / relative urls)
   const normalizeImage = (img) => {
-    const FALLBACK = "/default-product.png"; // đặt file fallback trong public/
+    const FALLBACK = "/default-product.png";
     if (!img) return FALLBACK;
 
-    if (Array.isArray(img) && img.length > 0) {
-      img = img[0];
-    }
-
-    if (typeof img === "object" && img !== null) {
-      img = img.url ?? img.path ?? null;
-    }
-
+    if (Array.isArray(img)) img = img[0];
+    if (typeof img === "object") img = img?.url ?? img?.path;
     if (typeof img !== "string") return FALLBACK;
 
     const matches = img.match(/https?:\/\/[^\s,;"]+/g);
-    if (matches && matches.length > 0) return matches[0];
+    if (matches) return matches[0];
 
-    const protoRel = img.match(/\/\/[^\s,;"]+/);
-    if (protoRel) return `${window.location.protocol}${protoRel[0]}`;
-
-    if (img.startsWith("/")) {
-      return img;
-    }
+    if (img.startsWith("/")) return img;
 
     return img;
   };
+  
 
-  const onProductClick = (p) => {
-    const productId = getProductId(p);
-    if (!productId) {
-      console.warn("Product missing id:", p);
-      return;
-    }
-    navigate(`/user/product/${productId}`);
+ const onProductClick = (p) => {
+  const productId = getProductId(p);
+  if (!productId) return;
+
+  navigate(`/user/product/${productId}`, {
+    state: {
+      flash_sale: p.flash_sale ?? null,
+    },
+  });
+};
+
+
+  /* ================== CATEGORY CLICK ================== */
+  const categories = [
+    { icon: "📱", name: "Điện Thoại", slug: "dien-thoai" },
+    { icon: "💻", name: "Laptop", slug: "laptop" },
+    { icon: "🎧", name: "Tai Nghe", slug: "tai-nghe" },
+    { icon: "🖱️", name: "Phụ Kiện", slug: "ban-phim-co" },
+  ];
+
+  const onCategoryClick = (slug) => {
+    navigate(
+      `/user/home?page=1&limit=20&category=${slug}`
+    );
   };
 
+  /* ================== RENDER ================== */
   return (
     <>
       <TopBanner />
       <HeroSlider />
 
-      {/* DANH MỤC */}
+      {/* ================== DANH MỤC ================== */}
       <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-5">
-          <h2 className="text-3xl font-bold text-center mb-10" data-aos="fade-up">
+          <h2
+            className="text-3xl font-bold text-center mb-10"
+            data-aos="fade-up"
+          >
             Danh Mục Sản Phẩm
           </h2>
 
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-6" data-aos="fade-up">
-            {[
-              { icon: "📱", name: "Điện Thoại" },
-              { icon: "💻", name: "Laptop" },
-              { icon: "⌚", name: "Smartwatch" },
-              { icon: "🎧", name: "Tai Nghe" },
-              { icon: "📷", name: "Camera" },
-              { icon: "🖱️", name: "Phụ Kiện" },
-            ].map((cat) => (
+          <div
+            className="grid grid-cols-2 md:grid-cols-6 gap-6"
+            data-aos="fade-up"
+          >
+            {categories.map((cat) => (
               <div
-                key={cat.name}
-                className="bg-white p-8 rounded-xl text-center shadow hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer"
+                key={cat.slug}
+                onClick={() => onCategoryClick(cat.slug)}
+                className="bg-white p-8 rounded-xl text-center shadow
+                           hover:shadow-xl hover:-translate-y-2
+                           transition-all cursor-pointer"
               >
                 <div className="text-5xl mb-4">{cat.icon}</div>
                 <p className="font-semibold">{cat.name}</p>
@@ -136,15 +134,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SẢN PHẨM NỔI BẬT */}
+      {/* ================== SẢN PHẨM ================== */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-5">
-          <h2 className="text-3xl font-bold text-center mb-10" data-aos="fade-up">
+          <h2
+            className="text-3xl font-bold text-center mb-10"
+            data-aos="fade-up"
+          >
             Sản Phẩm Nổi Bật
           </h2>
 
           {loading && (
-            <p className="text-center text-lg font-medium">Đang tải sản phẩm...</p>
+            <p className="text-center text-lg font-medium">
+              Đang tải sản phẩm...
+            </p>
           )}
 
           {error && (
@@ -153,42 +156,40 @@ export default function Home() {
 
           {!loading && !error && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {Array.isArray(products) && products.length > 0 ? (
+              {products?.length > 0 ? (
                 products.map((p, index) => {
                   const productId = getProductId(p);
-                  const key = productId ?? `product-${index}`;
-
                   const imageUrl = normalizeImage(p?.image);
 
                   return (
                     <div
-                      key={key}
+                      key={productId ?? index}
                       data-aos="fade-up"
                       data-aos-delay={index * 100}
                     >
                       <button
-                        type="button"
                         onClick={() => onProductClick(p)}
-                        className="group relative cursor-pointer w-full text-left p-0 border-0 bg-transparent"
-                        aria-label={`Xem chi tiết ${p?.name ?? "sản phẩm"}`}
+                        className="group relative w-full text-left"
                       >
-                        <div className="absolute inset-0 bg-black/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 z-20" />
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-30 transition-all duration-300">
-                          <div className="bg-white px-4 py-2 rounded-full shadow-md text-sm font-medium">
+                        <div className="absolute inset-0 bg-black/10 rounded-xl opacity-0 group-hover:opacity-100 z-20" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-30">
+                          <div className="bg-white px-4 py-2 rounded-full shadow">
                             Xem chi tiết
                           </div>
                         </div>
 
-                        <div className="transform group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300">
-                          <ProductCard product={{ ...p, image: imageUrl }} />
+                        <div className="group-hover:-translate-y-2 group-hover:shadow-2xl transition-all">
+                          <ProductCard
+                            product={{ ...p, image: imageUrl }}
+                          />
                         </div>
                       </button>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-center text-gray-500 col-span-full">
-                  Không có sản phẩm để hiển thị
+                <p className="col-span-full text-center text-gray-500">
+                  Không có sản phẩm
                 </p>
               )}
             </div>
