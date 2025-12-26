@@ -1,7 +1,7 @@
 import models from "../models/index.js";
 import { AppError } from "../middlewares/errorHandler.middleware.js";
 import { uploadBufferToCloudinary } from '../utils/uploadImage.js'
-import rabbitmq from "../../../order-service/src/config/rabbitmq.js";
+import rabbitmq from "../configs/rabbitmq.config.js";
 
 class UserService {
     constructor() {
