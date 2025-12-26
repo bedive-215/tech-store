@@ -5,11 +5,9 @@ import categoryService from "@/services/categoryService";
 import brandService from "@/services/brandService";
 
 /**
- * Header (improved visuals, fixed repeated requests)
- * - Không fetch brands trên hover để tránh request liên tục
- * - Hover chỉ thay đổi UI bằng `hoveredCategory`
- * - Fetch brands chỉ khi người dùng click chọn danh mục
- * - Thêm chọn price range, search text, sort -> build query và navigate
+ * Header (improved visuals, fixed repeated requests, added auth check)
+ * - Kiểm tra token để hiển thị nút đăng nhập hoặc profile
+ * - Yêu cầu đăng nhập khi truy cập giỏ hàng/đơn hàng mà chưa có token
  */
 export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const navigate = useNavigate();
@@ -19,16 +17,20 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [hoveredCategory, setHoveredCategory] = useState(null); // chỉ cho UI
+  const [hoveredCategory, setHoveredCategory] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
 
-  // thêm: search, price range, sort
   const [searchText, setSearchText] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [sort, setSort] = useState(""); // e.g. price_asc, price_desc, newest
+  const [sort, setSort] = useState("");
+
+  // Auth state
+// Check đăng nhập bằng access_token
+const isLoggedIn = !!localStorage.getItem("access_token");
+
 
   const categoriesRef = useRef(null);
   const locationsRef = useRef(null);
@@ -46,7 +48,25 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     "🚚 Giao nhanh - Miễn phí cho đơn 300k",
   ];
 
-  // improved icon mapping: nhiều từ khoá hơn, fallback neutral icon
+ 
+
+  // Function to check auth and show alert if not logged in
+ const requireAuth = (
+  callback,
+  message = "Bạn cần đăng nhập để sử dụng tính năng này!"
+) => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    alert(message);
+    navigate("/login");
+    return false;
+  }
+
+  callback();
+  return true;
+};
+
   const CategoryIcon = ({ keyName }) => {
     const k = (keyName || "").toLowerCase();
     const match = (arr) => arr.some((s) => k.includes(s));
@@ -91,7 +111,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
         </svg>
       );
     }
-    // fallback
     return (
       <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6" />
@@ -104,7 +123,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     function handleClickOutside(e) {
       if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
         setShowCategories(false);
-        // không reset filter state khi click outside, chỉ đóng UI
         setHoveredCategory(null);
       }
       if (locationsRef.current && !locationsRef.current.contains(e.target)) {
@@ -115,7 +133,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // load categories once when dropdown opened the first time
   useEffect(() => {
     if (!showCategories) return;
     if (categories.length > 0) return;
@@ -135,7 +152,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     })();
   }, [showCategories, categories.length]);
 
-  // NOTE: fetchBrands is now only called when user clicks a category to "select" it.
   const fetchBrands = async (category) => {
     if (!category) return setBrands([]);
     try {
@@ -153,9 +169,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     }
   };
 
-  // build query string and navigate
   const buildAndNavigate = (overrides = {}) => {
-    // overrides can include category, brand, searchText, minPrice, maxPrice, sort, page, limit
     const category = overrides.category ?? selectedCategory;
     const brand = overrides.brand ?? selectedBrand;
     const search = overrides.searchText ?? searchText;
@@ -170,7 +184,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     params.set("limit", limit);
     if (search && String(search).trim() !== "") params.set("search", String(search).trim());
     if (category) {
-      // ưu tiên slug nếu có, else dùng id hoặc name (slug giống ví dụ: charging)
       const catVal = category.slug ?? category.code ?? category.name ?? category.id;
       params.set("category", String(catVal));
     }
@@ -178,7 +191,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
       const brandVal = brand.slug ?? brand.code ?? brand.name ?? brand.id;
       params.set("brand", String(brandVal));
     }
-    // giá chỉ set khi là số
     const minNum = String(min).replace(/[^\d]/g, "");
     const maxNum = String(max).replace(/[^\d]/g, "");
     if (minNum !== "") params.set("min_price", minNum);
@@ -201,24 +213,18 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
 
   const handleSelectBrand = (brand) => {
     setSelectedBrand(brand);
-    // apply ngay khi chọn brand (theo yêu cầu: chọn xong -> tạo query)
     buildAndNavigate({ brand, page: 1 });
     setShowCategories(false);
   };
 
   const handleSelectCategoryOnly = async (category) => {
-    // chọn danh mục sẽ fetch brand 1 lần
     setSelectedCategory(category);
     setSelectedBrand(null);
     setHoveredCategory(null);
     await fetchBrands(category);
-    // áp dụng filter theo category ngay
     buildAndNavigate({ category, brand: null, page: 1 });
-    // giữ dropdown mở để user chọn brand nếu muốn (nếu muốn tự động đóng -> uncomment)
-    // setShowCategories(false);
   };
 
-  // UI component cho ảnh brand
   const BrandImage = ({ b, size = 84 }) => {
     const src = b?.logo || b?.image || b?.thumbnail || null;
     const FALLBACK = "/default-product.png";
@@ -264,7 +270,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     );
   };
 
-  // reset filters button
   const resetFilters = () => {
     setSelectedCategory(null);
     setSelectedBrand(null);
@@ -272,9 +277,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     setMaxPrice("");
     setSort("");
     setSearchText("");
-    // navigate đến home với page=1&limit=20 (không filter)
     navigate(`/user/home?page=1&limit=20`);
-    onFilter({}); // thông báo callback nếu cần
+    onFilter({});
     setShowCategories(false);
   };
 
@@ -363,7 +367,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                   </div>
 
                   <div className="bg-white p-6" style={{ width: 600, maxHeight: 520, overflowY: "auto" }}>
-                    {/* Nếu có selectedCategory -> show brands (được fetch khi click) */}
                     {!selectedCategory ? (
                       <div className="text-sm text-gray-500">Di chuột lên danh mục để xem tên, click để load thương hiệu</div>
                     ) : (
@@ -400,7 +403,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                           )}
                         </div>
 
-                        {/* Price filter + sort + apply */}
                         <div className="mt-4">
                           <h4 className="font-semibold text-sm mb-2">Lọc theo giá</h4>
                           <div className="flex items-center gap-2">
@@ -510,11 +512,18 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
             </button>
           </div>
 
-          <button onClick={() => navigate("/user/orders")} className="text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition border border-white/20" style={{ background: "transparent" }}>
+          <button 
+            onClick={() => requireAuth(() => navigate("/user/orders"), "Vui lòng đăng nhập để xem đơn hàng của bạn!")} 
+            className="text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition border border-white/20" 
+            style={{ background: "transparent" }}
+          >
             Đơn hàng của tôi
           </button>
 
-          <button onClick={() => navigate("/user/cart")} className="flex items-center justify-center text-white font-medium px-3 py-2 rounded-lg hover:bg-white/20 transition border border-white/10">
+          <button 
+            onClick={() => requireAuth(() => navigate("/user/cart"), "Vui lòng đăng nhập để xem giỏ hàng của bạn!")} 
+            className="flex items-center justify-center text-white font-medium px-3 py-2 rounded-lg hover:bg-white/20 transition border border-white/10"
+          >
             <svg className="h-5 w-5 mx-auto" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
@@ -522,22 +531,44 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
             </svg>
           </button>
 
-          <button onClick={() => navigate("/user/profile")} className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md" style={{ color: "#F97316" }}>
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
-            </svg>
-          </button>
+          {isLoggedIn ? (
+            <button 
+              onClick={() => navigate("/user/profile")} 
+              className="flex items-center bg-white p-2 w-10 h-10 rounded-full justify-center hover:bg-gray-100 shadow-md" 
+              style={{ color: "#F97316" }}
+              title="Trang cá nhân"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+              </svg>
+            </button>
+          ) : (
+            <button 
+              onClick={() => navigate("/login")} 
+              className="flex items-center gap-2 bg-white text-orange-500 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 shadow-md transition-all"
+              title="Đăng nhập"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+              </svg>
+              <span className="text-sm">Đăng nhập</span>
+            </button>
+          )}
 
         </div>
       </div>
 
-      <style>{`\n        .marquee-track { height: 28px; align-items: center; animation: marquee 18s linear infinite; }\n        .marquee-track:hover { animation-play-state: paused; }\n        .marquee-group { display: inline-flex; flex-shrink: 0; }\n        @keyframes marquee { from { transform: translateX(0%); } to { transform: translateX(-50%); } }\n      `}</style>
+      <style>{`
+        .marquee-track { height: 28px; align-items: center; animation: marquee 18s linear infinite; }
+        .marquee-track:hover { animation-play-state: paused; }
+        .marquee-group { display: inline-flex; flex-shrink: 0; }
+        @keyframes marquee { from { transform: translateX(0%); } to { transform: translateX(-50%); } }
+      `}</style>
     </header>
   );
 }
 
-// helper outside component để format hiển thị
 function formatPrice(num) {
   if (!num) return "";
   const n = String(num).replace(/[^\d]/g, "");
