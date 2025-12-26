@@ -24,6 +24,7 @@ class ProductService {
             page = 1,
             limit = 20,
             search = "",
+            name,
             category,
             brand,
             min_price,
@@ -37,7 +38,13 @@ class ProductService {
         const now = new Date();
 
         const where = {};
-        if (search) where.name = { [Op.like]: `%${search}%` };
+
+        if (name) {
+            where.name = { [Op.like]: `%${name}%` };
+        } else if (search) {
+            where.name = { [Op.like]: `%${search}%` };
+        }
+
         if (min_price || max_price) {
             where.price = {};
             if (min_price) where.price[Op.gte] = Number(min_price);
@@ -62,19 +69,16 @@ class ProductService {
                 as: "media",
                 attributes: ["url", "is_primary"],
                 where: { type: "image", is_primary: true },
-                required: false,
-                limit: 1
+                required: false
             },
             {
                 model: this.FlashSaleItem,
                 as: "FlashSaleItems",
-                attributes: ["sale_price", "stock_limit"],
                 required: false,
                 include: [
                     {
                         model: this.FlashSale,
                         as: "flash_sale",
-                        attributes: ["id", "name", "start_at", "end_at"],
                         where: {
                             start_at: { [Op.lte]: now },
                             end_at: { [Op.gte]: now }
@@ -102,146 +106,26 @@ class ProductService {
             distinct: true
         });
 
-        const products = rows.map(p => {
-            const flashSaleItem = p.FlashSaleItems?.[0];
-            const flash_sale = flashSaleItem?.flash_sale
+        const products = rows.map(p => ({
+            product_id: p.id,
+            name: p.name,
+            price: p.price,
+            stock: p.stock,
+            brand: p.Brand?.name,
+            category: p.Category?.name,
+            image: p.media?.[0]?.url || null,
+            flash_sale: p.FlashSaleItems?.[0]?.flash_sale
                 ? {
-                    sale_price: flashSaleItem.sale_price,
-                    stock_limit: flashSaleItem.stock_limit,
-                    flash_sale_id: flashSaleItem.flash_sale.id,
-                    flash_sale_name: flashSaleItem.flash_sale.name,
-                    start_at: flashSaleItem.flash_sale.start_at,
-                    end_at: flashSaleItem.flash_sale.end_at
+                    sale_price: p.FlashSaleItems[0].sale_price,
+                    stock_limit: p.FlashSaleItems[0].stock_limit,
+                    flash_sale_id: p.FlashSaleItems[0].flash_sale.id,
+                    flash_sale_name: p.FlashSaleItems[0].flash_sale.name
                 }
-                : null;
-
-            return {
-                product_id: p.id,
-                name: p.name,
-                price: p.price, // luôn giữ giá gốc
-                stock: p.stock,
-                brand: p.Brand?.name,
-                category: p.Category?.name,
-                image: p.media?.length ? p.media[0].url : null,
-                flash_sale // kèm flash sale nếu có, null nếu không
-            };
-        });
+                : null
+        }));
 
         return { products, total: count, page, limit };
     }
-
-    async getProducts(query) {
-        let {
-            page = 1,
-            limit = 20,
-            search = "",
-            category,
-            brand,
-            min_price,
-            max_price,
-            sort
-        } = query;
-
-        page = Number(page) || 1;
-        limit = Number(limit) || 20;
-        const offset = (page - 1) * limit;
-        const now = new Date();
-
-        const where = {};
-        if (search) where.name = { [Op.like]: `%${search}%` };
-        if (min_price || max_price) {
-            where.price = {};
-            if (min_price) where.price[Op.gte] = Number(min_price);
-            if (max_price) where.price[Op.lte] = Number(max_price);
-        }
-
-        const include = [
-            {
-                model: this.Brand,
-                attributes: ["id", "name", "slug"],
-                required: !!brand,
-                where: brand ? { slug: brand } : undefined
-            },
-            {
-                model: this.Category,
-                attributes: ["id", "name", "slug"],
-                required: !!category,
-                where: category ? { slug: category } : undefined
-            },
-            {
-                model: this.ProductMedia,
-                as: "media",
-                attributes: ["url", "is_primary"],
-                where: { type: "image", is_primary: true },
-                required: false,
-                limit: 1
-            },
-            {
-                model: this.FlashSaleItem,
-                as: "FlashSaleItems",
-                attributes: ["sale_price", "stock_limit"],
-                required: false,
-                include: [
-                    {
-                        model: this.FlashSale,
-                        as: "flash_sale",
-                        attributes: ["id", "name", "start_at", "end_at"],
-                        where: {
-                            start_at: { [Op.lte]: now },
-                            end_at: { [Op.gte]: now }
-                        },
-                        required: false
-                    }
-                ]
-            }
-        ];
-
-        const sortMap = {
-            price_asc: ["price", "ASC"],
-            price_desc: ["price", "DESC"],
-            rating_desc: ["rating_avg", "DESC"],
-            newest: ["created_at", "DESC"]
-        };
-        const order = [sortMap[sort] || ["created_at", "DESC"]];
-
-        const { rows, count } = await this.Product.findAndCountAll({
-            where,
-            include,
-            limit,
-            offset,
-            order,
-            distinct: true
-        });
-
-        const products = rows.map(p => {
-            const flashSaleItem = p.FlashSaleItems?.[0];
-            const flash_sale = flashSaleItem?.flash_sale
-                ? {
-                    sale_price: flashSaleItem.sale_price,
-                    stock_limit: flashSaleItem.stock_limit,
-                    flash_sale_id: flashSaleItem.flash_sale?.id,
-                    flash_sale_name: flashSaleItem.flash_sale?.name,
-                    start_at: flashSaleItem.flash_sale?.start_at,
-                    end_at: flashSaleItem.flash_sale?.end_at
-                }
-                : null;
-
-            return {
-                product_id: p.id,
-                name: p.name,
-                price: p.price, // luôn giữ giá gốc
-                stock: p.stock,
-                brand: p.Brand?.name,
-                category: p.Category?.name,
-                image: p.media?.length ? p.media[0].url : null,
-                flash_sale
-            };
-        });
-
-
-        return { products, total: count, page, limit };
-    }
-
 
     async getProductById(productId) {
         const product = await this.Product.findOne({

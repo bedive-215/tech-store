@@ -151,7 +151,7 @@ class UserService {
                     phone_number: user.phone_number
                 } : null
             });
-            // console.log(user);
+            console.log(user);
         });
     }
 }
