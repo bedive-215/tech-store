@@ -219,24 +219,26 @@ export default function CustomerInfo({
     }));
 
     const payload = {
-      items,
-      coupon_code: form.couponCode || undefined,
-      shipping_address: buildShippingAddress(),
-      note: form.note || undefined,
-      customer_name: form.name || undefined,
-      customer_phone: form.phone || undefined,
-      customer_email: form.email || undefined,
-      payment_method: form.paymentMethod || undefined,
-      invoice:
-        form.needInvoice === "yes"
-          ? {
-              need: "yes",
-              company_name: form.companyName,
-              company_tax: form.companyTax,
-              company_address: form.companyAddress,
-            }
-          : { need: "no" },
-    };
+
+  items,
+  coupon_code: form.couponCode || undefined,
+  shipping_address: buildShippingAddress(),
+  note: form.note || undefined,
+  customer_name: form.name || undefined,
+  customer_phone: form.phone || undefined,
+  customer_email: form.email || undefined,
+  payment_method: form.paymentMethod || undefined,
+  invoice:
+    form.needInvoice === "yes"
+      ? {
+          need: "yes",
+          company_name: form.companyName,
+          company_tax: form.companyTax,
+          company_address: form.companyAddress,
+        }
+      : { need: "no" },
+};
+
 
     Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
     return payload;
@@ -289,11 +291,8 @@ export default function CustomerInfo({
   };
 
   const extractVnpayUrlFromResponse = (res) => {
-    // many backends put url in different places — try common shapes
     if (!res) return null;
-    // axios response often has data
     const d = res.data ?? res;
-    // try common keys
     return (
       (d && (d.vnpayUrl || d.vnpayURL || d.vnpay_url || d.vnpayUrl || d.vnpayUrl)) ||
       (d && d.data && (d.data.vnpayUrl || d.data.vnpay_url)) ||
@@ -334,30 +333,21 @@ export default function CustomerInfo({
       setCreatedOrder(finalNormalized);
       setShowSuccessModal(true);
       toast.success("Đặt hàng thành công!");
-
-      // Nếu chọn COD thì không gọi payment API
       if (form.paymentMethod === "cod") {
         setLoading(false);
         return;
       }
-
-      // nếu callback goPayment được truyền (component cha muốn override), gọi trước/không gọi tiếp
       if (typeof goPayment === "function") {
         try {
-          // nếu goPayment trả về truthy và tự xử lý thanh toán thì dừng ở đây
           const handled = await goPayment(finalNormalized);
           if (handled) {
             setLoading(false);
             return;
           }
-          // nếu goPayment không xử lý (falsy), tiếp tục xử lý mặc định ở dưới
         } catch (e) {
-          // ignore and continue to default payment flow
           console.warn("goPayment threw, fallback to default payment flow", e);
         }
       }
-
-      // DEFAULT: tạo payment qua API và redirect tới vnpayUrl nếu backend trả về
       const orderId = finalNormalized.order_id ?? finalNormalized.id ?? finalNormalized._id;
       const amount = Number(finalNormalized.final_price ?? finalNormalized.total_price ?? finalNormalized.amount ?? 0);
 
@@ -371,24 +361,18 @@ export default function CustomerInfo({
         const token = getAuthToken();
         const payRes = await paymentService.createPayment(
           { 
+              platform: "web",
             order_id: String(orderId), 
             amount: amount,
             payment_method: form.paymentMethod 
           },
           token
         );
-
-        // Thử nhiều chỗ khác nhau để lấy vnpayUrl hoặc payment url
         let paymentUrl = null;
-        // response shapes: axios -> res.data, or direct object
         paymentUrl = extractVnpayUrlFromResponse(payRes) || extractVnpayUrlFromResponse(payRes?.data) || extractVnpayUrlFromResponse(payRes?.data?.data);
-
-        // Also try common key names from your example: payRes.data.vnpayUrl
         if (!paymentUrl && payRes?.data && (payRes.data.vnpayUrl || payRes.data.vnpayURL || payRes.data.vnpay_url || payRes.data.payment_url)) {
           paymentUrl = payRes.data.vnpayUrl || payRes.data.vnpay_url || payRes.data.vnpayURL || payRes.data.payment_url;
         }
-
-        // Example you provided uses "vnpayUrl" at top-level in response.data
         if (!paymentUrl && typeof payRes === "object") {
           // search naive
           const tryFind = (obj) => {
@@ -415,12 +399,10 @@ export default function CustomerInfo({
           console.warn("payment create response:", payRes);
         }
       } catch (e) {
-        console.error("❌ Lỗi tạo thanh toán:", e);
         toast.error(e?.response?.data?.message || "Tạo thanh toán thất bại");
       }
 
     } catch (err) {
-      console.error("❌ LỖI ĐẶT HÀNG:", err);
       toast.error(err?.response?.data?.message || "Đặt hàng thất bại");
     } finally {
       setLoading(false);
@@ -437,7 +419,7 @@ export default function CustomerInfo({
     if (!createdOrder) return;
     const id = createdOrder.order_id ?? createdOrder.id ?? createdOrder._id;
     if (id) {
-      navigate(`user/orders`);
+      navigate(`/user/orders`);
     } else {
       closeModal();
     }
