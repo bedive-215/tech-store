@@ -345,7 +345,8 @@ export default function Login() {
 
   // ====================== RENDER ======================
   return (
-    <div className="w-full bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden">
+    <div className="w-full font-sans antialiased bg-white dark:bg-gray-900 rounded-3xl">
+
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* LEFT SIDE */}
         <div className="hidden md:flex flex-col justify-center items-center bg-orange-500 text-white p-10 gap-8 shadow-inner">
