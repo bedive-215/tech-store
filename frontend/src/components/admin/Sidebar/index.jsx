@@ -10,7 +10,7 @@ export default function Sidebar({ active = true, mode = "admin" }) {
 
   const menuItems = [
     {
-      label: "Dashboard",
+      label: "Trang Chủ",
       icon: <Home size={20} />,
       path: ROUTERS.ADMIN.DASHBOARD,
     },

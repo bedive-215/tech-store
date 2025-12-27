@@ -1,6 +1,5 @@
 // src/pages/product/Product.jsx
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { format } from "date-fns";
@@ -9,7 +8,10 @@ import Footer from "../../components/common/Footer";
 import { useProduct } from "@/providers/ProductProvider";
 import { useCart } from "@/providers/CartProvider";
 import { toast } from "react-toastify";
-import userService from "@/services/userService"; // <-- adjust if your service is elsewhere
+import { useAuth } from "@/hooks/useAuth";
+import userService from "@/services/userService";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+
 
 export default function Product() {
   const { id } = useParams(); // id = product_id
@@ -24,6 +26,12 @@ export default function Product() {
 
   // Cart context
   const { addToCart } = useCart();
+
+  // Auth state
+ // Check đăng nhập bằng access_token
+const isLoggedIn = !!localStorage.getItem("access_token");
+
+
 
   const [currentImg, setCurrentImg] = useState(0);
   const [showQtyModal, setShowQtyModal] = useState(false);
@@ -48,6 +56,32 @@ export default function Product() {
 
   // keep last fetch params so load more keeps them
   const lastFetchParamsRef = useRef({});
+
+  // Check authentication on mount
+  
+
+  // Function to check auth and show alert if not logged in
+const requireAuth = (
+  callback,
+  message = "Vui lòng đăng nhập để sử dụng tính năng này!"
+) => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    const confirmed = window.confirm(
+      message + "\n\nBạn có muốn chuyển đến trang đăng nhập không?"
+    );
+    if (confirmed) {
+      navigate("/login");
+    }
+    return false;
+  }
+
+  callback();
+  return true;
+};
+
+
 
   useEffect(() => {
     AOS.init({ duration: 900, once: true });
@@ -251,14 +285,32 @@ export default function Product() {
 
   const nextImage = () => setCurrentImg((prev) => (prev + 1) % images.length);
   const prevImage = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const location = useLocation();
+  const flashSaleFromHome = location.state?.flash_sale ?? null;
+
+  const now = new Date();
+
+  const isFlashSaleActive =
+    flashSaleFromHome &&
+    new Date(flashSaleFromHome.start_at) <= now &&
+    new Date(flashSaleFromHome.end_at) >= now &&
+    Number(flashSaleFromHome.stock_limit) > 0;
+
+  const displayPrice = isFlashSaleActive
+    ? Number(flashSaleFromHome.sale_price)
+    : Number(product.price);
 
   const goToBuy = () => {
+    if (!requireAuth(() => {}, "Bạn cần đăng nhập để mua hàng!")) {
+      return;
+    }
+
     const preselected = [
       {
         id: product.product_id ?? product.id ?? product._id ?? String(product.id),
         product_id: product.product_id ?? product.id ?? product._id ?? String(product.id),
         name: product.name,
-        price: Number(product.price) || 0,
+        price: displayPrice,
         quantity: 1,
         image: images[0] ?? "/placeholder.png",
         selected: true,
@@ -267,16 +319,21 @@ export default function Product() {
     navigate("/user/customer-info", { state: { preselected } });
   };
 
-  // Quantity modal handlers (same as before)
+  // Quantity modal handlers
   const openQtyModal = () => {
+    if (!requireAuth(() => {}, "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!")) {
+      return;
+    }
     setQty(1);
     setQtyError("");
     setShowQtyModal(true);
   };
+
   const closeQtyModal = () => {
     setShowQtyModal(false);
     setQtyError("");
   };
+
   const incQty = () => {
     const max = Number(product.stock ?? product.quantity ?? 999999);
     setQty((prev) => {
@@ -289,6 +346,7 @@ export default function Product() {
       return next;
     });
   };
+
   const decQty = () => {
     setQty((prev) => {
       const next = prev - 1;
@@ -299,6 +357,7 @@ export default function Product() {
       return next;
     });
   };
+
   const onQtyChange = (e) => {
     const raw = e.target.value;
     const parsed = parseInt(raw === "" ? "0" : raw, 10) || 0;
@@ -316,6 +375,7 @@ export default function Product() {
     setQty(parsed);
     setQtyError("");
   };
+
   const confirmAddToCart = async () => {
     const max = Number(product.stock ?? product.quantity ?? 999999);
     if (qty < 1) {
@@ -329,7 +389,7 @@ export default function Product() {
     const payload = {
       product_id: product.product_id ?? product.id ?? product._id ?? String(product.id),
       product_name: product.name ?? "",
-      price: String(Number(product.price || 0).toFixed(2)),
+      price: String(displayPrice.toFixed(2)),
       stock: max,
       quantity: qty,
       image_url: images[0] ?? "/placeholder.png",
@@ -380,16 +440,14 @@ export default function Product() {
                 ‹
               </button>
 
-     <div className="w-full max-w-[320px] aspect-square bg-white rounded-xl shadow 
+              <div className="w-full max-w-[320px] aspect-square bg-white rounded-xl shadow 
                 flex items-center justify-center overflow-hidden">
-  <img
-    src={images[currentImg]}
-    alt={product.name}
-    className="w-full h-full object-contain"
-  />
-</div>
-
-
+                <img
+                  src={images[currentImg]}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
 
               <button
                 onClick={nextImage}
@@ -420,8 +478,22 @@ export default function Product() {
             <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
 
             {/* Giá */}
-            <div className="text-3xl font-bold text-orange-500">
-              {Number(product.price).toLocaleString()}₫
+            <div className="flex items-center gap-3">
+              {isFlashSaleActive && (
+                <span className="text-lg text-gray-400 line-through">
+                  {Number(product.price).toLocaleString()}₫
+                </span>
+              )}
+
+              <span className="text-3xl font-bold text-orange-500">
+                {displayPrice.toLocaleString()}₫
+              </span>
+
+              {isFlashSaleActive && (
+                <span className="ml-2 px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded">
+                  FLASH SALE
+                </span>
+              )}
             </div>
 
             {/* Thương hiệu & danh mục */}

@@ -55,6 +55,16 @@ export const OrderProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Analytics state
+  const [analytics, setAnalytics] = useState({
+    revenueByWeek: null,
+    revenueByMonth: null,
+    revenueByYear: null,
+    chartByDay: null,
+    chartByMonth: null,
+    chartByYear: null,
+  });
+
   // ====================================================
   // ORDER
   // ====================================================
@@ -188,9 +198,6 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // ============================
-  // CONFIRM ORDER (NEW)
-  // ============================
   const confirmOrder = async (orderId, body = {}, token) => {
     const ok = window.confirm("Xác nhận đơn hàng này?");
     if (!ok) return false;
@@ -351,12 +358,140 @@ export const OrderProvider = ({ children }) => {
   };
 
   // ====================================================
+  // ANALYTICS - REVENUE SUMMARY
+  // ====================================================
+
+  const fetchRevenueByWeek = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueByWeek(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, revenueByWeek: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được doanh thu tuần";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchRevenueByMonth = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueByMonth(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, revenueByMonth: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được doanh thu tháng";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchRevenueByYear = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueByYear(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, revenueByYear: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được doanh thu năm";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ====================================================
+  // ANALYTICS - REVENUE CHART
+  // ====================================================
+
+  const fetchRevenueChartByDay = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueChartByDay(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, chartByDay: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được biểu đồ theo ngày";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchRevenueChartByMonth = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueChartByMonth(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, chartByMonth: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được biểu đồ theo tháng";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchRevenueChartByYear = useCallback(async (params = {}, token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await orderService.revenueChartByYear(params, token);
+      const data = res.data?.data ?? res.data;
+      setAnalytics((prev) => ({ ...prev, chartByYear: data }));
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Không lấy được biểu đồ theo năm";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ====================================================
   // Helpers
   // ====================================================
   const clearError = () => setError(null);
+  
   const clearOrders = () => {
     setOrders([]);
     setCurrentOrder(null);
+  };
+
+  const clearAnalytics = () => {
+    setAnalytics({
+      revenueByWeek: null,
+      revenueByMonth: null,
+      revenueByYear: null,
+      chartByDay: null,
+      chartByMonth: null,
+      chartByYear: null,
+    });
   };
 
   // ====================================================
@@ -368,6 +503,7 @@ export const OrderProvider = ({ children }) => {
     currentOrder,
     loading,
     error,
+    analytics,
 
     // order
     createOrder,
@@ -375,7 +511,7 @@ export const OrderProvider = ({ children }) => {
     fetchAllOrders,
     fetchOrderDetail,
     cancelOrder,
-    confirmOrder, // ✅ NEW
+    confirmOrder,
     shipOrder,
     completeOrder,
 
@@ -385,13 +521,25 @@ export const OrderProvider = ({ children }) => {
     listCoupons,
     removeCoupon,
 
+    // analytics - revenue summary
+    fetchRevenueByWeek,
+    fetchRevenueByMonth,
+    fetchRevenueByYear,
+
+    // analytics - revenue chart
+    fetchRevenueChartByDay,
+    fetchRevenueChartByMonth,
+    fetchRevenueChartByYear,
+
     // helpers
     clearError,
     clearOrders,
+    clearAnalytics,
 
     // setters
     setOrders,
     setCurrentOrder,
+    setAnalytics,
   };
 
   return (

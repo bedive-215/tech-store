@@ -8,6 +8,7 @@ import {
   ImagePlus,
   Star,
   UploadCloud,
+  Package,
 } from "lucide-react";
 import { useProduct } from "@/providers/ProductProvider";
 import { useAuth } from "@/hooks/useAuth";
@@ -90,8 +91,8 @@ export default function ProductManagement() {
       price: product.price ?? "",
       stock: product.stock ?? "",
       description: product.description ?? "",
-      brand_name: product.brand_name ?? "",
-      category_name: product.category_name ?? "",
+      brand_name: product.brand_name ?? product.brand ?? "",
+      category_name: product.category_name ?? product.category ?? "",
     });
     setSelectedFiles([]);
     // Load product details (including media)
@@ -251,57 +252,56 @@ export default function ProductManagement() {
   };
 
   // Set primary image
- // thêm util nhỏ convert url -> File
-const urlToFile = async (url, filename = "primary.jpg") => {
-  // Cần CORS: server phải phản hồi header Access-Control-Allow-Origin nếu url ở domain khác
-  const res = await fetch(url, { mode: "cors" });
-  if (!res.ok) throw new Error("Không lấy được ảnh từ URL");
-  const blob = await res.blob();
-  // attempt to infer type from blob or from response headers
-  const type = blob.type || "image/jpeg";
-  return new File([blob], filename, { type });
-};
+  // thêm util nhỏ convert url -> File
+  const urlToFile = async (url, filename = "primary.jpg") => {
+    // Cần CORS: server phải phản hồi header Access-Control-Allow-Origin nếu url ở domain khác
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) throw new Error("Không lấy được ảnh từ URL");
+    const blob = await res.blob();
+    // attempt to infer type from blob or from response headers
+    const type = blob.type || "image/jpeg";
+    return new File([blob], filename, { type });
+  };
 
-const handleSetPrimary = async (mediaId) => {
-  if (!editingProduct) return;
-  // tìm media object từ mediaList theo mediaId
-  const media = mediaList.find((m) => String(m.media_id) === String(mediaId));
-  if (!media || !media.url) {
-    toast.error("Không tìm thấy ảnh để upload");
-    return;
-  }
+  const handleSetPrimary = async (mediaId) => {
+    if (!editingProduct) return;
+    // tìm media object từ mediaList theo mediaId
+    const media = mediaList.find((m) => String(m.media_id) === String(mediaId));
+    if (!media || !media.url) {
+      toast.error("Không tìm thấy ảnh để upload");
+      return;
+    }
 
-  try {
-    setMediaUploading(true);
-    // tạo filename từ url (nếu có)
-    let filename = media.url.split("/").pop().split("?")[0] || "primary.jpg";
-    if (!filename.includes(".")) filename = filename + ".jpg";
+    try {
+      setMediaUploading(true);
+      // tạo filename từ url (nếu có)
+      let filename = media.url.split("/").pop().split("?")[0] || "primary.jpg";
+      if (!filename.includes(".")) filename = filename + ".jpg";
 
-    // tải ảnh về dưới dạng File (cần CORS trên server chứa ảnh)
-    const file = await urlToFile(media.url, filename);
+      // tải ảnh về dưới dạng File (cần CORS trên server chứa ảnh)
+      const file = await urlToFile(media.url, filename);
 
-    // gọi provider (của bạn) -- file là File object
-    await setPrimaryImage(editingProduct.product_id, file, token);
+      // gọi provider (của bạn) -- file là File object
+      await setPrimaryImage(editingProduct.product_id, file, token);
 
-    // refresh media list
-    const item = await fetchProductById(editingProduct.product_id);
-    const medias = item?.media ?? item?.images ?? [];
-    const normalized = (medias || []).map((m) => ({
-      media_id: m.media_id ?? m.id,
-      url: m.url ?? m.path ?? m.src ?? m.url,
-      is_primary: !!(m.is_primary ?? m.isPrimary ?? m.primary),
-    }));
-    setMediaList(normalized);
+      // refresh media list
+      const item = await fetchProductById(editingProduct.product_id);
+      const medias = item?.media ?? item?.images ?? [];
+      const normalized = (medias || []).map((m) => ({
+        media_id: m.media_id ?? m.id,
+        url: m.url ?? m.path ?? m.src ?? m.url,
+        is_primary: !!(m.is_primary ?? m.isPrimary ?? m.primary),
+      }));
+      setMediaList(normalized);
 
-    toast.success("Đặt ảnh đại diện thành công");
-  } catch (err) {
-    console.error(err);
-    toast.error("Đặt ảnh đại diện thất bại: " + (err.message || ""));
-  } finally {
-    setMediaUploading(false);
-  }
-};
-
+      toast.success("Đặt ảnh đại diện thành công");
+    } catch (err) {
+      console.error(err);
+      toast.error("Đặt ảnh đại diện thất bại: " + (err.message || ""));
+    } finally {
+      setMediaUploading(false);
+    }
+  };
 
   // Delete media by id
   const handleDeleteMedia = async (mediaId) => {
@@ -557,20 +557,21 @@ const handleSetPrimary = async (mediaId) => {
         <Plus size={18} /> Thêm sản phẩm
       </button>
 
-      {/* Bảng sản phẩm */}
+      {/* Bảng sản phẩm với ảnh */}
       <div
         style={{
           background: "white",
           padding: "20px",
           borderRadius: "12px",
           boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+          overflowX: "auto",
         }}
       >
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#F3F4F6" }}>
-              <th style={th}>ID</th>
-              <th style={th}>Tên</th>
+              <th style={th}>Ảnh</th>
+              <th style={th}>Tên sản phẩm</th>
               <th style={th}>Giá</th>
               <th style={th}>Kho</th>
               <th style={th}>Brand</th>
@@ -581,13 +582,123 @@ const handleSetPrimary = async (mediaId) => {
 
           <tbody>
             {products.map((p) => (
-              <tr key={p.product_id}>
-                <td style={td}>{p.product_id}</td>
-                <td style={td}>{p.name}</td>
-                <td style={td}>{Number(p.price).toLocaleString("vi-VN")} đ</td>
-                <td style={td}>{p.stock}</td>
-                <td style={td}>{p.brand?.name || p.brand_id}</td>
-                <td style={td}>{p.category?.name || p.category_id}</td>
+              <tr key={p.product_id} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td style={{ ...td, width: "80px" }}>
+                  {p.image ? (
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #E5E7EB",
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = "none";
+                        e.target.parentElement.innerHTML = `
+                          <div style="
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 8px;
+                            background: #F3F4F6;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 1px solid #E5E7EB;
+                          ">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <line x1="12" y1="2" x2="12" y2="6"></line>
+                              <line x1="12" y1="18" x2="12" y2="22"></line>
+                              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                              <line x1="2" y1="12" x2="6" y2="12"></line>
+                              <line x1="18" y1="12" x2="22" y2="12"></line>
+                              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                            </svg>
+                          </div>
+                        `;
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        borderRadius: "8px",
+                        background: "#F3F4F6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "1px solid #E5E7EB",
+                      }}
+                    >
+                      <Package size={24} color="#9CA3AF" />
+                    </div>
+                  )}
+                </td>
+                <td style={td}>
+                  <div style={{ fontWeight: "600", color: "#111827" }}>{p.name}</div>
+                  {p.flash_sale && (
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "#DC2626",
+                        background: "#FEE2E2",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                        display: "inline-block",
+                        marginTop: "4px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      FLASH SALE
+                    </div>
+                  )}
+                </td>
+                <td style={td}>
+                  <div>
+                    {p.flash_sale ? (
+                      <>
+                        <div
+                          style={{
+                            textDecoration: "line-through",
+                            color: "#9CA3AF",
+                            fontSize: "12px",
+                          }}
+                        >
+                          {Number(p.price).toLocaleString("vi-VN")} đ
+                        </div>
+                        <div style={{ fontWeight: "700", color: "#DC2626" }}>
+                          {Number(p.flash_sale.sale_price).toLocaleString("vi-VN")} đ
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ fontWeight: "600" }}>
+                        {Number(p.price).toLocaleString("vi-VN")} đ
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td style={td}>
+                  <span
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      background: p.stock > 0 ? "#D1FAE5" : "#FEE2E2",
+                      color: p.stock > 0 ? "#059669" : "#DC2626",
+                    }}
+                  >
+                    {p.stock}
+                  </span>
+                </td>
+                <td style={td}>{p.brand}</td>
+                <td style={td}>{p.category}</td>
                 <td style={td}>
                   <div style={{ display: "flex", gap: "10px" }}>
                     <button onClick={() => openEditModal(p)} style={iconButton}>

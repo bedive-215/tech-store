@@ -3,6 +3,7 @@ import apiClient from "@/api/apiClient";
 /** BASE URL */
 const ORDER_BASE = "/api/v1/orders";
 const COUPON_BASE = "/api/v1/coupons";
+const ANALYTICS_BASE = "/api/v1/analytics";
 
 /** helper: kiểm tra payload có File/FileList/Blob hay không */
 const payloadHasFile = (payload) => {
@@ -182,6 +183,50 @@ export const orderService = {
         : {};
       return apiClient.delete(`${COUPON_BASE}/${id}`, config);
     },
+  },
+  revenueByWeek: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/week`, config);
+  },
+
+  // Tổng doanh thu theo tháng
+  revenueByMonth: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/month`, config);
+  },
+
+  // Tổng doanh thu theo năm
+  revenueByYear: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/year`, config);
+  },
+
+  /* ===================================
+   *        REVENUE CHART
+   * =================================== */
+
+  // Chart doanh thu theo ngày
+  revenueChartByDay: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/chart/day`, config);
+  },
+
+  // Chart doanh thu theo tháng
+  revenueChartByMonth: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/chart/month`, config);
+  },
+
+  // Chart doanh thu theo năm
+  revenueChartByYear: (params = {}, token) => {
+    const config = { params };
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return apiClient.get(`${ANALYTICS_BASE}/revenue/chart/year`, config);
   },
 };
 

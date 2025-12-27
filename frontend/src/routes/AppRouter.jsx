@@ -115,7 +115,7 @@ const AppRouter = () => {
       })}
 
       {/* Default redirect */}
-      <Route path="/" element={<Navigate to={ROUTERS.PUBLIC.LOGIN} replace />} />
+      <Route path="/" element={<Navigate to={ROUTERS.USER.HOME} replace />} />
 
       {/* 404 fallback */}
       <Route path="*" element={<NotFound />} />
