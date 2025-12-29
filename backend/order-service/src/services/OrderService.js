@@ -51,13 +51,33 @@ const OrderService = {
       // Chi tinh gia giam khong tru so luong ma trong database
       if (coupon_code) {
         const coupon = await CouponRepository.findByCode(conn, coupon_code);
+
         if (coupon) {
-          discountAmount = Math.min(
+
+          const now = new Date();
+
+          if (now < coupon.start_at || now > coupon.end_at) {
+            throw new Error('Coupon is expired or not active');
+          }
+
+          if (coupon.quantity <= 0) {
+            throw new Error('Coupon has been fully redeemed');
+          }
+
+          if (totalPrice < coupon.min_order_value) {
+            throw new Error(`Order total must be at least ${coupon.min_order_value}`);
+          }
+
+          let rawDiscount =
             coupon.discount_type === 'PERCENT'
               ? Math.floor(totalPrice * coupon.discount_value / 100)
-              : coupon.discount_value,
-            totalPrice
-          );
+              : coupon.discount_value;
+
+          if (coupon.max_discount && rawDiscount > coupon.max_discount) {
+            rawDiscount = coupon.max_discount;
+          }
+          discountAmount = Math.min(rawDiscount, totalPrice);
+
           appliedCoupon = coupon;
         }
       }
