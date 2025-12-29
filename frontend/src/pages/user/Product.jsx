@@ -286,19 +286,24 @@ const requireAuth = (
   const nextImage = () => setCurrentImg((prev) => (prev + 1) % images.length);
   const prevImage = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   const location = useLocation();
-  const flashSaleFromHome = location.state?.flash_sale ?? null;
+ const flashSaleFromHome = location.state?.flash_sale ?? product?.flash_sale ?? null;
+
 
   const now = new Date();
 
-  const isFlashSaleActive =
-    flashSaleFromHome &&
-    new Date(flashSaleFromHome.start_at) <= now &&
-    new Date(flashSaleFromHome.end_at) >= now &&
-    Number(flashSaleFromHome.stock_limit) > 0;
+  const flashSale = flashSaleFromHome ?? null;
+
+const isFlashSaleActive =
+  flashSale &&
+  (!flashSale.start_at || new Date(flashSale.start_at) <= now) &&
+  (!flashSale.end_at || new Date(flashSale.end_at) >= now) &&
+  Number(flashSale.stock_limit ?? product.stock ?? 0) > 0;
+
 
   const displayPrice = isFlashSaleActive
-    ? Number(flashSaleFromHome.sale_price)
-    : Number(product.price);
+  ? Number(flashSale.sale_price)
+  : Number(product.price);
+
 
   const goToBuy = () => {
     if (!requireAuth(() => {}, "Bạn cần đăng nhập để mua hàng!")) {

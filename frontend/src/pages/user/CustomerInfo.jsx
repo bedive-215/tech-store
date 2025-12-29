@@ -18,32 +18,82 @@ export default function CustomerInfo({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+
 
   const { user } = useAuth();
 
   const preselectedFromState = location?.state?.preselected ?? null;
 
-  const initialCart = Array.isArray(preselectedFromState) && preselectedFromState.length > 0
-    ? preselectedFromState.map((it) => ({
-        id: it.id ?? it.product_id ?? String(it.id),
-        product_id: it.product_id ?? it.id ?? String(it.id),
-        name: it.name ?? "Sản phẩm",
-        price: Number(it.price) || 0,
-        quantity: Number(it.quantity) || 1,
-        image: it.image ?? "/placeholder.png",
-        selected: it.selected ?? true,
-      }))
-    : Array.isArray(cartItems) ? cartItems.map(it => ({
-        id: it.id ?? it.product_id ?? String(it.id),
-        product_id: it.product_id ?? it.id ?? String(it.id),
-        name: it.name ?? "Sản phẩm",
-        price: Number(it.price) || 0,
-        quantity: Number(it.quantity) || 1,
-        image: it.image ?? "/placeholder.png",
-        selected: it.selected ?? true,
-      })) : [];
+ // Khởi tạo localCartItems ban đầu
+const initialCart = Array.isArray(preselectedFromState) && preselectedFromState.length > 0
+  ? preselectedFromState.map((it) => ({
+      id: it.id ?? it.product_id ?? String(it.id),
+      product_id: it.product_id ?? it.id ?? String(it.id),
+      name: it.name ?? "Sản phẩm",
+      price: Number(it.price) || 0,   // ban đầu dùng giá gốc
+      quantity: Number(it.quantity) || 1,
+      image: it.image ?? "/placeholder.png",
+      selected: it.selected ?? true,
+    }))
+  : Array.isArray(cartItems) ? cartItems.map(it => ({
+      id: it.id ?? it.product_id ?? String(it.id),
+      product_id: it.product_id ?? it.id ?? String(it.id),
+      name: it.name ?? "Sản phẩm",
+      price: Number(it.price) || 0,
+      quantity: Number(it.quantity) || 1,
+      image: it.image ?? "/placeholder.png",
+      selected: it.selected ?? true,
+    })) : [];
 
-  const [localCartItems, setLocalCartItems] = useState(initialCart);
+const [localCartItems, setLocalCartItems] = useState(initialCart);
+
+// Khi áp dụng coupon thành công, cập nhật price của các item
+useEffect(() => {
+  if (appliedCoupon && appliedCoupon.valid && typeof appliedCoupon.final_amount === "number") {
+    const total = localCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (total > 0) {
+      const ratio = appliedCoupon.final_amount / total; // tính tỉ lệ giảm
+      setLocalCartItems(prev =>
+        prev.map(item => ({
+          ...item,
+          price: item.price * ratio
+        }))
+      );
+    }
+  }
+}, [appliedCoupon]);
+
+
+const applyCoupon = async () => {
+  if (!form.couponCode.trim()) {
+    toast.error("Vui lòng nhập mã giảm giá");
+    return;
+  }
+
+  const payload = {
+    code: form.couponCode.trim(),
+    total_amount: computedTotalAmount
+  };
+
+  const token = getAuthToken(); // lấy token nếu cần
+
+  setLoading(true);
+  try {
+    const res = await orderService.coupon.validate(payload, token);
+
+    // Lưu coupon trả về
+    setAppliedCoupon(res.data);
+
+    toast.success("Mã giảm giá hợp lệ!");
+  } catch (err) {
+    const msg = err.response?.data?.message || "Mã giảm giá không hợp lệ";
+    toast.error(msg);
+    setAppliedCoupon(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const [form, setForm] = useState({
     name: "",
@@ -424,6 +474,12 @@ export default function CustomerInfo({
       closeModal();
     }
   };
+  const computedTotalAmount = localCartItems
+  .filter(item => item.selected)
+  .reduce((sum, item) => {
+    return sum + item.price * item.quantity;
+  }, 0);
+
 
   return (
     <div className="min-h-screen py-8" style={{ backgroundColor: "#F3F4F6" }}>
@@ -594,10 +650,38 @@ export default function CustomerInfo({
 
           {/* Voucher & invoice */}
           <div className="mb-4">
-            <div className="flex gap-3 mb-3">
-              <input type="text" placeholder="Mã giảm giá" value={form.couponCode} onChange={(e) => updateForm({ couponCode: e.target.value })} className="flex-1 px-4 py-2 border rounded" />
-              <button onClick={() => toast.info("Kiểm tra voucher chưa implement")} className="px-4 py-2 rounded bg-orange-500 text-white">Áp mã</button>
-            </div>
+            {/* Voucher & invoice */}
+<div className="mb-4">
+  <div className="flex gap-3 mb-3">
+    <input 
+      type="text" 
+      placeholder="Mã giảm giá" 
+      value={form.couponCode} 
+      onChange={(e) => updateForm({ couponCode: e.target.value })} 
+      className="flex-1 px-4 py-2 border rounded" 
+    />
+    <button 
+      onClick={applyCoupon} 
+      className="px-4 py-2 rounded bg-orange-500 text-white"
+      disabled={loading}
+    >
+      Áp mã
+    </button>
+  </div>
+
+  {/* Hiển thị thông tin coupon nếu hợp lệ */}
+  {appliedCoupon && appliedCoupon.valid && (
+    <div className="p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+      <div>Mã: {appliedCoupon.code}</div>
+      <div>Loại giảm giá: {appliedCoupon.discount_type}</div>
+      <div>Giá trị giảm: {formatPrice(appliedCoupon.discount_amount)}</div>
+      <div>Tổng thanh toán: {formatPrice(appliedCoupon.final_amount)}</div>
+      <div>Hết hạn: {new Date(appliedCoupon.expires_at).toLocaleDateString()}</div>
+    </div>
+  )}
+</div>
+
+            
 
             <div className="mb-3">
               <div className="flex gap-3">
@@ -619,7 +703,7 @@ export default function CustomerInfo({
               paymentOptions={paymentOptions}
               paymentMethod={form.paymentMethod}
               onSelectPayment={(pm) => updateForm({ paymentMethod: pm })}
-              totalAmount={totalAmount}
+                totalAmount={computedTotalAmount}  
               computedSelected={computedSelected}
               formatPrice={formatPrice}
               loading={loading}
