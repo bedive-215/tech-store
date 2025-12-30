@@ -72,6 +72,10 @@ class WarrantyService {
             throw new AppError('Warranty not found', 404);
         }
 
+        if (warranty.is_valid === false) {
+            throw new AppError('This request not valid!', 400);
+        }
+
         if (warranty.status === 'completed') {
             throw new AppError('Warranty already completed', 400);
         }
@@ -191,6 +195,7 @@ class WarrantyService {
 
         if (result?.valid === true) {
             warranty.status = 'approved';
+            warranty.is_valid = true;
             await warranty.save();
         }
 

@@ -61,6 +61,16 @@ class WarrantyController {
             next(err);
         }
     }
+
+    async validateWarranty (req, res, next) {
+        try {
+            const result = await WarrantyService.validateWarranty(req.params.warranty_id);
+
+            res.status(200).json(result);
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 export default new WarrantyController();

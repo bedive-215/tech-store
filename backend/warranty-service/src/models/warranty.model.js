@@ -37,7 +37,11 @@ const Warranty = sequelize.define('Warranty', {
         type: DataTypes.TEXT,
         allowNull: false
     },
-
+    is_valid: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
     status: {
         type: DataTypes.ENUM('pending', 'approved', 'completed', 'rejected'),
         allowNull: false,

@@ -16,4 +16,7 @@ router.get('/', authMiddleware.auth, authMiddleware.checkRole('admin'), Warranty
 // Admin cập nhật trạng thái
 router.patch('/:id/status', authMiddleware.auth, authMiddleware.checkRole('admin'), WarrantyController.updateWarrantyStatus);
 
+// Kiểm tra yêu cầu bảo hành có hợp lệ
+router.post('/valid/:warranty_id', authMiddleware.auth, authMiddleware.checkRole('admin'), WarrantyController.validateWarranty);
+
 export default router;
