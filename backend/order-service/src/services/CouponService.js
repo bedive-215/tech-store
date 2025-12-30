@@ -59,7 +59,7 @@ const CouponService = {
       id,
       code: data.code,
       discount_type: data.discount_type, // 'PERCENT' | 'FIXED'
-      discount_value: data.discount_value,
+      discount_value: data.discount_value, // % | VND
       max_discount: data.max_discount || null,
       min_order_value: data.min_order_value || 0,
       start_at: data.start_at || new Date(),
