@@ -4,7 +4,7 @@ import RabbitMQ from "../configs/rabbitmq.config.js"
 import { AppError } from "../middlewares/errorHandler.middleware.js";
 import { Op } from 'sequelize';
 import crypto from "crypto";
-import uploadMultipleMedia from "../utils/uploadMultipleMedia.js";
+import { uploadMultipleMedia } from "../utils/uploadMedia.js";
 
 class WarrantyService {
 
@@ -26,6 +26,7 @@ class WarrantyService {
                 issue_description
             } = data;
 
+
             if (!user_id || !product_id || !order_id || !issue_description) {
                 throw new AppError("Missing required fields", 400);
             }
@@ -35,13 +36,16 @@ class WarrantyService {
                 mediaUrls = await uploadMultipleMedia(files);
             }
 
+            const url = mediaUrls.map((it) => it.url);
+            // console.log(url);
+
             const warranty = await Warranty.create({
                 user_id,
                 product_id,
                 order_id,
                 serial: serial || null,
                 issue_description,
-                url: mediaUrls ? JSON.stringify(mediaUrls) : null,
+                url: mediaUrls ? JSON.stringify(url) : null,
                 status: "pending"
             }, { transaction: t });
 
@@ -177,6 +181,7 @@ class WarrantyService {
         if (!warranty_id) throw new AppError('Data required!', 400);
         const warranty = await Warranty.findByPk(warranty_id);
         if (!warranty) throw new AppError('Warranty not found!', 404);
+        if (warranty.status !== 'pending') throw new AppError(`Warranty request was ${warranty.status}`, 400);
 
         const correlationId = crypto.randomUUID();
         const validate = new Promise((resolve, reject) => {

@@ -2,7 +2,7 @@ import { app } from './app.js';
 import 'dotenv/config';
 import sequelize from './configs/db.config.js';
 import RabbitMQ from "./configs/rabbitmq.config.js";
-import ProductService from "./services/product.service.js";
+import WarrantySerrvice from './services/warranty.serrvice.js';
 import http from 'http';
 
 const PORT = process.env.PORT;
@@ -18,7 +18,7 @@ const startServer = async () => {
     console.log("Models synced");
 
     await RabbitMQ.connect();
-    await ProductService.initMessageHandlers();
+    await WarrantySerrvice.handelMessages();
 
     server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

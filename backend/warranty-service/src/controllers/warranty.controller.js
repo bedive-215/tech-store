@@ -1,4 +1,4 @@
-import WarrantyService from "../services/warranty.service.js";
+import WarrantyService from "../services/warranty.serrvice.js";
 
 class WarrantyController {
 
