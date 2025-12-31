@@ -62,11 +62,11 @@ class WarrantyService {
         }
     }
 
-    async updateWarrantyStatus(warranty_id, status) {
+    async updateWarrantyStatus(warranty_id, nextStatus) {
 
-        const allowStatus = ['pending', 'approved', 'completed', 'rejected'];
+        const VALID_STATES = ['pending', 'approved', 'completed', 'rejected'];
 
-        if (!allowStatus.includes(status)) {
+        if (!VALID_STATES.includes(nextStatus)) {
             throw new AppError('Invalid warranty status', 400);
         }
 
@@ -80,23 +80,23 @@ class WarrantyService {
             throw new AppError('This request not valid!', 400);
         }
 
-        if (warranty.status === 'completed') {
-            throw new AppError('Warranty already completed', 400);
+        const ALLOWED_TRANSITIONS = {
+            pending: ['approved', 'rejected'],
+            approved: ['completed'],
+            completed: [],
+            rejected: []
+        };
+
+        const current = warranty.status;
+
+        if (!ALLOWED_TRANSITIONS[current].includes(nextStatus)) {
+            throw new AppError(
+                `Cannot change status from ${current} to ${nextStatus}`,
+                400
+            );
         }
 
-        if (warranty.status === 'rejected') {
-            throw new AppError('Warranty already rejected', 400);
-        }
-
-        if (warranty.status === 'pending' && status === 'completed') {
-            throw new AppError('Cannot complete warranty before approval', 400);
-        }
-
-        if (warranty.status === 'approved' && status === 'rejected') {
-            throw new AppError('Cannot reject after approval', 400);
-        }
-
-        warranty.status = status;
+        warranty.status = nextStatus;
         await warranty.save();
 
         return warranty;
@@ -121,11 +121,12 @@ class WarrantyService {
             where.status = status;
         }
 
-        // tìm theo serial hoặc order_id
+        // tìm theo serial, order_id hoặc product_id
         if (search) {
             where[Op.or] = [
                 { serial: { [Op.like]: `%${search}%` } },
-                { order_id: { [Op.like]: `%${search}%` } }
+                { order_id: { [Op.like]: `%${search}%` } },
+                { product_id: { [Op.like]: `%${search}%` } },
             ];
         }
 
@@ -201,8 +202,12 @@ class WarrantyService {
         if (result?.valid === true) {
             warranty.status = 'approved';
             warranty.is_valid = true;
-            await warranty.save();
+        } else {
+            warranty.status = 'rejected';
+            warranty.is_valid = false;
         }
+
+        await warranty.save();
 
         return {
             valid: !!result?.valid,
@@ -216,7 +221,7 @@ class WarrantyService {
             if (rk !== 'warranty_result') return;
             const { correlationId } = data;
             const resolver = this._promiseMap.get(correlationId);
-            if(resolver) {
+            if (resolver) {
                 resolver(data);
                 this._promiseMap.delete(correlationId);
             }
