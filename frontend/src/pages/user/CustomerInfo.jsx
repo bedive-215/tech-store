@@ -20,8 +20,11 @@ export default function CustomerInfo({
   const navigate = useNavigate();
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
+const [coupons, setCoupons] = useState([]);
+const [loadingCoupons, setLoadingCoupons] = useState(false);
 
   const { user } = useAuth();
+const [showCouponModal, setShowCouponModal] = useState(false);
 
   const preselectedFromState = location?.state?.preselected ?? null;
 
@@ -47,22 +50,81 @@ const initialCart = Array.isArray(preselectedFromState) && preselectedFromState.
     })) : [];
 
 const [localCartItems, setLocalCartItems] = useState(initialCart);
+ const computedTotalAmount = localCartItems
+  .filter(item => item.selected)
+  .reduce((sum, item) => {
+    return sum + item.price * item.quantity;
+  }, 0);
+const discountAmount = appliedCoupon
+  ? (typeof appliedCoupon.discount === "number"
+      ? appliedCoupon.discount
+      : (typeof appliedCoupon.final_amount === "number"
+          ? Math.max(0, computedTotalAmount - appliedCoupon.final_amount)
+          : 0))
+  : 0;
 
-// Khi áp dụng coupon thành công, cập nhật price của các item
+
+const finalAmount =
+  appliedCoupon?.valid && typeof appliedCoupon?.final_amount === "number"
+    ? appliedCoupon.final_amount
+    : computedTotalAmount;
+
 useEffect(() => {
-  if (appliedCoupon && appliedCoupon.valid && typeof appliedCoupon.final_amount === "number") {
-    const total = localCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (total > 0) {
-      const ratio = appliedCoupon.final_amount / total; // tính tỉ lệ giảm
-      setLocalCartItems(prev =>
-        prev.map(item => ({
-          ...item,
-          price: item.price * ratio
-        }))
-      );
-    }
+  fetchCoupons();
+}, []);
+
+
+const fetchCoupons = async () => {
+  setLoadingCoupons(true);
+  try {
+    const token = getAuthToken();
+    const res = await orderService.coupon.list(
+      { status: "active" },
+      token
+    );
+
+    // ✅ LẤY ĐÚNG coupons
+    const list = Array.isArray(res?.data?.coupons)
+      ? res.data.coupons
+      : [];
+
+    setCoupons(list);
+  } catch (e) {
+    toast.error("Không lấy được danh sách mã giảm giá");
+    setCoupons([]);
+  } finally {
+    setLoadingCoupons(false);
   }
-}, [appliedCoupon]);
+};
+
+
+const now = new Date();
+const formatPrice = (price) => {
+  const n = Number(price);
+  const safe = Number.isFinite(n) ? n : 0;
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(safe);
+};
+
+const validCoupons = React.useMemo(() => {
+  const now = new Date();
+
+  return coupons.map(c => {
+    const minOk = computedTotalAmount >= Number(c.min_order_value || 0);
+    const notExpired = !c.expires_at || new Date(c.expires_at) > now;
+
+    return {
+      ...c,
+      id: c.coupon_id,
+      disabled: !(minOk && notExpired),
+      reason: !minOk
+        ? `Đơn tối thiểu ${formatPrice(c.min_order_value || 0)}`
+        : !notExpired
+        ? "Đã hết hạn"
+        : null,
+    };
+  });
+}, [coupons, computedTotalAmount]);
+
 
 
 const applyCoupon = async () => {
@@ -94,25 +156,112 @@ const applyCoupon = async () => {
     setLoading(false);
   }
 };
+const applyCouponFromSelect = async (coupon) => {
+  updateForm({ couponCode: coupon.code }); // ✅ THÊM DÒNG NÀY
+
+  const payload = {
+    code: coupon.code,
+    total_amount: computedTotalAmount,
+  };
+
+  const token = getAuthToken();
+  setLoading(true);
+
+  try {
+    const res = await orderService.coupon.validate(payload, token);
+    setAppliedCoupon(res.data);
+    toast.success(`Đã áp mã ${coupon.code}`);
+  } catch (e) {
+    toast.error(e?.response?.data?.message || "Không áp dụng được mã");
+    setAppliedCoupon(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    receiveEmail: false,
-    deliveryMethod: "store",
-    province: "",
-    district: "",
-    store: "",
-    shippingAddress: "",
-    note: "",
-    couponCode: "",
-    needInvoice: "no",
-    companyName: "",
-    companyTax: "",
-    companyAddress: "",
-    paymentMethod: "cod",
-  });
+  name: "",
+  phone: "",
+  email: "",
+  receiveEmail: false,
+  deliveryMethod: "store",
+
+  province: "",
+  provinceCode: "",
+  ward: "",
+  wardCode: "",
+
+  store: "",
+  shippingAddress: "",
+  note: "",
+  couponCode: "",
+  needInvoice: "no",
+  companyName: "",
+  companyTax: "",
+  companyAddress: "",
+  paymentMethod: "cod",
+});
+
+
+  // ===== PROVINCE / WARD (API v2) =====
+const [provinces, setProvinces] = useState([]);
+const [wards, setWards] = useState([]);
+const [loadingProvinces, setLoadingProvinces] = useState(false);
+const [loadingWards, setLoadingWards] = useState(false);
+// Lấy danh sách tỉnh/thành
+const fetchProvinces = async () => {
+  setLoadingProvinces(true);
+  try {
+    const res = await fetch(
+      "https://provinces.open-api.vn/api/v2/p"
+    );
+    const data = await res.json();
+    setProvinces(Array.isArray(data) ? data : []);
+  } catch (e) {
+    toast.error("Không tải được danh sách tỉnh/thành");
+    setProvinces([]);
+  } finally {
+    setLoadingProvinces(false);
+  }
+};
+
+
+// Lấy xã/phường theo tỉnh
+const fetchWards = async (provinceCode) => {
+  if (!provinceCode) return;
+
+  setLoadingWards(true);
+  try {
+    const res = await fetch(
+      `https://provinces.open-api.vn/api/v2/p/${provinceCode}?depth=2`
+    );
+    const data = await res.json();
+
+    // ✅ API v2: wards nằm trực tiếp trong province
+    setWards(Array.isArray(data?.wards) ? data.wards : []);
+  } catch (e) {
+    toast.error("Không tải được danh sách xã/phường");
+    setWards([]);
+  } finally {
+    setLoadingWards(false);
+  }
+};
+
+
+useEffect(() => {
+  if (form.deliveryMethod === "home") {
+    fetchProvinces();
+  }
+}, [form.deliveryMethod]);
+useEffect(() => {
+  if (form.provinceCode) {
+    fetchWards(form.provinceCode);
+  } else {
+    setWards([]);
+  }
+}, [form.provinceCode]);
 
   const [loading, setLoading] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -232,12 +381,6 @@ const applyCoupon = async () => {
 
   const updateForm = (patch) => setForm((s) => ({ ...s, ...patch }));
 
-  const formatPrice = (price) => {
-    const n = Number(price);
-    const safe = Number.isFinite(n) ? n : 0;
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(safe);
-  };
-
   const updateItem = (id, patch) => {
     setLocalCartItems(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it));
   };
@@ -248,16 +391,16 @@ const applyCoupon = async () => {
 
   const toggleSelect = (id) => updateItem(id, { selected: !localCartItems.find(i => i.id === id)?.selected });
 
-  const buildShippingAddress = () => {
-    if (form.shippingAddress && form.shippingAddress.trim()) return form.shippingAddress.trim();
-    if (form.deliveryMethod === "home") {
-      const parts = [];
-      if (form.province) parts.push(form.province);
-      if (form.district) parts.push(form.district);
-      return parts.join(", ") || "Giao hàng tận nơi";
-    }
-    return form.store || "Nhận tại cửa hàng";
-  };
+const buildShippingAddress = () => {
+  if (form.shippingAddress && form.shippingAddress.trim())
+    return form.shippingAddress.trim();
+
+  if (form.deliveryMethod === "home") {
+    return [form.ward, form.province].filter(Boolean).join(", ");
+  }
+
+  return form.store || "Nhận tại cửa hàng";
+};
 
   const buildPayload = () => {
     const currentSelected = localCartItems.filter(i => i.selected);
@@ -474,11 +617,7 @@ const applyCoupon = async () => {
       closeModal();
     }
   };
-  const computedTotalAmount = localCartItems
-  .filter(item => item.selected)
-  .reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
+ 
 
 
   return (
@@ -611,31 +750,64 @@ const applyCoupon = async () => {
           {/* Shipping */}
           <div className="mb-4">
             <h3 className="font-semibold mb-3">Thông tin nhận hàng</h3>
-
-            <div className="mb-3">
-              <label className="text-sm text-gray-600">Địa chỉ giao hàng (nhập chuỗi nếu muốn, sẽ ưu tiên)</label>
-              <input type="text" placeholder="123 Nguyen Trai, Q1, HCMC" value={form.shippingAddress} onChange={(e) => updateForm({ shippingAddress: e.target.value })} className="w-full px-4 py-2 border rounded" />
-            </div>
-
             <div className="flex gap-3 mb-3">
               <button onClick={() => updateForm({ deliveryMethod: "store" })} className={`flex-1 py-2 rounded ${form.deliveryMethod === "store" ? "bg-orange-500 text-white" : "bg-white border"}`}>Nhận tại cửa hàng</button>
               <button onClick={() => updateForm({ deliveryMethod: "home" })} className={`flex-1 py-2 rounded ${form.deliveryMethod === "home" ? "bg-orange-500 text-white" : "bg-white border"}`}>Giao tận nơi</button>
             </div>
 
             {form.deliveryMethod === "home" && !form.shippingAddress && (
-              <div className="flex gap-3">
-                <select value={form.province} onChange={(e) => updateForm({ province: e.target.value })} className="px-3 py-2 border rounded w-1/2">
-                  <option value="">Chọn Tỉnh / Thành</option>
-                  <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-                  <option value="Hà Nội">Hà Nội</option>
-                </select>
-                <select value={form.district} onChange={(e) => updateForm({ district: e.target.value })} className="px-3 py-2 border rounded w-1/2">
-                  <option value="">Chọn Quận / Huyện</option>
-                  <option value="Quận 1">Quận 1</option>
-                  <option value="Quận 2">Quận 2</option>
-                </select>
-              </div>
-            )}
+  <div className="flex gap-3">
+    {/* TỈNH / THÀNH */}
+    <select
+      value={form.provinceCode}
+      onChange={(e) => {
+        const code = e.target.value;
+        const selected = provinces.find(p => String(p.code) === code);
+
+        updateForm({
+          provinceCode: code,
+          province: selected?.name || "",
+          ward: "",
+          wardCode: "",
+        });
+      }}
+      className="px-3 py-2 border rounded w-1/2"
+    >
+      <option value="">Chọn Tỉnh / Thành</option>
+      {provinces.map(p => (
+        <option key={p.code} value={p.code}>
+          {p.name}
+        </option>
+      ))}
+    </select>
+
+    {/* XÃ / PHƯỜNG */}
+    <select
+      value={form.wardCode}
+      disabled={!form.provinceCode || loadingWards}
+      onChange={(e) => {
+        const code = e.target.value;
+        const selected = wards.find(w => String(w.code) === code);
+
+        updateForm({
+          wardCode: code,
+          ward: selected?.name || "",
+        });
+      }}
+      className="px-3 py-2 border rounded w-1/2"
+    >
+      <option value="">
+        {loadingWards ? "Đang tải..." : "Chọn Xã / Phường"}
+      </option>
+      {wards.map(w => (
+        <option key={w.code} value={w.code}>
+          {w.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
 
             {form.deliveryMethod === "store" && !form.shippingAddress && (
               <select value={form.store} onChange={(e) => updateForm({ store: e.target.value })} className="w-full px-3 py-2 border rounded">
@@ -651,35 +823,109 @@ const applyCoupon = async () => {
           {/* Voucher & invoice */}
           <div className="mb-4">
             {/* Voucher & invoice */}
+{/* ===== COUPON BOX ===== */}
 <div className="mb-4">
-  <div className="flex gap-3 mb-3">
-    <input 
-      type="text" 
-      placeholder="Mã giảm giá" 
-      value={form.couponCode} 
-      onChange={(e) => updateForm({ couponCode: e.target.value })} 
-      className="flex-1 px-4 py-2 border rounded" 
-    />
-    <button 
-      onClick={applyCoupon} 
-      className="px-4 py-2 rounded bg-orange-500 text-white"
-      disabled={loading}
-    >
-      Áp mã
-    </button>
+  <h3 className="font-semibold mb-2">Mã giảm giá</h3>
+
+  <div
+    onClick={() => setShowCouponModal(true)}
+    className="flex justify-between items-center px-4 py-3 border rounded-lg cursor-pointer hover:border-orange-400 transition"
+  >
+    <div className="text-sm">
+      {appliedCoupon ? (
+        <span className="text-orange-600 font-medium">
+          {appliedCoupon.code}
+        </span>
+      ) : (
+        <span className="text-gray-500">Chọn hoặc nhập mã giảm giá</span>
+      )}
+    </div>
+
+    <span className="text-orange-500 text-sm">Chọn mã ›</span>
   </div>
 
-  {/* Hiển thị thông tin coupon nếu hợp lệ */}
-  {appliedCoupon && appliedCoupon.valid && (
-    <div className="p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-      <div>Mã: {appliedCoupon.code}</div>
-      <div>Loại giảm giá: {appliedCoupon.discount_type}</div>
-      <div>Giá trị giảm: {formatPrice(appliedCoupon.discount_amount)}</div>
-      <div>Tổng thanh toán: {formatPrice(appliedCoupon.final_amount)}</div>
-      <div>Hết hạn: {new Date(appliedCoupon.expires_at).toLocaleDateString()}</div>
-    </div>
-  )}
+  {appliedCoupon && (
+  <div className="mt-2 text-sm text-green-600">
+    ✔ Giảm {formatPrice(discountAmount)}
+  </div>
+)}
+
 </div>
+{/* ===== COUPON MODAL ===== */}
+{showCouponModal && (
+  <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-30">
+  <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-5 relative">
+
+      <h3 className="text-lg font-semibold mb-4">
+        Chọn mã giảm giá
+      </h3>
+
+      {loadingCoupons && (
+        <div className="text-sm text-gray-500">
+          Đang tải mã giảm giá...
+        </div>
+      )}
+
+      <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+        {validCoupons.map(coupon => {
+          const selected = appliedCoupon?.code === coupon.code;
+
+          return (
+            <div
+              key={coupon.id}
+              onClick={() => {
+                if (coupon.disabled) return;
+                updateForm({ couponCode: coupon.code });
+                applyCouponFromSelect(coupon);
+                setShowCouponModal(false);
+              }}
+              className={`
+                border rounded-lg p-4 cursor-pointer transition
+                ${selected ? "border-orange-500 bg-orange-50" : "border-gray-200"}
+                ${coupon.disabled ? "opacity-50 cursor-not-allowed" : "hover:border-orange-400"}
+              `}
+            >
+              <div className="flex justify-between items-center">
+                <div className="font-semibold text-orange-600">
+                  {coupon.code}
+                </div>
+                {selected && <CheckCircle className="w-5 h-5 text-orange-500" />}
+              </div>
+
+              <div className="text-sm text-gray-600 mt-1">
+                {coupon.discount_type === "PERCENT"
+                  ? `Giảm ${coupon.discount_value}% (tối đa ${formatPrice(coupon.max_discount)})`
+                  : `Giảm ${formatPrice(coupon.discount_value)}`}
+              </div>
+
+              <div className="text-xs text-gray-500 mt-1">
+                Đơn tối thiểu: {formatPrice(coupon.min_order_value || 0)}
+              </div>
+
+              {coupon.disabled && (
+                <div className="text-xs text-red-500 mt-1">
+                  {coupon.reason}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={() => setShowCouponModal(false)}
+          className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
             
 
@@ -699,20 +945,25 @@ const applyCoupon = async () => {
             </div>
 
             {/* Payment & Order summary moved to OrderSummary component */}
-            <OrderSummary
-              paymentOptions={paymentOptions}
-              paymentMethod={form.paymentMethod}
-              onSelectPayment={(pm) => updateForm({ paymentMethod: pm })}
-                totalAmount={computedTotalAmount}  
-              computedSelected={computedSelected}
-              formatPrice={formatPrice}
-              loading={loading}
-              onSubmit={handleSubmit}
-              createdOrder={createdOrder}
-              showSuccessModal={showSuccessModal}
-              closeModal={closeModal}
-              viewOrder={viewOrder}
-            />
+           <OrderSummary
+  paymentOptions={paymentOptions}
+  paymentMethod={form.paymentMethod}
+  onSelectPayment={(pm) => updateForm({ paymentMethod: pm })}
+
+  originalAmount={computedTotalAmount}
+  discountAmount={discountAmount}
+  totalAmount={finalAmount}
+
+  computedSelected={computedSelected}
+  formatPrice={formatPrice}
+  loading={loading}
+  onSubmit={handleSubmit}
+  createdOrder={createdOrder}
+  showSuccessModal={showSuccessModal}
+  closeModal={closeModal}
+  viewOrder={viewOrder}
+/>
+
 
           </div>
 

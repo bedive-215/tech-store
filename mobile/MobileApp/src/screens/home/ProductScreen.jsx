@@ -110,37 +110,47 @@ export default function ProductScreen() {
   const lastFetchParamsRef = useRef({});
 
   // --- CHECK FLASH SALE STATUS ---
-  const flashSaleInfo = useMemo(() => {
-    const flashSale = flashSaleFromHome || productDetail?.flash_sale;
-    
-    if (!flashSale) return null;
+ const flashSaleInfo = useMemo(() => {
+  const flashSale = flashSaleFromHome || productDetail?.flash_sale;
+  if (!flashSale) return null;
 
-    const now = new Date();
-    const startAt = new Date(flashSale.start_at);
-    const endAt = new Date(flashSale.end_at);
-    const isActive = now >= startAt && now <= endAt;
+  const now = new Date();
+  const startAt = new Date(flashSale.start_at);
+  const endAt = new Date(flashSale.end_at);
 
-    if (!isActive) return null;
+  if (now < startAt || now > endAt) return null;
 
-    const originalPrice = Number(productDetail?.price || 0);
-    const salePrice = Number(flashSale.sale_price || 0);
-    const discountPercent = originalPrice > 0 
-      ? Math.round(((originalPrice - salePrice) / originalPrice) * 100) 
-      : 0;
-    
-    const flashSaleName = flashSale.flash_sale_name?.split('-')[0]?.trim() || 'Flash Sale';
+  // 🔥 ƯU TIÊN GIÁ TỪ HOME, SAU ĐÓ MỚI TỚI API
+  const originalPrice = Number(
+    route.params?.price ??
+    productDetail?.price ??
+    0
+  );
 
-    return {
-      isActive: true,
-      salePrice,
-      originalPrice,
-      discountPercent,
-      flashSaleName,
-      stockLimit: flashSale.stock_limit,
-      startAt: flashSale.start_at,
-      endAt: flashSale.end_at,
-    };
-  }, [flashSaleFromHome, productDetail?.flash_sale, productDetail?.price]);
+  const salePrice = Number(flashSale.sale_price || 0);
+  if (originalPrice <= 0 || salePrice <= 0) return null;
+
+  const discountPercent = Math.round(
+    ((originalPrice - salePrice) / originalPrice) * 100
+  );
+
+  return {
+    isActive: true,
+    salePrice,
+    originalPrice,
+    discountPercent,
+    flashSaleName:
+      flashSale.flash_sale_name?.split('-')[0]?.trim() || 'Flash Sale',
+    stockLimit: flashSale.stock_limit,
+    startAt: flashSale.start_at,
+    endAt: flashSale.end_at,
+  };
+}, [
+  flashSaleFromHome,
+  productDetail?.flash_sale,
+  productDetail?.price,
+  route.params?.price,
+]);
 
   // --- Helpers to normalize server payloads ---
   const normalizePayloadToList = (payload) => {

@@ -52,12 +52,11 @@ function ProductCard({ product, onPress }) {
     return num.toLocaleString("vi-VN") + " ₫";
   };
 
-  const flashSaleActive = useMemo(() => {
-    const fs = product?.flash_sale;
-    if (!fs) return false;
-    const now = new Date();
-    return now >= new Date(fs.start_at) && now <= new Date(fs.end_at);
-  }, [product?.flash_sale]);
+ const flashSaleActive = useMemo(() => {
+  // Nếu có flash_sale là coi như active
+  return !!product?.flash_sale;
+}, [product?.flash_sale]);
+
 
   const originalPrice = Number(product?.price ?? 0);
   const salePrice = flashSaleActive ? Number(product.flash_sale.sale_price) : null;
@@ -256,12 +255,22 @@ export default function HomeScreen({ navigation, route }) {
     }
   }, [route?.params, fetchProducts]);
 
-  const onProductClick = (p) => {
-    navigation.navigate("Product", {
-      productId: p.product_id,
-      flash_sale: p.flash_sale,
-    });
-  };
+ const onProductClick = (p) => {
+  navigation.navigate("Product", {
+    productId: p.product_id,
+
+    // 👇 GIÁ GỐC
+    price: p.price,
+
+    // 👇 FLASH SALE (nếu có)
+    flash_sale: p.flash_sale ? {
+      sale_price: p.flash_sale.sale_price,
+      flash_sale_name: p.flash_sale.flash_sale_name,
+      stock_limit: p.flash_sale.stock_limit,
+    } : null,
+  });
+};
+
 
   const handleFilter = useCallback((filterData) => {
     console.log("Filter applied from Header:", filterData);
