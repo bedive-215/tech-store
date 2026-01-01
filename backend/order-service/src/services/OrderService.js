@@ -476,7 +476,70 @@ const OrderService = {
         promiseMap.delete(correlationId);
       }
     });
-  }
-};
 
+    rabbitmq.subscribe('validate_warranty_queue', async (data, rk) => {
+      if (rk !== 'validate_warranty') return;
+
+      const { correlationId, order_id, product_id } = data;
+
+      try {
+        if (!correlationId || !order_id || !product_id) {
+          return rabbitmq.publish('warranty_result', {
+            correlationId,
+            valid: false,
+            reason: 'INVALID_REQUEST'
+          });
+        }
+
+        // 1. Get order
+        const order = await OrderRepository.findById(order_id);
+
+        if (!order) {
+          return rabbitmq.publish('warranty_result', {
+            correlationId,
+            valid: false,
+            reason: 'ORDER_NOT_FOUND'
+          });
+        }
+
+        // 2. Check payment status
+        if (!['paid', 'completed'].includes(order.status)) {
+          return rabbitmq.publish('warranty_result', {
+            correlationId,
+            valid: false,
+            reason: 'ORDER_NOT_PAID_YET'
+          });
+        }
+
+        // 3. Get order items
+        const items = await OrderItemRepository.findByOrder(order_id);
+
+        const productExist = items.some(i => i.product_id === product_id);
+
+        if (!productExist) {
+          return rabbitmq.publish('warranty_result', {
+            correlationId,
+            valid: false,
+            reason: 'PRODUCT_NOT_IN_ORDER'
+          });
+        }
+
+        // 4. valid
+        rabbitmq.publish('warranty_result', {
+          correlationId,
+          valid: true
+        });
+
+      } catch (err) {
+        console.error('VALIDATE WARRANTY ERROR:', err);
+
+        rabbitmq.publish('warranty_result', {
+          correlationId,
+          valid: false,
+          reason: 'SERVER_ERROR'
+        });
+      }
+    });
+  }
+}
 module.exports = OrderService;
