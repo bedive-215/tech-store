@@ -89,6 +89,9 @@ export default function Login({ navigation }) {
 
       console.log("Step 2: Starting Google Sign In...");
       const userInfo = await GoogleSignin.signIn();
+      console.log('userInfo', userInfo);
+console.log('idToken', userInfo.idToken);
+console.log('accessToken', userInfo.accessToken);
       
       console.log("Step 3: UserInfo received:", JSON.stringify(userInfo));
 

@@ -53,12 +53,14 @@ export default function ProductCard({ product }) {
   };
 
   /* ================= FLASH SALE ================= */
-  const flashSaleActive = useMemo(() => {
-    const fs = product?.flash_sale;
-    if (!fs) return false;
-    const now = new Date();
-    return now >= new Date(fs.start_at) && now <= new Date(fs.end_at);
-  }, [product?.flash_sale]);
+const flashSaleActive = useMemo(() => {
+  const fs = product?.flash_sale;
+  if (!fs) return false;
+
+  const salePrice = Number(fs.sale_price);
+  return Number.isFinite(salePrice) && salePrice > 0;
+}, [product?.flash_sale]);
+
 
   const originalPrice = Number(product?.price ?? 0);
   const salePrice = flashSaleActive

@@ -13,6 +13,9 @@ import {
 import { useProduct } from "@/providers/ProductProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-toastify";
+import { useBrand } from "@/providers/BrandProvider";
+import { useCategory } from "@/providers/CategoryProvider";
+
 
 /**
  * Product management (Admin) - includes media manager in Edit modal
@@ -42,6 +45,8 @@ export default function ProductManagement() {
     deleteMedia,
     loading,
   } = useProduct();
+const { brands, fetchBrands } = useBrand();
+const { categories, fetchCategories } = useCategory();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -62,10 +67,13 @@ export default function ProductManagement() {
   const fileInputRef = useRef(null);
   const dropRef = useRef(null);
 
-  useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+ useEffect(() => {
+  fetchProducts();
+  fetchBrands();      // 👈 load brand
+  fetchCategories();  // 👈 load category
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
 
   // Open modal to add product
   const openAddModal = () => {
@@ -807,23 +815,39 @@ export default function ProductManagement() {
               }
             />
 
-            <label style={label}>Brand Name</label>
-            <input
-              style={input}
-              value={formData.brand_name}
-              onChange={(e) =>
-                setFormData({ ...formData, brand_name: e.target.value })
-              }
-            />
+            <label style={label}>Brand</label>
+<select
+  style={input}
+  value={formData.brand_name}
+  onChange={(e) =>
+    setFormData({ ...formData, brand_name: e.target.value })
+  }
+>
+  <option value="">-- Chọn brand --</option>
+  {brands.map((b) => (
+    <option key={b.name} value={b.name}>
+      {b.name}
+    </option>
+  ))}
+</select>
 
-            <label style={label}>Category Name</label>
-            <input
-              style={input}
-              value={formData.category_name}
-              onChange={(e) =>
-                setFormData({ ...formData, category_name: e.target.value })
-              }
-            />
+
+         <label style={label}>Category</label>
+<select
+  style={input}
+  value={formData.category_name}
+  onChange={(e) =>
+    setFormData({ ...formData, category_name: e.target.value })
+  }
+>
+  <option value="">-- Chọn category --</option>
+  {categories.map((c) => (
+    <option key={c.name} value={c.name}>
+      {c.name}
+    </option>
+  ))}
+</select>
+
 
             {/* Nút Submit - CHỈ GỬI DATA, KHÔNG GỬI ẢNH */}
             <button

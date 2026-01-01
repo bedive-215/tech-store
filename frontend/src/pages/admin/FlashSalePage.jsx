@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useFlashSale } from "@/providers/FlashSaleProvider";
 import { toast } from "react-toastify";
+import { useProduct } from "@/providers/ProductProvider";
+
 
 // NOTE: Using the COLORS inline as you requested (do NOT import from other file)
 const COLORS = {
@@ -43,6 +45,9 @@ export default function AdminFlashSalePage() {
   const [selectedFlashSaleId, setSelectedFlashSaleId] = useState(null);
   const [itemForm, setItemForm] = useState({ product_id: "", sale_price: "", stock_limit: "" });
   const [showAddItem, setShowAddItem] = useState(false);
+const { fetchProducts } = useProduct();
+const [products, setProducts] = useState([]);
+const [productLoading, setProductLoading] = useState(false);
 
   useEffect(() => {
     // load active flash sales on mount
@@ -88,11 +93,22 @@ export default function AdminFlashSalePage() {
     }
   };
 
-  const openAddItem = (flashSaleId) => {
-    setSelectedFlashSaleId(flashSaleId);
-    setItemForm({ product_id: "", sale_price: "", stock_limit: "" });
-    setShowAddItem(true);
-  };
+ const openAddItem = async (flashSaleId) => {
+  setSelectedFlashSaleId(flashSaleId);
+  setItemForm({ product_id: "", sale_price: "", stock_limit: "" });
+  setShowAddItem(true);
+
+  try {
+    setProductLoading(true);
+    const list = await fetchProducts({ limit: 1000 }); 
+    setProducts(list);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setProductLoading(false);
+  }
+};
+
 
   const onAddItemSubmit = async (e) => {
     e.preventDefault();
@@ -364,14 +380,32 @@ export default function AdminFlashSalePage() {
             <form onSubmit={onAddItemSubmit} className="grid gap-3">
 
               {/* ID */}
-              <div className="flex flex-col">
-                <label className="font-medium mb-1">Mã sản phẩm</label>
-                <input
-                  value={itemForm.product_id}
-                  onChange={(e) => setItemForm({ ...itemForm, product_id: e.target.value })}
-                  className="p-3 border rounded-xl"
-                />
-              </div>
+            <div className="flex flex-col">
+  <label className="font-medium mb-1">Sản phẩm</label>
+
+  <select
+    value={itemForm.product_id}
+    onChange={(e) =>
+      setItemForm({ ...itemForm, product_id: e.target.value })
+    }
+    className="p-3 border rounded-xl"
+  >
+    <option value="">-- Chọn sản phẩm --</option>
+
+    {products.map((p) => (
+      <option key={p.product_id} value={p.product_id}>
+        {p.name} – {Number(p.price).toLocaleString("vi-VN")}₫
+      </option>
+    ))}
+  </select>
+
+  {productLoading && (
+    <span className="text-sm text-gray-500 mt-1">
+      Đang tải sản phẩm...
+    </span>
+  )}
+</div>
+
 
               {/* PRICE */}
               <div className="flex flex-col">

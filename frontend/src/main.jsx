@@ -12,6 +12,9 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import  PaymentProvider  from "@/providers/PaymentProvider";
 import UserProvider from "@/providers/UserProvider";
 import ProductProvider from "@/providers/ProductProvider";
+import { BrandProvider } from "@/providers/BrandProvider";
+import { CategoryProvider } from "@/providers/CategoryProvider";
+
 
 // 👉 THÊM ORDER PROVIDER
 import { OrderProvider } from "@/providers/OrderProvider";
@@ -31,23 +34,30 @@ root.render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <UserProvider>
-            <PaymentProvider>
-              <ProductProvider>
-                {/* ⭐ BỌC CartProvider ở đây để toàn app con (Product, Cart, Checkout, CustomerInfo...) có thể dùng useCart */}
-                <CartProvider>
-                  {/* ⭐ BỌC OrderProvider Ở NGOÀI CustomerInfo, Cart, Checkout,... */}
-                  <OrderProvider>
-                    {/* ⭐ BỌC FlashSaleProvider để useFlashSale có thể dùng ở toàn app (đặc biệt admin) */}
-                    <FlashSaleProvider>
-                      <App />
-                    </FlashSaleProvider>
-                  </OrderProvider>
-                </CartProvider>
-              </ProductProvider>
-            </PaymentProvider>
-          </UserProvider>
-        </AuthProvider>
+  <UserProvider>
+    <PaymentProvider>
+
+      {/* ✅ THÊM 2 PROVIDER Ở ĐÂY */}
+      <BrandProvider>
+        <CategoryProvider>
+
+          <ProductProvider>
+            <CartProvider>
+              <OrderProvider>
+                <FlashSaleProvider>
+                  <App />
+                </FlashSaleProvider>
+              </OrderProvider>
+            </CartProvider>
+          </ProductProvider>
+
+        </CategoryProvider>
+      </BrandProvider>
+
+    </PaymentProvider>
+  </UserProvider>
+</AuthProvider>
+
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
