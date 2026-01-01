@@ -31,13 +31,12 @@ class WarrantyService {
                 throw new AppError("Missing required fields", 400);
             }
 
-            let mediaUrls = null;
-            if (files?.length > 0) {
-                mediaUrls = await uploadMultipleMedia(files);
-            }
+            let urls = [];
 
-            const url = mediaUrls.map((it) => it.url);
-            // console.log(url);
+            if (files?.length > 0) {
+                const mediaUrls = await uploadMultipleMedia(files);
+                urls = mediaUrls.map(it => it.url);
+            }
 
             const warranty = await Warranty.create({
                 user_id,
@@ -45,10 +44,9 @@ class WarrantyService {
                 order_id,
                 serial: serial || null,
                 issue_description,
-                url: mediaUrls ? JSON.stringify(url) : null,
+                url: urls.length ? JSON.stringify(urls) : null,
                 status: "pending"
             }, { transaction: t });
-
             await t.commit();
 
             return {
