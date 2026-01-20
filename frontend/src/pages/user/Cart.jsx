@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Plus, Minus, Package } from "lucide-react";
 import { toast } from "react-toastify";
-import { useOrder } from "@/Providers/OrderProvider";
+import { useOrder } from "@/providers/OrderProvider";
 import { useCart } from "@/providers/CartProvider";
 
 export default function Cart() {
@@ -402,9 +402,8 @@ export default function Cart() {
                     className="rounded-xl shadow-md p-4 flex gap-4 transition-all hover:shadow-lg relative"
                     style={{
                       backgroundColor: COLORS.bgLight,
-                      border: `2px solid ${
-                        item.selected ? COLORS.primary : COLORS.borderLight
-                      }`,
+                      border: `2px solid ${item.selected ? COLORS.primary : COLORS.borderLight
+                        }`,
                       opacity: isUpdating ? 0.7 : 1,
                     }}
                   >

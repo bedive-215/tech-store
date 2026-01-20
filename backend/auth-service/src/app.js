@@ -8,6 +8,8 @@ const app = express();
 const allowedOrigins = [
     "http://localhost:5173",
     "http://frontend:5173",
+    "https://store.hailamdev.space",
+    "https://api.store.hailamdev.space",
 ];
 
 // Middleware parse body phải trước route

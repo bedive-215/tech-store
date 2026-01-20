@@ -18,14 +18,9 @@ services:
       - ../../database/seeds/seed_auth_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -69,20 +64,15 @@ services:
       - ../../database/seeds/seed_order_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - kong-net
-  
+
   # order service
   order-service:
     build:
@@ -114,7 +104,7 @@ services:
     volumes:
       - kong-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kong"]
+      test: [ "CMD-SHELL", "pg_isready -U kong" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -161,7 +151,7 @@ services:
       - "8001:8001"
       - "8444:8444"
     healthcheck:
-      test: ["CMD", "kong", "health"]
+      test: [ "CMD", "kong", "health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -182,18 +172,18 @@ services:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - kong-net
-    
+
   # rabbitmq-service
   rabbitmq-service:
     build:
       context: ../rabbitmq
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: rabbitmq-service:v1.0.0
     container_name: rabbitmq-service
     restart: always
@@ -225,14 +215,9 @@ services:
       - ../../database/seeds/seed_product_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -275,14 +260,9 @@ services:
       - ../../database/seeds/seed_cart_db.sql:/docker-entrypoint-initdb.d/02-seed.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -307,7 +287,7 @@ services:
       - ../../backend/cart-service/.env
     networks:
       - kong-net
-  
+
   # Payment database
   payment-database:
     image: mysql:8.0
@@ -324,20 +304,15 @@ services:
       - ../../database/schemas/payment_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - kong-net
-      
+
   payment-service:
     build:
       context: ../../backend/payment-service
@@ -372,20 +347,15 @@ services:
       - ../../database/schemas/warranty_service_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     command: >
-      mysqld
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-connect='SET NAMES utf8mb4;'
-      --skip-character-set-client-handshake
-      --default-time-zone='+07:00'
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4;' --skip-character-set-client-handshake --default-time-zone='+07:00'
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - kong-net
-  
+
   # warranty service
   warranty-service:
     build:
@@ -405,6 +375,37 @@ services:
     networks:
       - kong-net
 
+  # Frontend (React/Vite)
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    image: frontend:v1.0.0
+    container_name: frontend
+    restart: always
+    expose:
+      - "80"
+    networks:
+      - kong-net
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - kong
+      - frontend
+    networks:
+      - kong-net
+
 volumes:
   auth-data:
   kong-data:
@@ -414,6 +415,9 @@ volumes:
   cart-data:
   payment-data:
   warranty-data:
+  certbot-conf:
+  certbot-www:
+
 
 networks:
   kong-net:

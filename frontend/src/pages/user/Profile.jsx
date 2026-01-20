@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useUser } from "@/Providers/UserProvider";
+import { useUser } from "@/providers/UserProvider";
 import { useAuth } from "@/hooks/useAuth"; // 👉 Thêm useAuth để dùng logout()
 import { Loader2, Camera, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";

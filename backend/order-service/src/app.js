@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "https://store.hailamdev.space", "https://api.store.hailamdev.space"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
