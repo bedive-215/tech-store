@@ -11,10 +11,11 @@ import {
   Animated
 } from 'react-native';
 
-// Dummy screens nếu chưa có
+// Screens
 import HomeScreen from '../screens/home/HomeScreen';
 import ProfileScreen from '../screens/home/ProfileScreen';
 import OrdersScreen from '../screens/home/OrdersScreen';
+import WarrantyScreen from '../screens/home/WarrantyScreen';
 
 const Tab = createBottomTabNavigator();
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -115,6 +116,7 @@ const TabBarIcon = ({ emoji, focused, badge }) => {
 // ===== Bottom Tab Navigator =====
 export default function BottomTabNavigator() {
   const [orderBadge, setOrderBadge] = React.useState(0);
+  const [warrantyBadge, setWarrantyBadge] = React.useState(0);
 
   return (
     <Tab.Navigator
@@ -179,6 +181,21 @@ export default function BottomTabNavigator() {
               emoji="📋"
               focused={focused}
               badge={orderBadge}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="WarrantyTab"
+        component={WarrantyScreen}
+        options={{
+          tabBarLabel: 'Bảo hành',
+          tabBarButton: (props) => <CustomTabButton {...props} />,
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon
+              emoji="🛡️"
+              focused={focused}
+              badge={warrantyBadge}
             />
           ),
         }}

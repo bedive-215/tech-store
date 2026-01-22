@@ -874,11 +874,22 @@ const buildShippingAddress = () => {
             <div
               key={coupon.id}
               onClick={() => {
-                if (coupon.disabled) return;
-                updateForm({ couponCode: coupon.code });
-                applyCouponFromSelect(coupon);
-                setShowCouponModal(false);
-              }}
+  if (coupon.disabled) return;
+
+  if (appliedCoupon?.code === coupon.code) {
+    // Nếu voucher này đang áp dụng -> bỏ voucher
+    setAppliedCoupon(null);
+    updateForm({ couponCode: "" });
+    toast.info(`Đã bỏ mã ${coupon.code}`);
+  } else {
+    // Áp voucher
+    updateForm({ couponCode: coupon.code });
+    applyCouponFromSelect(coupon);
+  }
+
+  setShowCouponModal(false);
+}}
+
               className={`
                 border rounded-lg p-4 cursor-pointer transition
                 ${selected ? "border-orange-500 bg-orange-50" : "border-gray-200"}

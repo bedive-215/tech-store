@@ -28,9 +28,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const [sort, setSort] = useState("");
 
   // Auth state
-// Check đăng nhập bằng access_token
-const isLoggedIn = !!localStorage.getItem("access_token");
-
+  const isLoggedIn = !!localStorage.getItem("access_token");
 
   const categoriesRef = useRef(null);
   const locationsRef = useRef(null);
@@ -48,24 +46,22 @@ const isLoggedIn = !!localStorage.getItem("access_token");
     "🚚 Giao nhanh - Miễn phí cho đơn 300k",
   ];
 
- 
-
   // Function to check auth and show alert if not logged in
- const requireAuth = (
-  callback,
-  message = "Bạn cần đăng nhập để sử dụng tính năng này!"
-) => {
-  const token = localStorage.getItem("access_token");
+  const requireAuth = (
+    callback,
+    message = "Bạn cần đăng nhập để sử dụng tính năng này!"
+  ) => {
+    const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    alert(message);
-    navigate("/login");
-    return false;
-  }
+    if (!token) {
+      alert(message);
+      navigate("/login");
+      return false;
+    }
 
-  callback();
-  return true;
-};
+    callback();
+    return true;
+  };
 
   const CategoryIcon = ({ keyName }) => {
     const k = (keyName || "").toLowerCase();
@@ -284,9 +280,11 @@ const isLoggedIn = !!localStorage.getItem("access_token");
 
   return (
     <header ref={headerRef} className="w-full sticky top-0 z-[999] font-sans">
-      <div className="w-full text-white text-xs py-2" style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}>
-        <div className="max-w-[1280px] mx-auto px-4">
-          <div className="relative overflow-hidden">
+      {/* ========== DÒNG CHỮ CHẠY VỚI NÚT BẢO HÀNH ========== */}
+      <div className="w-full text-white text-xs relative" style={{ background: "linear-gradient(90deg, #F97316, #C2410C)", height: "48px" }}>
+        <div className="max-w-[1280px] mx-auto px-4 h-full relative">
+          {/* Dòng chữ chạy */}
+          <div className="relative overflow-hidden h-full flex items-center">
             <div className="marquee-track flex items-center">
               <div className="marquee-group flex items-center whitespace-nowrap">
                 {miniMessages.map((m, i) => (
@@ -301,8 +299,31 @@ const isLoggedIn = !!localStorage.getItem("access_token");
             </div>
           </div>
         </div>
+
+        {/* NÚT BẢO HÀNH - sát góc trên phải, không viền trên & phải */}
+        <button 
+  onClick={() => requireAuth(() => navigate("/user/warranties"), "Vui lòng đăng nhập để xem bảo hành!")} 
+  className="absolute top-0 right-0 flex items-center gap-2 text-white font-bold hover:brightness-110 transition-all"
+  style={{ 
+    background: "linear-gradient(90deg, #F97316, #C2410C)",
+    padding: "6px 16px", // nhỏ hơn
+    height: "36px",      // ngắn hơn
+    borderBottomLeftRadius: "8px", // bo góc nhẹ hơn
+    borderLeft: "1px solid rgba(255,255,255,0.3)",
+    borderBottom: "1px solid rgba(255,255,255,0.3)"
+  }}
+  title="Bảo hành"
+>
+  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+  <span className="text-sm">Bảo hành</span>
+</button>
+
       </div>
 
+      {/* ========== HEADER CHÍNH ========== */}
       <div className="py-4 shadow relative" style={{ background: "linear-gradient(90deg, #F97316, #C2410C)" }}>
         <div className="max-w-[1280px] mx-auto flex items-center gap-4 px-4">
 
@@ -560,7 +581,7 @@ const isLoggedIn = !!localStorage.getItem("access_token");
       </div>
 
       <style>{`
-        .marquee-track { height: 28px; align-items: center; animation: marquee 18s linear infinite; }
+        .marquee-track { height: 100%; align-items: center; animation: marquee 18s linear infinite; }
         .marquee-track:hover { animation-play-state: paused; }
         .marquee-group { display: inline-flex; flex-shrink: 0; }
         @keyframes marquee { from { transform: translateX(0%); } to { transform: translateX(-50%); } }

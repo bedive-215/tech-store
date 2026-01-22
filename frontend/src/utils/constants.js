@@ -12,6 +12,7 @@ export const ROUTERS = {
     CUSTOMER_INFO: "/user/customer-info",
 
     ORDERS: "/user/orders",
+    WARRANTIES: "/user/warranties",
   },
 
   ADMIN: {
@@ -22,6 +23,7 @@ export const ROUTERS = {
     ORDERS: "/admin/orders",
     FLASH_SALES: "/admin/flash-sales",
     PRODUCTS: "/admin/products",
+    WARRANTIES: "/admin/warranties", 
   },
 
   PUBLIC: {

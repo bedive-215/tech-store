@@ -14,6 +14,7 @@ import UserProvider from "@/providers/UserProvider";
 import ProductProvider from "@/providers/ProductProvider";
 import { BrandProvider } from "@/providers/BrandProvider";
 import { CategoryProvider } from "@/providers/CategoryProvider";
+import { WarrantyProvider } from "@/providers/WarrantyProvider";
 
 
 // 👉 THÊM ORDER PROVIDER
@@ -34,31 +35,35 @@ root.render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-  <UserProvider>
-    <PaymentProvider>
+          <UserProvider>
+            <PaymentProvider>
 
-      {/* ✅ THÊM 2 PROVIDER Ở ĐÂY */}
-      <BrandProvider>
-        <CategoryProvider>
+              <BrandProvider>
+                <CategoryProvider>
 
-          <ProductProvider>
-            <CartProvider>
-              <OrderProvider>
-                <FlashSaleProvider>
-                  <App />
-                </FlashSaleProvider>
-              </OrderProvider>
-            </CartProvider>
-          </ProductProvider>
+                  <ProductProvider>
+                    <CartProvider>
+                      <OrderProvider>
+                        <FlashSaleProvider>
 
-        </CategoryProvider>
-      </BrandProvider>
+                          {/* 🔥 THÊM WARRANTY PROVIDER Ở ĐÂY */}
+                          <WarrantyProvider>
+                            <App />
+                          </WarrantyProvider>
 
-    </PaymentProvider>
-  </UserProvider>
-</AuthProvider>
+                        </FlashSaleProvider>
+                      </OrderProvider>
+                    </CartProvider>
+                  </ProductProvider>
 
+                </CategoryProvider>
+              </BrandProvider>
+
+            </PaymentProvider>
+          </UserProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
+

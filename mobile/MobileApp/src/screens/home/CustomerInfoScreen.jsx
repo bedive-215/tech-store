@@ -278,7 +278,17 @@ const onSelectProvince = (province) => {
   }, [coupons, computedTotalAmount]);
 
   // ===== ÁP DỤNG COUPON TỪ MODAL =====
+  // ===== ÁP DỤNG/BỎ COUPON TỪ MODAL (TOGGLE) =====
   const applyCouponFromSelect = async (coupon) => {
+    // ✅ Nếu đang chọn voucher này rồi → BỎ CHỌN
+    if (appliedCoupon?.code === coupon.code) {
+      setAppliedCoupon(null);
+      updateForm({ couponCode: '' });
+      Alert.alert('Thông báo', `Đã bỏ mã ${coupon.code}`);
+      return;
+    }
+
+    // ✅ Nếu chưa chọn hoặc đang chọn voucher khác → ÁP DỤNG
     updateForm({ couponCode: coupon.code });
 
     const payload = {

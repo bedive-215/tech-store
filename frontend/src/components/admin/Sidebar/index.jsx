@@ -1,6 +1,6 @@
 // src/components/common/Sidebar/index.jsx
 import React from "react";
-import { Home, Users, CreditCard, Box, Tag, Package, Flame } from "lucide-react";
+import { Home, Users, CreditCard, Box, Tag, Package, Flame,  ShieldCheck,} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTERS } from "@/utils/constants";
 
@@ -9,40 +9,46 @@ export default function Sidebar({ active = true, mode = "admin" }) {
   const location = useLocation();
 
   const menuItems = [
-    {
-      label: "Trang Chủ",
-      icon: <Home size={20} />,
-      path: ROUTERS.ADMIN.DASHBOARD,
-    },
-    {
-      label: "Quản lý người dùng",
-      icon: <Users size={20} />,
-      path: ROUTERS.ADMIN.USER_MANAGEMENT,
-    },
-    {
-      label: "Sản phẩm",
-      icon: <Package size={20} />,
-      path: ROUTERS.ADMIN.PRODUCTS,
-    },
+  {
+    label: "Trang Chủ",
+    icon: <Home size={20} />,
+    path: ROUTERS.ADMIN.DASHBOARD,
+  },
+  {
+    label: "Quản lý người dùng",
+    icon: <Users size={20} />,
+    path: ROUTERS.ADMIN.USER_MANAGEMENT,
+  },
+  {
+    label: "Sản phẩm",
+    icon: <Package size={20} />,
+    path: ROUTERS.ADMIN.PRODUCTS,
+  },
+  {
+    label: "Flash Sale",
+    icon: <Flame size={20} />,
+    path: ROUTERS.ADMIN.FLASH_SALES,
+  },
+  {
+    label: "Đơn hàng",
+    icon: <Box size={20} />,
+    path: ROUTERS.ADMIN.ORDERS,
+  },
 
-    // ⭐⭐⭐ THÊM FLASH SALE Ở ĐÂY
-    {
-      label: "Flash Sale",
-      icon: <Flame size={20} />,
-      path: ROUTERS.ADMIN.FLASH_SALES,
-    },
+  // 🛡️ BẢO HÀNH
+  {
+    label: "Bảo hành",
+    icon: <ShieldCheck size={20} />,
+    path: ROUTERS.ADMIN.WARRANTIES,
+  },
 
-    {
-      label: "Đơn hàng",
-      icon: <Box size={20} />,
-      path: ROUTERS.ADMIN.ORDERS,
-    },
-    {
-      label: "Mã giảm giá",
-      icon: <Tag size={20} />,
-      path: ROUTERS.ADMIN.DISCOUNTS,
-    },
-  ];
+  {
+    label: "Mã giảm giá",
+    icon: <Tag size={20} />,
+    path: ROUTERS.ADMIN.DISCOUNTS,
+  },
+];
+
 
   return (
     <aside
