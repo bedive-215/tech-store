@@ -1,19 +1,20 @@
 // src/components/Cart.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Trash2, Plus, Minus, Package } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, Package, Tag } from "lucide-react";
+import { HiOutlineShoppingCart, HiOutlineTrash, HiOutlineTag } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { useOrder } from "@/providers/OrderProvider";
 import { useCart } from "@/providers/CartProvider";
 
 export default function Cart() {
   const COLORS = {
-    primary: "#F97316",
-    primaryHover: "#EA580C",
-    primaryGradientStart: "#F97316",
-    primaryGradientEnd: "#C2410C",
-    secondary: "#FCD34D",
-    secondaryHover: "#FBBF24",
+    primary: "#137fec",
+    primaryHover: "#0ea5e9",
+    primaryGradientStart: "#137fec",
+    primaryGradientEnd: "#0ea5e9",
+    secondary: "#60a5fa",
+    secondaryHover: "#3b82f6",
     bgLight: "#FFFFFF",
     bgDark: "#1F2937",
     bgGrayLight: "#F3F4F6",
@@ -23,7 +24,7 @@ export default function Cart() {
     textGray: "#6B7280",
     borderLight: "#E5E7EB",
     borderDark: "#4B5563",
-    error: "#F87171",
+    error: "#EF4444",
     white: "#FFFFFF",
     black: "#000000",
   };
@@ -350,47 +351,51 @@ export default function Cart() {
   };
 
   return (
-    <div className="min-h-screen py-8" style={{ backgroundColor: COLORS.bgGrayLight }}>
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <ShoppingCart size={32} style={{ color: COLORS.primary }} />
-          <h1 className="text-3xl font-bold" style={{ color: COLORS.textLight }}>
-            Giỏ Hàng Của Bạn
-          </h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Premium Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] flex items-center justify-center shadow-lg">
+              <HiOutlineShoppingCart className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              Giỏ Hàng Của Bạn
+            </h1>
+          </div>
+          <p className="text-gray-600 ml-16">
+            {localItems.length} sản phẩm trong giỏ hàng
+          </p>
         </div>
 
         {/* Loading state */}
         {(loading || loadingLocal) ? (
-          <div
-            className="rounded-2xl shadow-lg p-12 text-center"
-            style={{ backgroundColor: COLORS.bgLight }}
-          >
-            <div className="animate-spin w-12 h-12 border-4 border-gray-300 border-t-orange-500 rounded-full mx-auto mb-4"></div>
-            <p className="text-xl" style={{ color: COLORS.textGray }}>
-              Đang tải giỏ hàng...
-            </p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+            <div className="w-12 h-12 border-4 border-[#137fec] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-xl text-gray-600">Đang tải giỏ hàng...</p>
           </div>
         ) : localItems.length === 0 ? (
-          // Empty cart
-          <div
-            className="rounded-2xl shadow-lg p-12 text-center"
-            style={{ backgroundColor: COLORS.bgLight }}
-          >
-            <Package
-              size={64}
-              style={{ color: COLORS.textGray, margin: "0 auto 1rem" }}
-            />
-            <p className="text-xl mb-2" style={{ color: COLORS.textGray }}>
+          // Empty cart - Premium Design
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center mx-auto mb-6">
+              <Package size={48} className="text-[#137fec]" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Giỏ hàng trống
-            </p>
-            <p className="text-sm" style={{ color: COLORS.textGray }}>
+            </h2>
+            <p className="text-gray-600 mb-6">
               Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm
             </p>
+            <button
+              onClick={() => navigate('/user/home')}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              Khám phá sản phẩm
+            </button>
           </div>
         ) : (
-          // Cart with items
-          <div className="grid lg:grid-cols-3 gap-6">
+          // Cart with items - Premium Grid Layout
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Cart items */}
             <div className="lg:col-span-2 space-y-4">
               {localItems.map((item) => {
@@ -399,148 +404,161 @@ export default function Cart() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-xl shadow-md p-4 flex gap-4 transition-all hover:shadow-lg relative"
+                    className="group relative bg-white rounded-2xl shadow-sm border transition-all hover:shadow-md"
                     style={{
-                      backgroundColor: COLORS.bgLight,
-                      border: `2px solid ${item.selected ? COLORS.primary : COLORS.borderLight
-                        }`,
+                      borderColor: item.selected ? COLORS.primary : COLORS.borderLight,
+                      borderWidth: item.selected ? '2px' : '1px',
                       opacity: isUpdating ? 0.7 : 1,
                     }}
                   >
-                    {/* Loading overlay khi đang update */}
+                    {/* Loading overlay */}
                     {isUpdating && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 rounded-xl z-10">
-                        <div className="animate-spin w-8 h-8 border-3 border-gray-300 border-t-orange-500 rounded-full"></div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-2xl z-10 backdrop-blur-sm">
+                        <div className="w-8 h-8 border-3 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
 
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={item.selected}
-                      onChange={() => toggleSelect(item.id)}
-                      className="w-5 h-5 mt-2 cursor-pointer"
-                      style={{ accentColor: COLORS.primary }}
-                      disabled={isUpdating}
-                    />
+                    <div className="p-4 sm:p-6 flex gap-4">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={item.selected}
+                        onChange={() => toggleSelect(item.id)}
+                        className="w-5 h-5 mt-2 cursor-pointer rounded"
+                        style={{ accentColor: COLORS.primary }}
+                        disabled={isUpdating}
+                      />
 
-                    {/* Image */}
-                    <img
-                      src={item.image}
-                      className="w-24 h-24 rounded-lg object-cover"
-                      alt={item.name}
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.png";
-                      }}
-                    />
-
-                    {/* Info */}
-                    <div className="flex-1">
-                      <h3
-                        className="font-semibold text-lg mb-1"
-                        style={{ color: COLORS.textLight }}
-                      >
-                        {item.name}
-                      </h3>
-                      <p
-                        className="font-bold text-xl mb-2"
-                        style={{ color: COLORS.primary }}
-                      >
-                        {formatPrice(item.price)}
-                      </p>
-                      <p className="text-sm text-gray-500 mb-3">
-                        Còn lại: {item.stock} sản phẩm
-                      </p>
-
-                      {/* Quantity controls */}
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleUpdateQuantity(item, -1)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{ backgroundColor: COLORS.bgGrayLight }}
-                          disabled={item.quantity <= 1 || isUpdating}
-                        >
-                          <Minus size={16} />
-                        </button>
-
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => handleSetQuantity(item, e.target.value)}
-                          className="font-semibold w-16 text-center border rounded-md px-2 py-1 disabled:bg-gray-100"
-                          min={1}
-                          max={item.stock}
-                          disabled={isUpdating}
-                        />
-
-                        <button
-                          onClick={() => handleUpdateQuantity(item, 1)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{
-                            backgroundColor: COLORS.primary,
-                            color: COLORS.white,
+                      {/* Image */}
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-50 to-gray-100">
+                        <img
+                          src={item.image}
+                          className="w-full h-full object-contain"
+                          alt={item.name}
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.png";
                           }}
-                          disabled={item.quantity >= item.stock || isUpdating}
-                        >
-                          <Plus size={16} />
-                        </button>
+                        />
+                      </div>
 
-                        <div className="ml-4 text-sm text-gray-600">
-                          Thành tiền:{" "}
-                          <strong style={{ color: COLORS.primary }}>
-                            {formatPrice(item.price * item.quantity)}
-                          </strong>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-3 mb-2">
+                          <h3 className="font-semibold text-base sm:text-lg text-gray-900 line-clamp-2">
+                            {item.name}
+                          </h3>
+
+                          {/* Delete button */}
+                          <button
+                            onClick={() => handleRemoveItem(item)}
+                            className="flex-shrink-0 p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                            style={{ color: COLORS.error }}
+                            disabled={isUpdating}
+                            aria-label={`Xóa ${item.name}`}
+                          >
+                            <HiOutlineTrash className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          </button>
+                        </div>
+
+                        <p className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent mb-2">
+                          {formatPrice(item.price)}
+                        </p>
+
+                        <p className="text-sm text-gray-500 mb-4">
+                          Còn lại: <span className="font-semibold">{item.stock}</span> sản phẩm
+                        </p>
+
+                        {/* Quantity controls - Premium Design */}
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl p-1">
+                            <button
+                              onClick={() => handleUpdateQuantity(item, -1)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={item.quantity <= 1 || isUpdating}
+                            >
+                              <Minus size={16} className="text-gray-700" />
+                            </button>
+
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => handleSetQuantity(item, e.target.value)}
+                              className="font-semibold w-12 text-center border-0 focus:outline-none disabled:bg-transparent"
+                              min={1}
+                              max={item.stock}
+                              disabled={isUpdating}
+                            />
+
+                            <button
+                              onClick={() => handleUpdateQuantity(item, 1)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r from-[#137fec] to-[#0ea5e9] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={item.quantity >= item.stock || isUpdating}
+                            >
+                              <Plus size={16} className="text-white" />
+                            </button>
+                          </div>
+
+                          <div className="text-sm">
+                            <span className="text-gray-600">Thành tiền: </span>
+                            <strong className="text-lg bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
+                              {formatPrice(item.price * item.quantity)}
+                            </strong>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Delete button */}
-                    <button
-                      onClick={() => handleRemoveItem(item)}
-                      className="self-start p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                      style={{ color: COLORS.error }}
-                      disabled={isUpdating}
-                      aria-label={`Xóa ${item.name}`}
-                    >
-                      <Trash2 size={20} />
-                    </button>
                   </div>
                 );
               })}
             </div>
 
-            {/* Summary */}
+            {/* Summary - Premium Sidebar */}
             <div>
-              <div
-                className="rounded-xl shadow-lg p-6 sticky top-4"
-                style={{ backgroundColor: COLORS.bgLight }}
-              >
-                <h2 className="text-xl font-bold mb-4">Tóm Tắt Đơn Hàng</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-4">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
+                  <div className="w-1 h-6 bg-gradient-to-b from-[#137fec] to-[#0ea5e9] rounded-full" />
+                  Tóm Tắt Đơn Hàng
+                </h2>
 
-                <div className="space-y-3 mb-4">
-                  <div className="flex justify-between">
-                    <span>Sản phẩm đã chọn:</span>
-                    <span className="font-semibold">{selectedItems.length}</span>
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <span className="text-gray-600">Sản phẩm đã chọn:</span>
+                    <span className="font-bold text-gray-900">{selectedItems.length}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Tổng số lượng:</span>
-                    <span className="font-semibold">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <span className="text-gray-600">Tổng số lượng:</span>
+                    <span className="font-bold text-gray-900">
                       {selectedItems.reduce((sum, it) => sum + it.quantity, 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Tạm tính:</span>
-                    <span className="font-semibold">{formatPrice(totalAmount)}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <span className="text-gray-600">Tạm tính:</span>
+                    <span className="font-bold text-gray-900">{formatPrice(totalAmount)}</span>
                   </div>
                 </div>
 
-                <div
-                  className="border-t pt-4 mb-6"
-                  style={{ borderColor: COLORS.borderLight }}
-                >
-                  <div className="flex justify-between text-xl font-bold">
-                    <span>Tổng cộng:</span>
-                    <span style={{ color: COLORS.primary }}>
+                {/* Promo Code Section */}
+                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <HiOutlineTag className="w-5 h-5 text-[#137fec]" />
+                    <span className="font-semibold text-gray-900">Mã giảm giá</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Nhập mã giảm giá"
+                      className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-[#137fec] focus:outline-none text-sm"
+                    />
+                    <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white font-medium hover:shadow-md transition-all">
+                      Áp dụng
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-gray-100 pt-6 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-900">Tổng cộng:</span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
                       {formatPrice(totalAmount)}
                     </span>
                   </div>
@@ -550,10 +568,9 @@ export default function Cart() {
                   <button
                     onClick={handleProceedToCheckout}
                     disabled={selectedItems.length === 0}
-                    className="w-full py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
                     style={{
                       background: `linear-gradient(135deg, ${COLORS.primaryGradientStart}, ${COLORS.primaryGradientEnd})`,
-                      color: COLORS.white,
                     }}
                   >
                     Tiếp Tục Thanh Toán
@@ -561,19 +578,33 @@ export default function Cart() {
 
                   <button
                     onClick={handleClearCart}
-                    className="w-full py-3 rounded-xl font-semibold border hover:bg-gray-50 transition-colors"
-                    style={{ borderColor: COLORS.borderLight }}
+                    className="w-full py-3 rounded-xl font-medium border-2 border-gray-200 hover:bg-gray-50 hover:border-red-300 text-gray-700 hover:text-red-600 transition-all"
                   >
                     Xóa toàn bộ giỏ hàng
                   </button>
 
                   <button
                     onClick={handleSyncCart}
-                    className="w-full py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                    style={{ color: COLORS.textGray }}
+                    className="w-full py-2 rounded-lg text-sm text-gray-600 hover:text-[#137fec] hover:bg-blue-50 transition-colors"
                   >
                     🔄 Đồng bộ giỏ hàng
                   </button>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <span className="text-emerald-500">✓</span>
+                    <span>Miễn phí vận chuyển</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <span className="text-emerald-500">✓</span>
+                    <span>Đổi trả trong 30 ngày</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <span className="text-emerald-500">✓</span>
+                    <span>Thanh toán an toàn</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -69,7 +69,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
 
     if (match(["phone", "điện thoại", "mobile", "smartphone"])) {
       return (
-        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <rect x="7" y="2" width="10" height="20" rx="2" />
           <circle cx="12" cy="18" r="0.6" />
         </svg>
@@ -77,7 +77,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     }
     if (match(["laptop", "máy tính", "notebook", "pc"])) {
       return (
-        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <rect x="3" y="4" width="18" height="12" rx="1" />
           <path d="M2 20h20" />
         </svg>
@@ -85,7 +85,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     }
     if (match(["watch", "đồng hồ", "đeo tay"])) {
       return (
-        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <circle cx="12" cy="12" r="6" />
           <path d="M12 8v5l3 2" />
         </svg>
@@ -93,7 +93,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     }
     if (match(["accessory", "phụ kiện", "case", "cáp", "tai nghe", "sạc"])) {
       return (
-        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M3 6h18v12H3z" />
           <path d="M3 12h18" />
         </svg>
@@ -101,14 +101,14 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     }
     if (match(["tv", "tivi", "màn hình", "monitor"])) {
       return (
-        <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <rect x="2" y="5" width="20" height="12" rx="1" />
           <path d="M8 21h8" />
         </svg>
       );
     }
     return (
-      <svg className="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg className="h-5 w-5 text-[#137fec]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6" />
         <path d="M17 3l4 4" />
       </svg>
@@ -567,7 +567,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
           ) : (
             <button 
               onClick={() => navigate("/login")} 
-              className="flex items-center gap-2 bg-white text-orange-500 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 shadow-md transition-all"
+              className="flex items-center gap-2 bg-white text-[#137fec] font-medium px-4 py-2 rounded-lg hover:bg-blue-50 shadow-md transition-all"
               title="Đăng nhập"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">

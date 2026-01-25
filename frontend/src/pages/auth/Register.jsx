@@ -101,7 +101,7 @@ const onSubmitVerify = async () => {
         
         {/* LEFT */}
         <div className="hidden md:flex flex-col justify-center items-center 
-          bg-orange-500 text-white p-10 gap-8 shadow-inner">
+          bg-gradient-to-br from-[#137fec] to-[#0ea5e9] text-white p-10 gap-8 shadow-inner">
 
           <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-2xl border border-white/20">
             <img 
@@ -151,7 +151,7 @@ const onSubmitVerify = async () => {
                     Họ và tên
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <User className="text-orange-600" size={20} />
+                    <User className="text-[#137fec]" size={20} />
                     <input
                       {...register("full_name")}
                       placeholder="Nhập họ và tên..."
@@ -169,7 +169,7 @@ const onSubmitVerify = async () => {
                     Ngày sinh
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <Calendar className="text-orange-600" size={20} />
+                    <Calendar className="text-[#137fec]" size={20} />
                     <input
                       type="date"
                       {...register("date_of_birth")}
@@ -187,7 +187,7 @@ const onSubmitVerify = async () => {
                     Số điện thoại
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <Phone className="text-orange-600" size={20} />
+                    <Phone className="text-[#137fec]" size={20} />
                     <input
                       {...register("phone_number")}
                       placeholder="Nhập số điện thoại..."
@@ -205,7 +205,7 @@ const onSubmitVerify = async () => {
                     Email
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <Mail className="text-orange-600" size={20} />
+                    <Mail className="text-[#137fec]" size={20} />
                     <input
                       type="email"
                       {...register("email")}
@@ -224,7 +224,7 @@ const onSubmitVerify = async () => {
                     Mật khẩu
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <Lock className="text-orange-600" size={20} />
+                    <Lock className="text-[#137fec]" size={20} />
                     <input
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
@@ -250,8 +250,8 @@ const onSubmitVerify = async () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl text-white font-semibold 
-                  bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800"
+                  className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all
+                  bg-gradient-to-r from-[#137fec] to-[#0ea5e9]"
                 >
                   {loading ? "Đang xử lý..." : "Đăng ký"}
                 </button>
@@ -271,7 +271,7 @@ const onSubmitVerify = async () => {
                     Nhập mã xác minh (OTP)
                   </label>
                   <div className="flex items-center gap-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                    <ShieldCheck className="text-orange-600" size={20} />
+                    <ShieldCheck className="text-[#137fec]" size={20} />
                     <input
                       type="text"
                       value={otp}
@@ -293,8 +293,8 @@ const onSubmitVerify = async () => {
                 <button
                   onClick={onSubmitVerify}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl text-white font-semibold 
-                  bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800"
+                  className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all
+                  bg-gradient-to-r from-[#137fec] to-[#0ea5e9]"
                 >
                   {loading ? "Đang xử lý..." : "Xác minh email"}
                 </button>
@@ -303,7 +303,7 @@ const onSubmitVerify = async () => {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-600 dark:text-gray-300">Đã có tài khoản? </span>
-              <Link to="/login" className="text-orange-600 hover:underline font-semibold">
+              <Link to="/login" className="text-[#137fec] hover:text-[#0ea5e9] hover:underline font-semibold">
                 Đăng nhập ngay
               </Link>
             </div>

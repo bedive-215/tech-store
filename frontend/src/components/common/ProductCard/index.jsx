@@ -123,7 +123,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
       <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#137fec]/5 rounded-full" />
-        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-orange-500/5 rounded-full" />
+        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-500/5 rounded-full" />
         
         <div className="aspect-square flex items-center justify-center relative z-10">
           <img

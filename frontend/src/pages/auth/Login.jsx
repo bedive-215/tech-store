@@ -382,8 +382,8 @@ export default function Login() {
                 <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-300">
                   Email
                 </label>
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                  <Mail className="text-orange-600" size={20} />
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 focus-within:border-[#137fec] transition-colors">
+                  <Mail className="text-[#137fec]" size={20} />
                   <input
                     type="email"
                     {...register("email")}
@@ -400,8 +400,8 @@ export default function Login() {
                 <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-300">
                   Mật khẩu
                 </label>
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
-                  <Lock className="text-orange-600" size={20} />
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 focus-within:border-[#137fec] transition-colors">
+                  <Lock className="text-[#137fec]" size={20} />
                   <input
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
@@ -431,8 +431,8 @@ export default function Login() {
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-white font-semibold 
-                  bg-gradient-to-r from-orange-500 to-orange-700 
-                  hover:from-orange-600 hover:to-orange-800 shadow-md active:scale-95 transition
+                  bg-gradient-to-r from-[#137fec] to-[#0ea5e9] 
+                  hover:shadow-xl shadow-lg active:scale-95 transition
                   disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn size={18} />
@@ -467,7 +467,7 @@ export default function Login() {
             <div className="mt-6 text-center text-sm space-y-2">
               <Link 
                 to="/forgot-password" 
-                className="block text-orange-600 hover:text-orange-700 dark:hover:text-orange-500 hover:underline font-medium"
+                className="block text-[#137fec] hover:text-[#0ea5e9] dark:hover:text-[#0ea5e9] hover:underline font-medium"
               >
                 Quên mật khẩu?
               </Link>
@@ -475,7 +475,7 @@ export default function Login() {
                 <span className="text-gray-600 dark:text-gray-300">Chưa có tài khoản? </span>
                 <Link 
                   to="/register" 
-                  className="text-orange-600 hover:text-orange-700 dark:hover:text-orange-500 hover:underline font-semibold"
+                  className="text-[#137fec] hover:text-[#0ea5e9] dark:hover:text-[#0ea5e9] hover:underline font-semibold"
                 >
                   Đăng ký ngay
                 </Link>
@@ -568,9 +568,9 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={oauthLoading}
-                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-700 
-                    text-white font-semibold hover:from-orange-600 hover:to-orange-800 
-                    shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] 
+                    text-white font-semibold hover:shadow-xl 
+                    shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {oauthLoading ? "Đang xử lý..." : "Hoàn tất"}
                 </button>
@@ -585,7 +585,7 @@ export default function Login() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-[#137fec] rounded-full animate-spin"></div>
               <p className="text-gray-700 dark:text-gray-300 font-medium">
                 Đang xử lý đăng nhập...
               </p>
