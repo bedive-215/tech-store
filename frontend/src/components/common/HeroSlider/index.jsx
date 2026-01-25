@@ -74,26 +74,26 @@ export default function HeroSlider() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
           
           {/* Content Overlay */}
-          <div className={`absolute inset-0 flex flex-col justify-center px-8 md:px-16 lg:px-20 transition-all duration-700 delay-300 ${
+          <div className={`absolute inset-0 flex flex-col justify-center px-4 sm:px-8 md:px-16 lg:px-20 transition-all duration-700 delay-300 ${
             current === i ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"
           }`}>
             {/* Badge */}
-            <span className="inline-flex items-center w-fit px-3 py-1 mb-4 text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#137fec] to-[#0ea5e9] rounded-full shadow-lg">
+            <span className="inline-flex items-center w-fit px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2 sm:mb-4 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#137fec] to-[#0ea5e9] rounded-full shadow-lg">
               {slide.badge}
             </span>
             
             {/* Title */}
-            <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1.5 sm:mb-2 md:mb-4 drop-shadow-lg leading-tight">
               {slide.title}
             </h2>
             
             {/* Subtitle */}
-            <p className="text-sm sm:text-base md:text-xl text-white/90 max-w-md drop-shadow-md">
+            <p className="text-xs sm:text-sm md:text-lg lg:text-xl text-white/90 max-w-xs sm:max-w-md md:max-w-lg drop-shadow-md leading-relaxed">
               {slide.subtitle}
             </p>
             
             {/* CTA Button */}
-            <button className="mt-4 md:mt-6 w-fit px-6 py-2.5 md:px-8 md:py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-[#137fec] hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+            <button className="mt-3 sm:mt-4 md:mt-6 w-fit px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 text-xs sm:text-sm md:text-base bg-white text-gray-900 font-semibold rounded-full hover:bg-[#137fec] hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
               Khám phá ngay
             </button>
           </div>

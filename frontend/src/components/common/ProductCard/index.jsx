@@ -178,7 +178,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
               </span>
             </div>
           ) : (
-            <span className="text-lg sm:text-xl font-bold text-[#137fec]">
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
               {formatPrice(originalPrice)}
             </span>
           )}
