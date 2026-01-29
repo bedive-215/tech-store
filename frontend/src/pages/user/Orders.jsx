@@ -755,108 +755,111 @@ export default function Orders() {
           ))}
         </div>
 
-        {/* MODAL - Order Detail */}
+        {/* MODAL - Order Detail (Redesigned) */}
         {currentOrder && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 pt-24">
-            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-2xl max-w-3xl w-full relative overflow-hidden max-h-[85vh] flex flex-col">
-              {/* Modal Header */}
-              <div className="bg-primary px-6 py-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Chi tiết đơn hàng</h2>
-                  <p className="text-white/80 text-sm mt-1">Mã: #{currentOrder.order_id}</p>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl max-w-2xl w-full relative overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+
+              {/* Header - Gradient */}
+              <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 px-6 py-6 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="relative flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-1">Chi tiết đơn hàng</h2>
+                    <p className="text-white/70 text-sm font-mono">#{currentOrder.order_id?.slice(0, 8)}...</p>
+                  </div>
+                  <button
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/20"
+                    onClick={() => setCurrentOrder(null)}
+                  >
+                    <span className="material-icons-outlined text-xl">close</span>
+                  </button>
                 </div>
-                <button
-                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all"
-                  onClick={() => setCurrentOrder(null)}
-                >
-                  <span className="material-icons-outlined">close</span>
-                </button>
+
+                {/* Order Info Row */}
+                <div className="flex items-center gap-4 mt-4 text-sm">
+                  <div className="flex items-center gap-2 text-white/80">
+                    <span className="material-icons-outlined text-base">calendar_today</span>
+                    {safeDate(currentOrder.created_at)}
+                  </div>
+                  <div className="w-1 h-1 rounded-full bg-white/40"></div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${currentOrder.status === "confirmed" ? "bg-yellow-400/20 text-yellow-200" :
+                    currentOrder.status === "paid" ? "bg-blue-400/20 text-blue-200" :
+                      currentOrder.status === "shipping" ? "bg-purple-400/20 text-purple-200" :
+                        currentOrder.status === "completed" ? "bg-green-400/20 text-green-200" :
+                          "bg-gray-400/20 text-gray-200"
+                    }`}>
+                    {STATUS_LABEL[currentOrder.status] ?? currentOrder.status}
+                  </span>
+                </div>
               </div>
 
-              {/* Modal Content */}
-              <div className="overflow-y-auto flex-1 px-6 py-6">
-                {/* Status & Total Cards */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Trạng thái</div>
-                    <div className={`text-lg font-bold ${currentOrder.status === "confirmed" ? "text-yellow-600" : currentOrder.status === "cancelled" ? "text-gray-500" : currentOrder.status === "completed" ? "text-green-600" : "text-blue-600"}`}>
-                      {STATUS_LABEL[currentOrder.status] ?? currentOrder.status}
-                    </div>
-                  </div>
-                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 border border-orange-100 dark:border-orange-800">
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tổng thanh toán</div>
-                    <div className="text-lg font-bold text-secondary">{formatPrice(currentOrder.final_price)}</div>
-                  </div>
-                </div>
-
-                {/* Date & Address */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      <span className="material-icons-outlined text-base">calendar_today</span>
-                      Ngày đặt
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{safeDate(currentOrder.created_at)}</div>
-                  </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      <span className="material-icons-outlined text-base">location_on</span>
-                      Địa chỉ
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{currentOrder.shipping_address || "Chưa có"}</div>
-                  </div>
-                </div>
-
-                {/* Progress Tracker */}
-                {String(currentOrder.status).toLowerCase() !== "cancelled" ? (
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-5 mb-6 border border-green-200 dark:border-green-800">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                      <span className="material-icons-outlined text-base">local_shipping</span>
-                      Tiến trình đơn hàng
-                    </h3>
-                    <div className="relative py-4">
-                      <div className="flex items-start justify-between relative z-10">
-                        {PROGRESS_STEPS.map((step, i) => {
-                          const idx = getProgressIndex(currentOrder.status);
-                          const done = i < idx;
-                          const active = i === idx;
-                          const label = STATUS_LABEL[step] ?? step;
-                          return (
-                            <div key={step} className="flex flex-col items-center flex-1">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 font-bold transition-all ${done || active ? "bg-green-500 text-white border-green-500 shadow-lg" : "bg-white dark:bg-gray-700 text-gray-400 border-gray-300 dark:border-gray-600"} ${active ? "ring-4 ring-green-200 dark:ring-green-800 scale-110" : ""}`}>
-                                {done ? <span className="material-icons-outlined text-sm">check</span> : i + 1}
-                              </div>
-                              <div className={`text-xs mt-3 text-center font-medium ${done || active ? "text-gray-800 dark:text-gray-200" : "text-gray-400"}`}>{label}</div>
+              {/* Progress Steps - Horizontal */}
+              {String(currentOrder.status).toLowerCase() !== "cancelled" && (
+                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    {PROGRESS_STEPS.map((step, i) => {
+                      const idx = getProgressIndex(currentOrder.status);
+                      const done = i < idx;
+                      const active = i === idx;
+                      return (
+                        <div key={step} className="flex items-center flex-1">
+                          <div className="flex flex-col items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${done ? "bg-green-500 text-white" :
+                              active ? "bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-900" :
+                                "bg-gray-200 dark:bg-gray-700 text-gray-400"
+                              }`}>
+                              {done ? <span className="material-icons-outlined text-sm">check</span> : i + 1}
                             </div>
-                          );
-                        })}
-                      </div>
-                      <div className="absolute top-9 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-600" style={{ marginLeft: '2.5rem', marginRight: '2.5rem' }} />
-                      <div className="absolute top-9 left-0 h-0.5 bg-green-500 transition-all duration-500" style={{ marginLeft: '2.5rem', width: getProgressIndex(currentOrder.status) <= 0 ? "0%" : `calc(${(getProgressIndex(currentOrder.status) / (PROGRESS_STEPS.length - 1)) * 100}% - 2.5rem)` }} />
-                    </div>
+                            <span className={`text-[10px] mt-1.5 font-medium ${done || active ? "text-gray-700 dark:text-gray-200" : "text-gray-400"}`}>
+                              {STATUS_LABEL[step]?.split(' ')[0] ?? step}
+                            </span>
+                          </div>
+                          {i < PROGRESS_STEPS.length - 1 && (
+                            <div className={`flex-1 h-0.5 mx-2 ${done ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`}></div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 mb-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 font-semibold">
-                        <span className="material-icons-outlined">cancel</span>
-                        Đơn hàng đã bị huỷ
-                      </div>
-                      <button
-                        onClick={() => handleReorder(currentOrder)}
-                        disabled={loading}
-                        className="py-2.5 px-6 bg-primary text-white rounded-xl font-medium hover:bg-blue-600 transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm shadow-md shadow-blue-500/20"
-                      >
-                        <span className="material-icons-outlined text-base">refresh</span>
-                        {loading ? "Đang xử lý..." : "Đặt lại"}
-                      </button>
+                </div>
+              )}
+
+              {/* Cancelled Banner */}
+              {String(currentOrder.status).toLowerCase() === "cancelled" && (
+                <div className="px-6 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <span className="material-icons-outlined text-lg">block</span>
+                    <span className="font-medium">Đơn hàng đã huỷ</span>
+                  </div>
+                  <button
+                    onClick={() => handleReorder(currentOrder)}
+                    disabled={loading}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <span className="material-icons-outlined text-base">refresh</span>
+                    Mua lại
+                  </button>
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="overflow-y-auto flex-1 p-6 space-y-5">
+
+                {/* Shipping Address */}
+                {currentOrder.shipping_address && (
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <span className="material-icons-outlined text-blue-500 mt-0.5">location_on</span>
+                    <div>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Địa chỉ giao hàng</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{currentOrder.shipping_address}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Products List */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                {/* Products */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
                     <span className="material-icons-outlined text-base">inventory_2</span>
                     Sản phẩm ({currentOrder.items.length})
                   </h3>
@@ -878,36 +881,38 @@ export default function Orders() {
                 </div>
 
                 {/* Payment Summary */}
-                <div className="bg-surface-light dark:bg-surface-dark rounded-xl p-5 mb-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 space-y-2">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
                     <span className="material-icons-outlined text-base">receipt_long</span>
-                    Tóm tắt thanh toán
+                    Thanh toán
                   </h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">Tạm tính:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatPrice(currentOrder.total_price)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Tạm tính</span>
+                    <span className="text-gray-700 dark:text-gray-300">{formatPrice(currentOrder.total_price)}</span>
+                  </div>
+                  {Number(currentOrder.discount_amount) > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Giảm giá</span>
+                      <span className="text-green-600">-{formatPrice(currentOrder.discount_amount)}</span>
                     </div>
+                  )}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">Giảm giá:</span>
-                      <span className="font-medium text-red-600">-{formatPrice(currentOrder.discount_amount)}</span>
-                    </div>
-                    <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-600">
-                      <span className="text-gray-900 dark:text-white font-semibold">Thành tiền:</span>
-                      <span className="font-bold text-secondary text-lg">{formatPrice(currentOrder.final_price)}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">Thành tiền</span>
+                      <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400">{formatPrice(currentOrder.final_price)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Modal Footer - Cancel Button */}
+              {/* Footer - Cancel Button */}
               {String(currentOrder.status).toLowerCase() === "confirmed" && (
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+                <div className="px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
                   <button
                     onClick={() => handleCancelOrder(currentOrder.order_id)}
-                    className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-red-500/20"
+                    className="w-full py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-all flex items-center justify-center gap-2"
                   >
-                    <span className="material-icons-outlined text-base">cancel</span>
+                    <span className="material-icons-outlined text-lg">cancel</span>
                     Huỷ đơn hàng
                   </button>
                 </div>
@@ -916,6 +921,6 @@ export default function Orders() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
