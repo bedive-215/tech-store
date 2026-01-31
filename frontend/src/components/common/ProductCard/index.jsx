@@ -85,7 +85,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
   /* ================= RENDER ================= */
   return (
     <div className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 h-full flex flex-col border border-gray-100 hover:border-[#137fec]/20">
-      
+
       {/* FLASH SALE RIBBON - Animated */}
       {flashSaleActive && (
         <div className="absolute top-3 left-3 z-20">
@@ -120,18 +120,18 @@ export default function ProductCard({ product, onWishlistToggle }) {
       </button>
 
       {/* IMAGE SECTION */}
-      <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#137fec]/5 rounded-full" />
         <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-500/5 rounded-full" />
-        
-        <div className="aspect-square flex items-center justify-center relative z-10">
+
+        <div className="aspect-square w-full flex items-center justify-center relative z-10 p-4">
           <img
             src={resolvedSrc}
             alt={product?.name}
             onError={handleImgError}
             loading="lazy"
-            className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
           />
         </div>
 

@@ -11,7 +11,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const navigate = useNavigate();
 
   const [showCategories, setShowCategories] = useState(false);
-  const [showLocations, setShowLocations] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -29,14 +28,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const isLoggedIn = !!localStorage.getItem("access_token");
 
   const categoriesRef = useRef(null);
-  const locationsRef = useRef(null);
   const headerRef = useRef(null);
-
-  const locations = [
-    { id: 1, name: "Hồ Chí Minh", districts: "50+ cửa hàng" },
-    { id: 2, name: "Hà Nội", districts: "40+ cửa hàng" },
-    { id: 3, name: "Đà Nẵng", districts: "15+ cửa hàng" },
-  ];
 
   const miniMessages = [
     "📱 Thu cũ giá ngon - Lên đời tiết kiệm",
@@ -114,9 +106,6 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
       if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
         setShowCategories(false);
         setHoveredCategory(null);
-      }
-      if (locationsRef.current && !locationsRef.current.contains(e.target)) {
-        setShowLocations(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -287,7 +276,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
               </div>
               <div className="marquee-group flex items-center whitespace-nowrap">
                 {miniMessages.map((m, i) => (
-                  <span key={'dup-'+i} className="mx-6 font-medium">{m}</span>
+                  <span key={'dup-' + i} className="mx-6 font-medium">{m}</span>
                 ))}
               </div>
             </div>
@@ -295,8 +284,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
         </div>
 
         {/* Warranty Button - Top Right */}
-        <button 
-          onClick={() => requireAuth(() => navigate("/user/warranties"), "Vui lòng đăng nhập để xem bảo hành!")} 
+        <button
+          onClick={() => requireAuth(() => navigate("/user/warranties"), "Vui lòng đăng nhập để xem bảo hành!")}
           className="absolute top-0 right-0 flex items-center gap-2 text-white font-semibold hover:brightness-110 transition-all bg-gradient-to-r from-[#0ea5e9] to-[#137fec] px-4 h-full"
           style={{ borderBottomLeftRadius: "12px" }}
           title="Bảo hành"
@@ -314,8 +303,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
         <div className="max-w-[1280px] mx-auto flex items-center gap-4 px-4">
           {/* Logo */}
           <div className="flex items-center">
-            <div 
-              onClick={() => navigate("/user/home")} 
+            <div
+              onClick={() => navigate("/user/home")}
               className="cursor-pointer flex items-center gap-2 group"
             >
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
@@ -331,13 +320,13 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
           <div className="relative" ref={categoriesRef}>
             <button
               aria-expanded={showCategories}
-              onClick={() => { 
-                setShowCategories(prev => !prev); 
-                setShowLocations(false); 
-                setSelectedCategory(null); 
-                setSelectedBrand(null); 
-                setHoveredCategory(null); 
-                setBrands([]); 
+              onClick={() => {
+                setShowCategories(prev => !prev);
+                setShowLocations(false);
+                setSelectedCategory(null);
+                setSelectedBrand(null);
+                setHoveredCategory(null);
+                setBrands([]);
               }}
               className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:bg-white/30 border border-white/30 transition-all"
             >
@@ -374,9 +363,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                             onMouseEnter={() => setHoveredCategory(category)}
                             onMouseLeave={() => setHoveredCategory(prev => prev?.id === category.id ? null : prev)}
                             onClick={() => handleSelectCategoryOnly(category)}
-                            className={`w-full px-4 py-3 flex items-center gap-3 text-left transition ${
-                              isSelected ? "bg-blue-50" : isHovered ? "bg-gray-50" : "hover:bg-gray-50"
-                            }`}
+                            className={`w-full px-4 py-3 flex items-center gap-3 text-left transition ${isSelected ? "bg-blue-50" : isHovered ? "bg-gray-50" : "hover:bg-gray-50"
+                              }`}
                             style={{ borderLeft: isSelected ? "4px solid #137fec" : "4px solid transparent" }}
                             aria-pressed={isSelected}
                           >
@@ -432,11 +420,10 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                                   <button
                                     key={b.id}
                                     onClick={() => handleSelectBrand(b)}
-                                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition transform ${
-                                      isActive 
-                                        ? "ring-2 ring-[#137fec]/30 border-[#137fec] scale-105 bg-blue-50" 
-                                        : "border-gray-100 hover:border-[#137fec]/50 hover:scale-105 hover:shadow-lg"
-                                    }`}
+                                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition transform ${isActive
+                                      ? "ring-2 ring-[#137fec]/30 border-[#137fec] scale-105 bg-blue-50"
+                                      : "border-gray-100 hover:border-[#137fec]/50 hover:scale-105 hover:shadow-lg"
+                                      }`}
                                     title={b.name}
                                   >
                                     <BrandImage b={b} size={84} />
@@ -477,9 +464,9 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                           </div>
 
                           <div className="mt-3 flex items-center justify-between">
-                            <select 
-                              value={sort} 
-                              onChange={(e) => setSort(e.target.value)} 
+                            <select
+                              value={sort}
+                              onChange={(e) => setSort(e.target.value)}
                               className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#137fec] focus:outline-none transition-colors"
                             >
                               <option value="">Sắp xếp</option>
@@ -488,14 +475,14 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                               <option value="newest">Mới nhất</option>
                             </select>
                             <div className="flex items-center gap-2">
-                              <button 
-                                onClick={() => buildAndNavigate({ page: 1 })} 
+                              <button
+                                onClick={() => buildAndNavigate({ page: 1 })}
                                 className="px-4 py-2 bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
                               >
                                 Áp dụng
                               </button>
-                              <button 
-                                onClick={resetFilters} 
+                              <button
+                                onClick={resetFilters}
                                 className="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-100 transition-colors"
                               >
                                 Đặt lại
@@ -511,45 +498,13 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
             )}
           </div>
 
-          {/* Location Dropdown */}
-          <div className="relative hidden md:block" ref={locationsRef}>
-            <button 
-              onClick={() => { setShowLocations(prev => !prev); setShowCategories(false); }} 
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:bg-white/30 border border-white/30 transition-all"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
-                <circle cx="12" cy="9" r="2" />
-              </svg>
-              <span className="hidden lg:inline">Hồ Chí Minh</span>
-              <svg className={`h-4 w-4 transition-transform ${showLocations ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-
-            {showLocations && (
-              <div className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl overflow-hidden w-72 z-50 border border-gray-100">
-                <div className="py-2">
-                  {locations.map((location) => (
-                    <button 
-                      key={location.id} 
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-blue-50 text-left transition group"
-                    >
-                      <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-[#137fec] transition-colors">
-                        <svg className="h-4 w-4 text-[#137fec] group-hover:text-white transition-colors" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
-                          <circle cx="12" cy="9" r="2" />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-800">{location.name}</div>
-                        <div className="text-xs text-gray-500">{location.districts}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Location Badge (Static - Ho Chi Minh only) */}
+          <div className="hidden md:flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl text-white/80 text-sm">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
+              <circle cx="12" cy="9" r="2" />
+            </svg>
+            <span className="hidden lg:inline">Hồ Chí Minh</span>
           </div>
 
           {/* Search Bar */}
@@ -579,8 +534,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
           </div>
 
           {/* Orders Button */}
-          <button 
-            onClick={() => requireAuth(() => navigate("/user/orders"), "Vui lòng đăng nhập để xem đơn hàng!")} 
+          <button
+            onClick={() => requireAuth(() => navigate("/user/orders"), "Vui lòng đăng nhập để xem đơn hàng!")}
             className="hidden lg:flex items-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-white/20 transition-all border border-white/20"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -590,8 +545,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
           </button>
 
           {/* Cart Button */}
-          <button 
-            onClick={() => requireAuth(() => navigate("/user/cart"), "Vui lòng đăng nhập để xem giỏ hàng!")} 
+          <button
+            onClick={() => requireAuth(() => navigate("/user/cart"), "Vui lòng đăng nhập để xem giỏ hàng!")}
             className="flex items-center justify-center text-white font-medium w-11 h-11 rounded-xl hover:bg-white/20 transition-all border border-white/20"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -603,8 +558,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
 
           {/* Profile / Login Button */}
           {isLoggedIn ? (
-            <button 
-              onClick={() => navigate("/user/profile")} 
+            <button
+              onClick={() => navigate("/user/profile")}
               className="flex items-center justify-center bg-white w-11 h-11 rounded-xl shadow-lg hover:shadow-xl transition-all"
               title="Trang cá nhân"
             >
@@ -614,8 +569,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
               </svg>
             </button>
           ) : (
-            <button 
-              onClick={() => navigate("/login")} 
+            <button
+              onClick={() => navigate("/login")}
               className="flex items-center gap-2 bg-white text-[#137fec] font-semibold px-4 py-2.5 rounded-xl hover:shadow-lg transition-all"
               title="Đăng nhập"
             >
