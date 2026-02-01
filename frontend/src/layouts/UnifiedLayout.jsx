@@ -31,12 +31,8 @@ const UnifiedLayout = ({ children, mode = "user" }) => {
       <FloatingNavbar />
 
       {/* Content with top padding for floating navbar */}
-      <main className="flex-1 pt-24 px-4 pb-8">
-        <div className="max-w-[1100px] mx-auto w-full">
-          <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-2xl text-white">
-            {children}
-          </div>
-        </div>
+      <main className="flex-1 pt-24 px-4 md:px-8 lg:px-12 pb-8">
+        {children}
       </main>
     </div>
   );

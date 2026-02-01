@@ -685,7 +685,7 @@ export default function Orders() {
 
   return (
     <div className="min-h-screen pt-28 pb-24 px-6 bg-black text-white font-display">
-      <div className="max-w-5xl mx-auto w-full">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-12">
           <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white mb-8">Đơn hàng của tôi</h1>
