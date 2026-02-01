@@ -4,6 +4,36 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import categoryService from "@/services/categoryService";
 import brandService from "@/services/brandService";
+import { useCart } from "@/providers/CartProvider";
+
+/**
+ * Cart Badge Component - Shows item count (max 99+)
+ */
+function CartBadge() {
+  const { cart, fetchCart } = useCart();
+  const isLoggedIn = !!localStorage.getItem("access_token");
+
+  // Fetch cart on mount if logged in
+  useEffect(() => {
+    if (isLoggedIn && !cart) {
+      fetchCart().catch(() => { });
+    }
+  }, [isLoggedIn]);
+
+  // Calculate total quantity
+  const totalQty = React.useMemo(() => {
+    if (!cart?.items || !Array.isArray(cart.items)) return 0;
+    return cart.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  }, [cart]);
+
+  if (!isLoggedIn || totalQty === 0) return null;
+
+  return (
+    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 shadow-lg animate-pulse">
+      {totalQty > 99 ? "99+" : totalQty}
+    </span>
+  );
+}
 
 /**
  * Premium Header with Blue Gradient Theme
@@ -542,16 +572,18 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
             <span>Đơn hàng</span>
           </button>
 
-          {/* Cart Button */}
+          {/* Cart Button with Badge */}
           <button
             onClick={() => requireAuth(() => navigate("/user/cart"), "Vui lòng đăng nhập để xem giỏ hàng!")}
-            className="flex items-center justify-center text-white font-medium w-11 h-11 rounded-xl hover:bg-white/20 transition-all border border-white/20"
+            className="relative flex items-center justify-center text-white font-medium w-11 h-11 rounded-xl hover:bg-white/20 transition-all border border-white/20"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
             </svg>
+            {/* Cart Count Badge */}
+            <CartBadge />
           </button>
 
           {/* Profile / Login Button */}
