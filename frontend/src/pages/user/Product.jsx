@@ -28,8 +28,8 @@ export default function Product() {
   const { addToCart } = useCart();
 
   // Auth state
- // Check đăng nhập bằng access_token
-const isLoggedIn = !!localStorage.getItem("access_token");
+  // Check đăng nhập bằng access_token
+  const isLoggedIn = !!localStorage.getItem("access_token");
 
 
 
@@ -58,28 +58,28 @@ const isLoggedIn = !!localStorage.getItem("access_token");
   const lastFetchParamsRef = useRef({});
 
   // Check authentication on mount
-  
+
 
   // Function to check auth and show alert if not logged in
-const requireAuth = (
-  callback,
-  message = "Vui lòng đăng nhập để sử dụng tính năng này!"
-) => {
-  const token = localStorage.getItem("access_token");
+  const requireAuth = (
+    callback,
+    message = "Vui lòng đăng nhập để sử dụng tính năng này!"
+  ) => {
+    const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    const confirmed = window.confirm(
-      message + "\n\nBạn có muốn chuyển đến trang đăng nhập không?"
-    );
-    if (confirmed) {
-      navigate("/login");
+    if (!token) {
+      const confirmed = window.confirm(
+        message + "\n\nBạn có muốn chuyển đến trang đăng nhập không?"
+      );
+      if (confirmed) {
+        navigate("/login");
+      }
+      return false;
     }
-    return false;
-  }
 
-  callback();
-  return true;
-};
+    callback();
+    return true;
+  };
 
 
 
@@ -273,10 +273,10 @@ const requireAuth = (
   }, [product?.product_id, product?.id]);
 
   if (loading)
-    return <div className="text-center py-20 text-xl font-semibold">Đang tải thông tin sản phẩm...</div>;
+    return <div className="min-h-screen bg-black flex items-center justify-center text-xl font-semibold text-white">Đang tải thông tin sản phẩm...</div>;
 
   if (error || !product)
-    return <div className="text-center py-20 text-xl font-semibold">Không tìm thấy sản phẩm!</div>;
+    return <div className="min-h-screen bg-black flex items-center justify-center text-xl font-semibold text-white">Không tìm thấy sản phẩm!</div>;
 
   // ẢNH SẢN PHẨM
   const images = product.media?.length > 0
@@ -286,27 +286,27 @@ const requireAuth = (
   const nextImage = () => setCurrentImg((prev) => (prev + 1) % images.length);
   const prevImage = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   const location = useLocation();
- const flashSaleFromHome = location.state?.flash_sale ?? product?.flash_sale ?? null;
+  const flashSaleFromHome = location.state?.flash_sale ?? product?.flash_sale ?? null;
 
 
   const now = new Date();
 
   const flashSale = flashSaleFromHome ?? null;
 
-const isFlashSaleActive =
-  flashSale &&
-  (!flashSale.start_at || new Date(flashSale.start_at) <= now) &&
-  (!flashSale.end_at || new Date(flashSale.end_at) >= now) &&
-  Number(flashSale.stock_limit ?? product.stock ?? 0) > 0;
+  const isFlashSaleActive =
+    flashSale &&
+    (!flashSale.start_at || new Date(flashSale.start_at) <= now) &&
+    (!flashSale.end_at || new Date(flashSale.end_at) >= now) &&
+    Number(flashSale.stock_limit ?? product.stock ?? 0) > 0;
 
 
   const displayPrice = isFlashSaleActive
-  ? Number(flashSale.sale_price)
-  : Number(product.price);
+    ? Number(flashSale.sale_price)
+    : Number(product.price);
 
 
   const goToBuy = () => {
-    if (!requireAuth(() => {}, "Bạn cần đăng nhập để mua hàng!")) {
+    if (!requireAuth(() => { }, "Bạn cần đăng nhập để mua hàng!")) {
       return;
     }
 
@@ -326,7 +326,7 @@ const isFlashSaleActive =
 
   // Quantity modal handlers
   const openQtyModal = () => {
-    if (!requireAuth(() => {}, "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!")) {
+    if (!requireAuth(() => { }, "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!")) {
       return;
     }
     setQty(1);
@@ -433,15 +433,15 @@ const isFlashSaleActive =
 
   return (
     <>
-      {/* Premium Product Detail Layout */}
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Premium Product Detail Layout - Dark Theme */}
+      <div className="min-h-screen bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            
+
             {/* LEFT IMAGE GALLERY - Premium Design */}
             <div className="flex flex-col gap-4" data-aos="fade-right">
               {/* Main Image */}
-              <div className="relative group bg-white rounded-2xl shadow-lg overflow-hidden p-6 sm:p-8">
+              <div className="relative group bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden p-6 sm:p-8">
                 {/* Flash Sale Badge */}
                 {isFlashSaleActive && (
                   <div className="absolute top-4 left-4 z-20">
@@ -453,15 +453,15 @@ const isFlashSaleActive =
                     </div>
                   </div>
                 )}
-                
+
                 {/* Navigation Arrows */}
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
                 >
-                  <span className="text-xl text-gray-700">‹</span>
+                  <span className="text-xl text-white">‹</span>
                 </button>
-                
+
                 <div className="aspect-square flex items-center justify-center">
                   <img
                     src={images[currentImg]}
@@ -469,31 +469,30 @@ const isFlashSaleActive =
                     className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                
+
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
                 >
-                  <span className="text-xl text-gray-700">›</span>
+                  <span className="text-xl text-white">›</span>
                 </button>
-                
+
                 {/* Image Counter */}
                 <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
                   {currentImg + 1} / {images.length}
                 </div>
               </div>
-              
+
               {/* Thumbnails */}
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {images.map((img, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImg(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                      currentImg === index 
-                        ? "border-[#137fec] ring-2 ring-[#137fec]/30 shadow-lg" 
-                        : "border-gray-200 hover:border-[#137fec]/50"
-                    }`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${currentImg === index
+                      ? "border-[#137fec] ring-2 ring-[#137fec]/30 shadow-lg"
+                      : "border-gray-200 hover:border-[#137fec]/50"
+                      }`}
                   >
                     <img src={img} alt="thumb" className="w-full h-full object-cover" />
                   </button>
@@ -505,28 +504,28 @@ const isFlashSaleActive =
             <div className="flex flex-col gap-6" data-aos="fade-left">
               {/* Product Title */}
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
                   {product.name}
                 </h1>
                 <div className="mt-3 flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
                     {renderStars(avgRating, true)}
-                    <span className="text-gray-500 ml-1">({totalReviewsCount || reviews.length})</span>
+                    <span className="text-gray-400 ml-1">({totalReviewsCount || reviews.length})</span>
                   </div>
-                  <span className="text-gray-300">|</span>
-                  <span className="text-green-600 font-medium">✓ Còn {product.stock} sản phẩm</span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-green-400 font-medium">✓ Còn {product.stock} sản phẩm</span>
                 </div>
               </div>
 
               {/* Price Section - Premium Card */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
                 <div className="flex items-end gap-3 flex-wrap">
-                  <span className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-[#f5a623]">
                     {displayPrice.toLocaleString()}₫
                   </span>
                   {isFlashSaleActive && (
                     <>
-                      <span className="text-lg text-gray-400 line-through">
+                      <span className="text-lg text-gray-500 line-through">
                         {Number(product.price).toLocaleString()}₫
                       </span>
                       <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full animate-pulse">
@@ -536,7 +535,7 @@ const isFlashSaleActive =
                   )}
                 </div>
                 {isFlashSaleActive && flashSale?.end_at && (
-                  <div className="mt-3 text-sm text-gray-600">
+                  <div className="mt-3 text-sm text-gray-400">
                     ⏰ Kết thúc: {format(new Date(flashSale.end_at), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
@@ -544,26 +543,26 @@ const isFlashSaleActive =
 
               {/* Product Info Cards */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
                   <div className="text-xs text-gray-500 uppercase tracking-wide">Thương hiệu</div>
-                  <div className="mt-1 font-semibold text-gray-900">{product.brand?.name || "—"}</div>
+                  <div className="mt-1 font-semibold text-white">{product.brand?.name || "—"}</div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
                   <div className="text-xs text-gray-500 uppercase tracking-wide">Danh mục</div>
-                  <div className="mt-1 font-semibold text-gray-900">{product.category?.name || "—"}</div>
+                  <div className="mt-1 font-semibold text-white">{product.category?.name || "—"}</div>
                 </div>
               </div>
 
               {/* Trust Badges */}
               <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                  <span className="text-green-500">✓</span> Chính hãng 100%
+                <div className="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 px-3 py-2 rounded-lg">
+                  <span className="text-green-400">✓</span> Chính hãng 100%
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                  <span className="text-blue-500">🚚</span> Giao hàng toàn quốc
+                <div className="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 px-3 py-2 rounded-lg">
+                  <span className="text-blue-400">🚚</span> Giao hàng toàn quốc
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                  <span className="text-orange-500">🔄</span> Đổi trả 7 ngày
+                <div className="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 px-3 py-2 rounded-lg">
+                  <span className="text-orange-400">🔄</span> Đổi trả 7 ngày
                 </div>
               </div>
 
@@ -571,7 +570,7 @@ const isFlashSaleActive =
               <div className="flex flex-col sm:flex-row gap-4 mt-2">
                 <button
                   onClick={openQtyModal}
-                  className="flex-1 py-4 rounded-xl text-[#137fec] text-lg font-semibold border-2 border-[#137fec] hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-4 rounded-xl text-[#2997ff] text-lg font-semibold border-2 border-[#2997ff] hover:bg-[#2997ff]/10 transition-all flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -580,7 +579,7 @@ const isFlashSaleActive =
                 </button>
                 <button
                   onClick={goToBuy}
-                  className="flex-1 py-4 rounded-xl text-white text-lg font-semibold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+                  className="flex-1 py-4 rounded-xl text-black text-lg font-semibold bg-white hover:bg-gray-100 transition-all"
                 >
                   Mua ngay
                 </button>
@@ -590,13 +589,13 @@ const isFlashSaleActive =
 
           {/* DESCRIPTION - Premium Section */}
           <section className="mt-12" data-aos="fade-up">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-gradient-to-b from-[#137fec] to-[#0ea5e9] rounded-full" />
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                <div className="w-1 h-8 bg-gradient-to-b from-[#2997ff] to-[#0ea5e9] rounded-full" />
                 Mô tả sản phẩm
               </h2>
-              <div className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{product.description}</p>
+              <div className="prose prose-invert max-w-none">
+                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{product.description}</p>
               </div>
             </div>
           </section>
@@ -604,19 +603,19 @@ const isFlashSaleActive =
           {/* SPECIFICATIONS - Premium Design */}
           {product.specs && (
             <section className="mt-8" data-aos="fade-up">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                  <div className="w-1 h-8 bg-gradient-to-b from-[#137fec] to-[#0ea5e9] rounded-full" />
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 sm:p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                  <div className="w-1 h-8 bg-gradient-to-b from-[#2997ff] to-[#0ea5e9] rounded-full" />
                   Thông số kỹ thuật
                 </h2>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white/10">
                   {Object.entries(product.specs).map(([key, value], idx) => (
                     <div
                       key={key}
-                      className={`flex justify-between py-4 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} px-4 rounded-lg`}
+                      className={`flex justify-between py-4 ${idx % 2 === 0 ? 'bg-white/5' : ''} px-4 rounded-lg`}
                     >
-                      <span className="text-gray-600 font-medium">{key.replace("_", " ")}</span>
-                      <span className="font-semibold text-gray-900">{value}</span>
+                      <span className="text-gray-400 font-medium">{key.replace("_", " ")}</span>
+                      <span className="font-semibold text-white">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -626,16 +625,16 @@ const isFlashSaleActive =
 
           {/* REVIEWS - Premium Design */}
           <section className="mt-8" data-aos="fade-up">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-gradient-to-b from-[#137fec] to-[#0ea5e9] rounded-full" />
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                <div className="w-1 h-8 bg-gradient-to-b from-[#2997ff] to-[#0ea5e9] rounded-full" />
                 Đánh giá của khách hàng
               </h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Left: Rating Summary - Premium Card */}
-                <div className="col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 flex flex-col items-center justify-center text-center">
-                  <div className="text-5xl font-extrabold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
+                <div className="col-span-1 bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                  <div className="text-5xl font-extrabold text-[#f5a623]">
                     {avgRating > 0 ? avgRating.toFixed(1) : "—"}
                   </div>
                   <div className="mt-3">{renderStars(avgRating)}</div>
@@ -651,11 +650,10 @@ const isFlashSaleActive =
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => applyStarFilter(0)}
-                        className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-all ${
-                          starFilter === 0 
-                            ? "bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white border-transparent shadow-md" 
-                            : "bg-white text-gray-700 border-gray-200 hover:border-[#137fec]/50"
-                        }`}
+                        className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-all ${starFilter === 0
+                          ? "bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white border-transparent shadow-md"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-[#137fec]/50"
+                          }`}
                       >
                         Tất cả
                       </button>
@@ -666,16 +664,15 @@ const isFlashSaleActive =
                   </div>
 
                   <div className="space-y-3">
-                    {[5,4,3,2,1].map((s) => {
+                    {[5, 4, 3, 2, 1].map((s) => {
                       const cnt = distribution[s] ?? 0;
                       const percent = totalForDistribution ? Math.round((cnt / totalForDistribution) * 100) : 0;
                       return (
                         <button
                           key={s}
                           onClick={() => applyStarFilter(s)}
-                          className={`w-full flex items-center gap-3 sm:gap-4 group hover:bg-gray-50 p-2 rounded-lg transition-all ${
-                            starFilter === s ? "bg-blue-50" : ""
-                          }`}
+                          className={`w-full flex items-center gap-3 sm:gap-4 group hover:bg-gray-50 p-2 rounded-lg transition-all ${starFilter === s ? "bg-blue-50" : ""
+                            }`}
                         >
                           <div className="w-20 flex items-center gap-2 text-sm font-medium">
                             <span>{s}</span>
@@ -684,11 +681,10 @@ const isFlashSaleActive =
 
                           <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
                             <div
-                              className={`h-3 rounded-full transition-all ${
-                                starFilter === s 
-                                  ? "bg-gradient-to-r from-[#137fec] to-[#0ea5e9]" 
-                                  : "bg-blue-300 group-hover:bg-blue-400"
-                              }`}
+                              className={`h-3 rounded-full transition-all ${starFilter === s
+                                ? "bg-gradient-to-r from-[#137fec] to-[#0ea5e9]"
+                                : "bg-blue-300 group-hover:bg-blue-400"
+                                }`}
                               style={{ width: `${percent}%` }}
                             />
                           </div>
@@ -733,7 +729,7 @@ const isFlashSaleActive =
                           <div className="flex items-start gap-4">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#137fec] to-[#0ea5e9] flex items-center justify-center overflow-hidden flex-shrink-0">
                               {avatar ? (
-                                <img src={avatar} alt={author} className="w-full h-full object-cover"/>
+                                <img src={avatar} alt={author} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-white font-semibold text-lg">{(author || "K").charAt(0).toUpperCase()}</span>
                               )}
@@ -845,7 +841,7 @@ const isFlashSaleActive =
                   +
                 </button>
               </div>
-              
+
               <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Tổng cộng:</span>
@@ -854,7 +850,7 @@ const isFlashSaleActive =
                   </span>
                 </div>
               </div>
-              
+
               {qtyError && (
                 <div className="mt-3 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
                   {qtyError}
