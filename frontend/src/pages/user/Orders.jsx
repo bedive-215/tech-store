@@ -321,7 +321,7 @@ export default function Orders() {
   const [currentOrder, setCurrentOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showCancelled, setShowCancelled] = useState(false);
+  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'confirmed' | 'paid' | 'shipping' | 'completed' | 'cancelled'
 
   const [reviewInputs, setReviewInputs] = useState({});
   const [productReviews, setProductReviews] = useState({});
@@ -650,8 +650,36 @@ export default function Orders() {
     }));
   }, []);
 
-  const activeOrders = useMemo(() => orders.filter((o) => String(o.status ?? "").toLowerCase() !== "cancelled"), [orders]);
-  const cancelledOrders = useMemo(() => orders.filter((o) => String(o.status ?? "").toLowerCase() === "cancelled"), [orders]);
+  // Filter orders based on active tab
+  const filteredOrders = useMemo(() => {
+    return orders.filter((o) => {
+      const status = String(o.status ?? '').toLowerCase();
+      switch (activeTab) {
+        case 'all': return status !== 'cancelled';
+        case 'confirmed': return status === 'confirmed';
+        case 'paid': return status === 'paid';
+        case 'shipping': return status === 'shipping';
+        case 'completed': return status === 'completed';
+        case 'cancelled': return status === 'cancelled';
+        default: return true;
+      }
+    });
+  }, [orders, activeTab]);
+
+  // Count by status for tab badges
+  const statusCounts = useMemo(() => {
+    const counts = { all: 0, confirmed: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0 };
+    orders.forEach((o) => {
+      const status = String(o.status ?? '').toLowerCase();
+      if (status === 'cancelled') {
+        counts.cancelled++;
+      } else {
+        counts.all++;
+        if (counts[status] !== undefined) counts[status]++;
+      }
+    });
+    return counts;
+  }, [orders]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
@@ -675,42 +703,25 @@ export default function Orders() {
         {/* Tab Navigation */}
         <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-8 overflow-hidden">
           <div className="flex overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => setShowCancelled(false)}
-              className={`flex-shrink-0 px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${!showCancelled ? 'text-primary border-b-2 border-primary bg-blue-50/50 dark:bg-blue-900/20' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}
-            >
-              Tất cả ({activeOrders.length})
-            </button>
-            <button
-              onClick={() => setShowCancelled(false)}
-              className="flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
-            >
-              Chờ thanh toán
-            </button>
-            <button
-              onClick={() => setShowCancelled(false)}
-              className="flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
-            >
-              Đang xử lý
-            </button>
-            <button
-              onClick={() => setShowCancelled(false)}
-              className="flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
-            >
-              Đang giao
-            </button>
-            <button
-              onClick={() => setShowCancelled(false)}
-              className="flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
-            >
-              Hoàn thành
-            </button>
-            <button
-              onClick={() => setShowCancelled(true)}
-              className={`flex-shrink-0 px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${showCancelled ? 'text-primary border-b-2 border-primary bg-blue-50/50 dark:bg-blue-900/20' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}
-            >
-              Đã hủy ({cancelledOrders.length})
-            </button>
+            {[
+              { key: 'all', label: 'Tất cả', count: statusCounts.all },
+              { key: 'confirmed', label: 'Chờ xác nhận', count: statusCounts.confirmed },
+              { key: 'paid', label: 'Đã thanh toán', count: statusCounts.paid },
+              { key: 'shipping', label: 'Đang giao', count: statusCounts.shipping },
+              { key: 'completed', label: 'Hoàn thành', count: statusCounts.completed },
+              { key: 'cancelled', label: 'Đã hủy', count: statusCounts.cancelled },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-shrink-0 px-5 py-3.5 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.key
+                  ? 'text-primary border-b-2 border-primary bg-blue-50/50 dark:bg-blue-900/20'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-primary'
+                  }`}
+              >
+                {tab.label} {tab.count > 0 && <span className="ml-1 text-xs">({tab.count})</span>}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -730,29 +741,34 @@ export default function Orders() {
             </div>
           )}
 
-          {!loading && !error && (showCancelled ? (
-            cancelledOrders.length === 0 ? (
+          {!loading && !error && (
+            filteredOrders.length === 0 ? (
               <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
-                <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">remove_shopping_cart</span>
-                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Không có đơn đã hủy</h3>
-                <p className="text-gray-500 dark:text-gray-400">Các đơn hàng bị hủy sẽ hiển thị tại đây</p>
+                <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">
+                  {activeTab === 'cancelled' ? 'remove_shopping_cart' : 'shopping_bag'}
+                </span>
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  {activeTab === 'all' && 'Chưa có đơn hàng'}
+                  {activeTab === 'confirmed' && 'Không có đơn chờ xác nhận'}
+                  {activeTab === 'paid' && 'Không có đơn đã thanh toán'}
+                  {activeTab === 'shipping' && 'Không có đơn đang giao'}
+                  {activeTab === 'completed' && 'Không có đơn hoàn thành'}
+                  {activeTab === 'cancelled' && 'Không có đơn đã hủy'}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  {activeTab === 'all' ? 'Hãy khám phá các sản phẩm tuyệt vời của chúng tôi' : 'Các đơn hàng phù hợp sẽ hiển thị tại đây'}
+                </p>
+                {activeTab === 'all' && (
+                  <button
+                    onClick={() => navigate('/')}
+                    className="py-2.5 px-6 rounded-xl bg-primary text-white font-medium hover:bg-blue-600 shadow-md shadow-blue-500/20 transition-all text-sm"
+                  >
+                    Khám phá sản phẩm
+                  </button>
+                )}
               </div>
-            ) : cancelledOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
-          ) : (
-            activeOrders.length === 0 ? (
-              <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
-                <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">shopping_bag</span>
-                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Chưa có đơn hàng</h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">Hãy khám phá các sản phẩm tuyệt vời của chúng tôi</p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="py-2.5 px-6 rounded-xl bg-primary text-white font-medium hover:bg-blue-600 shadow-md shadow-blue-500/20 transition-all text-sm"
-                >
-                  Khám phá sản phẩm
-                </button>
-              </div>
-            ) : activeOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
-          ))}
+            ) : filteredOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
+          )}
         </div>
 
         {/* MODAL - Order Detail (Redesigned) */}
