@@ -32,19 +32,19 @@ export default function FloatingNavbar() {
             {/* Category Links - Hidden on mobile */}
             <div className="hidden lg:flex items-center gap-4">
                 <Link
-                    to="/user/category/phone"
+                    to="/dien-thoai"
                     className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
                 >
                     Điện thoại
                 </Link>
                 <Link
-                    to="/user/category/laptop"
+                    to="/laptop"
                     className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
                 >
                     Laptop
                 </Link>
                 <Link
-                    to="/user/category/accessories"
+                    to="/tai-nghe"
                     className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
                 >
                     Phụ kiện

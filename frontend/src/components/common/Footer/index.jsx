@@ -111,7 +111,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-600 text-xs">
-              © 2024 TechStore Premium. Tất cả quyền được bảo lưu.
+              © 2026 TechStore . Designed by HaiLamDev
             </p>
 
             {/* Social Links */}
