@@ -38,9 +38,16 @@ const CartProvider = ({ children }) => {
   // Normalize cart object trả về từ server
   const normalizeCart = (serverData) => {
     if (!serverData) return null;
-    // serverData có thể nằm ở data, cart, hoặc trực tiếp
+
+    // serverData có thể là: { success, data: [...] } hoặc { items: [...] } hoặc { cart: {...} }
     const raw = serverData.data ?? serverData.cart ?? serverData;
-    // Expect shape: { items: [{ product_id, quantity, price, product }], total, ... }
+
+    // Nếu raw là array (API trả về data trực tiếp là array items)
+    if (Array.isArray(raw)) {
+      return { items: raw };
+    }
+
+    // Nếu raw là object, tìm items trong các field khác nhau
     const items = raw.items ?? raw.cart_items ?? raw.items_list ?? [];
     return {
       ...raw,
