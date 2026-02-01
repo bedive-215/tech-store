@@ -104,9 +104,15 @@ export default function ProductCard({ product, onWishlistToggle }) {
     setAdding(true);
 
     try {
+      // Backend expects: product_id, quantity, product_name, image_url, stock, price
+      const finalPrice = flashSaleActive ? salePrice : originalPrice;
       await addToCart({
         product_id: product.product_id ?? product.id,
         quantity: 1,
+        product_name: product?.name ?? "Sản phẩm",
+        image_url: resolvedSrc !== FALLBACK ? resolvedSrc : null,
+        stock: product?.stock ?? product?.quantity ?? 999,
+        price: finalPrice,
       });
       // Toast is handled by CartProvider
     } catch (err) {
