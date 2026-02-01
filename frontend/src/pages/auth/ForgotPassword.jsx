@@ -125,9 +125,9 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* ========== RIGHT SIDE: Form ========== */}
-        <div className="flex w-full flex-col items-center justify-center bg-[#050505] lg:w-1/2 relative p-6">
-          <div className="absolute top-[-10%] right-[-5%] h-[300px] w-[300px] rounded-full bg-[#0f83f0]/10 blur-[100px]" />
-          <div className="absolute bottom-[-10%] left-[-5%] h-[300px] w-[300px] rounded-full bg-blue-600/5 blur-[100px]" />
+        <div className="flex w-full flex-col items-center justify-center bg-[#050505] lg:w-1/2 relative p-6 min-h-screen">
+          <div className="hidden lg:block absolute top-[-10%] right-[-5%] h-[300px] w-[300px] rounded-full bg-[#0f83f0]/10 blur-[100px]" />
+          <div className="hidden lg:block absolute bottom-[-10%] left-[-5%] h-[300px] w-[300px] rounded-full bg-blue-600/5 blur-[100px]" />
 
           <div className="w-full max-w-[440px] z-10">
             <div className="mb-8 text-center">
