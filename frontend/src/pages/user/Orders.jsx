@@ -128,7 +128,7 @@ const ProductItem = React.memo(function ProductItem({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-gray-900 dark:text-white truncate">{p?.name ?? item.product_name ?? "Sản phẩm"}</div>
+        <div className="font-semibold text-white truncate">{p?.name ?? item.product_name ?? "Sản phẩm"}</div>
         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           <span>SL: x{item.quantity}</span>
           <span className="mx-2">•</span>
@@ -142,7 +142,7 @@ const ProductItem = React.memo(function ProductItem({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">Đánh giá của bạn</span>
+                    <span className="text-sm font-medium text-white">Đánh giá của bạn</span>
                     <span className="text-xs text-yellow-500">({existingReview.rating}★)</span>
                   </div>
                   <span className="text-xs text-gray-400">{existingReview.created_at ? safeDate(existingReview.created_at) : ""}</span>
@@ -172,7 +172,7 @@ const ProductItem = React.memo(function ProductItem({
                 <textarea
                   value={reviewInputs[pid]?.comment ?? ""}
                   onChange={(e) => setReviewInput(pid, "comment", e.target.value)}
-                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm bg-white dark:bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary/50 focus:border-primary"
                   placeholder="Viết cảm nhận của bạn về sản phẩm..."
                   rows={2}
                   disabled={reviewLoading}
@@ -228,7 +228,7 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-6 border-b border-white/5 gap-4 sm:gap-0">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-gray-900 dark:text-white">#{order.order_id}</span>
+            <span className="font-bold text-white">#{order.order_id}</span>
             <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
             <span className="text-sm text-gray-500 dark:text-gray-400">{safeDate(order.created_at)}</span>
           </div>
@@ -258,12 +258,12 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
           </div>
           <div className="flex-1 flex flex-col sm:flex-row justify-between gap-4">
             <div>
-              <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">{product?.name ?? item.product_name ?? "Sản phẩm"}</h4>
+              <h4 className="text-base font-semibold text-white mb-1 line-clamp-1">{product?.name ?? item.product_name ?? "Sản phẩm"}</h4>
               {product?.color && <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Màu: {product.color}</p>}
               <p className="text-xs text-gray-400">Số lượng: x{item?.quantity ?? 1}</p>
             </div>
             <div className="text-right">
-              <span className="block text-sm font-semibold text-gray-900 dark:text-white">{formatPrice(item?.price ?? (product?.price ?? 0))}</span>
+              <span className="block text-sm font-semibold text-white">{formatPrice(item?.price ?? (product?.price ?? 0))}</span>
               {hasDiscount && <span className="text-xs text-gray-400 line-through">{formatPrice(order.total_price)}</span>}
             </div>
           </div>
@@ -732,7 +732,7 @@ export default function Orders() {
                 <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">
                   {activeTab === 'cancelled' ? 'remove_shopping_cart' : 'shopping_bag'}
                 </span>
-                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">
                   {activeTab === 'all' && 'Chưa có đơn hàng'}
                   {activeTab === 'confirmed' && 'Không có đơn chờ xác nhận'}
                   {activeTab === 'paid' && 'Không có đơn đã thanh toán'}
@@ -812,7 +812,7 @@ export default function Orders() {
                               }`}>
                               {done ? <span className="material-icons-outlined text-sm">check</span> : i + 1}
                             </div>
-                            <span className={`text-[10px] mt-1.5 font-medium ${done || active ? "text-gray-700 dark:text-gray-200" : "text-gray-400"}`}>
+                            <span className={`text-[10px] mt-1.5 font-medium ${done || active ? "text-gray-200" : "text-gray-400"}`}>
                               {STATUS_LABEL[step]?.split(' ')[0] ?? step}
                             </span>
                           </div>
@@ -853,7 +853,7 @@ export default function Orders() {
                     <span className="material-icons-outlined text-blue-500 mt-0.5">location_on</span>
                     <div>
                       <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Địa chỉ giao hàng</p>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{currentOrder.shipping_address}</p>
+                      <p className="text-sm text-gray-300">{currentOrder.shipping_address}</p>
                     </div>
                   </div>
                 )}
@@ -889,7 +889,7 @@ export default function Orders() {
                   </h3>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Tạm tính</span>
-                    <span className="text-gray-700 dark:text-gray-300">{formatPrice(currentOrder.total_price)}</span>
+                    <span className="text-gray-300">{formatPrice(currentOrder.total_price)}</span>
                   </div>
                   {Number(currentOrder.discount_amount) > 0 && (
                     <div className="flex justify-between text-sm">
@@ -899,7 +899,7 @@ export default function Orders() {
                   )}
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-gray-900 dark:text-white">Thành tiền</span>
+                      <span className="font-semibold text-white">Thành tiền</span>
                       <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400">{formatPrice(currentOrder.final_price)}</span>
                     </div>
                   </div>
