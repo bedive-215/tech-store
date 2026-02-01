@@ -31,10 +31,11 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
   const headerRef = useRef(null);
 
   const miniMessages = [
-    "📱 Thu cũ giá ngon - Lên đời tiết kiệm",
-    "📦 Sản phẩm Chính hãng - Xuất VAT đầy đủ",
-    "🚚 Giao nhanh - Miễn phí cho đơn 300k",
-    "🛡️ Bảo hành chính hãng 12-24 tháng",
+    "Thu cũ đổi mới",
+    "Chính hãng 100%",
+    "Freeship từ 300k",
+    "Bảo hành 12-24 tháng",
+    "Hỗ trợ trả góp 0%",
   ];
 
   // Function to check auth and show alert if not logged in
@@ -263,39 +264,30 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
 
   return (
     <header ref={headerRef} className="w-full sticky top-0 z-[999] font-sans">
-      {/* Top Bar - Premium Blue Gradient */}
-      <div className="w-full text-white text-xs relative bg-gradient-to-r from-[#137fec] via-[#0ea5e9] to-[#137fec]" style={{ height: "44px" }}>
-        <div className="max-w-[1280px] mx-auto px-4 h-full relative">
-          {/* Marquee */}
-          <div className="relative overflow-hidden h-full flex items-center">
-            <div className="marquee-track flex items-center">
-              <div className="marquee-group flex items-center whitespace-nowrap">
-                {miniMessages.map((m, i) => (
-                  <span key={i} className="mx-6 font-medium">{m}</span>
-                ))}
-              </div>
-              <div className="marquee-group flex items-center whitespace-nowrap">
-                {miniMessages.map((m, i) => (
-                  <span key={'dup-' + i} className="mx-6 font-medium">{m}</span>
-                ))}
-              </div>
-            </div>
+      {/* Top Bar - Modern Clean Style */}
+      <div className="w-full bg-slate-900 text-white/90 text-[11px]" style={{ height: "32px" }}>
+        <div className="max-w-[1280px] mx-auto px-4 h-full flex items-center justify-between">
+          {/* Static Messages with Dots */}
+          <div className="flex items-center gap-2 overflow-hidden">
+            {miniMessages.map((m, i) => (
+              <span key={i} className="flex items-center gap-2 whitespace-nowrap">
+                {i > 0 && <span className="w-1 h-1 rounded-full bg-white/30"></span>}
+                <span className="font-medium">{m}</span>
+              </span>
+            ))}
           </div>
-        </div>
 
-        {/* Warranty Button - Top Right */}
-        <button
-          onClick={() => requireAuth(() => navigate("/user/warranties"), "Vui lòng đăng nhập để xem bảo hành!")}
-          className="absolute top-0 right-0 flex items-center gap-2 text-white font-semibold hover:brightness-110 transition-all bg-gradient-to-r from-[#0ea5e9] to-[#137fec] px-4 h-full"
-          style={{ borderBottomLeftRadius: "12px" }}
-          title="Bảo hành"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
-            <path d="M9 12l2 2 4-4" />
-          </svg>
-          <span className="text-sm hidden sm:inline">Bảo hành</span>
-        </button>
+          {/* Warranty Link */}
+          <button
+            onClick={() => requireAuth(() => navigate("/user/warranties"), "Vui lòng đăng nhập để xem bảo hành!")}
+            className="flex items-center gap-1.5 text-white/80 hover:text-white transition-colors font-medium"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="hidden sm:inline">Tra cứu bảo hành</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Header - Premium Blue Gradient */}
