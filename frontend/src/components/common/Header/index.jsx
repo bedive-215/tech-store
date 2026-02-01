@@ -10,21 +10,27 @@ import { useCart } from "@/providers/CartProvider";
  * Cart Badge Component - Shows item count (max 99+)
  */
 function CartBadge() {
-  const { cart, fetchCart } = useCart();
+  const { cart, fetchCart, getTotalQuantity } = useCart();
   const isLoggedIn = !!localStorage.getItem("access_token");
 
   // Fetch cart on mount if logged in
   useEffect(() => {
-    if (isLoggedIn && !cart) {
+    if (isLoggedIn) {
       fetchCart().catch(() => { });
     }
   }, [isLoggedIn]);
 
-  // Calculate total quantity
+  // Calculate total quantity using provider helper or fallback
   const totalQty = React.useMemo(() => {
+    if (typeof getTotalQuantity === 'function') {
+      return getTotalQuantity();
+    }
     if (!cart?.items || !Array.isArray(cart.items)) return 0;
     return cart.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-  }, [cart]);
+  }, [cart, getTotalQuantity]);
+
+  // Debug log
+  console.log("🛒 CartBadge:", { isLoggedIn, totalQty, cartItems: cart?.items?.length });
 
   if (!isLoggedIn || totalQty === 0) return null;
 
