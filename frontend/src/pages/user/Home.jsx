@@ -135,9 +135,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================== VIDEO TRANSITION SECTION ================== */}
-      <section className="relative z-20 bg-black py-0 overflow-hidden">
-        <div className="relative w-full max-w-6xl mx-auto">
+      {/* ================== VIDEO TRANSITION: hello.mp4 → LAPTOP ================== */}
+      <section className="relative z-20 bg-black py-16 overflow-hidden">
+        <div className="relative w-full max-w-6xl mx-auto px-4">
           <video
             autoPlay
             loop
@@ -146,7 +146,64 @@ export default function Home() {
             className="w-full h-auto rounded-3xl shadow-2xl"
             src="/videos/hello.mp4"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none rounded-3xl" />
+        </div>
+      </section>
+
+      {/* ================== LAPTOP SECTION ================== */}
+      <section id="section-laptop" className="min-h-screen flex items-center justify-center relative z-20 bg-[#050505] py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black to-[#0a0a0a]" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          {/* Header */}
+          <div className="flex flex-col items-center text-center mb-12 md:mb-16" data-aos="fade-up">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6">
+              MacBook.<br />
+              <span className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">Sức mạnh không giới hạn.</span>
+            </h2>
+            <p className="text-lg md:text-xl text-gray-400 max-w-2xl">
+              Mỏng nhẹ không tưởng. Mạnh mẽ phi thường với chip Apple M3 Series. Thời lượng pin cả ngày dài cho mọi tác vụ sáng tạo.
+            </p>
+          </div>
+
+          {/* Image with floating cards */}
+          <div className="relative" data-aos="fade-up" data-aos-delay="200">
+            <div className="relative z-10 w-full max-w-4xl mx-auto transform transition-transform hover:scale-[1.02] duration-700">
+              <img
+                alt="MacBook Pro"
+                className="w-full h-auto drop-shadow-2xl rounded-2xl"
+                src="/images/categories/laptop.jpeg"
+              />
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => navigate('/user/category/laptop')}
+              className="bg-white text-black px-8 py-4 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2 group"
+            >
+              Khám phá MacBook
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ================== VIDEO TRANSITION: phone.mp4 → PHONE ================== */}
+      <section className="relative z-20 bg-black py-16 overflow-hidden">
+        <div className="relative w-full max-w-6xl mx-auto px-4">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto rounded-3xl shadow-2xl"
+            src="/videos/phone.mp4"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none rounded-3xl" />
         </div>
       </section>
 
@@ -200,72 +257,26 @@ export default function Home() {
             <div className="relative w-full max-w-sm mx-auto transform transition-all duration-1000 hover:scale-105">
               <img
                 alt="iPhone Detail"
-                className="w-full h-auto drop-shadow-[0_20px_50px_rgba(41,151,255,0.3)]"
-                src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=800&fit=crop"
+                className="w-full h-auto drop-shadow-[0_20px_50px_rgba(41,151,255,0.3)] rounded-2xl"
+                src="/images/categories/phone.jpeg"
               />
-              {/* Floating badge */}
-              <div className="absolute -right-4 md:-right-8 top-20 bg-white/10 backdrop-blur-xl border border-white/10 p-3 md:p-4 rounded-2xl animate-[float_6s_ease-in-out_3s_infinite] hidden md:flex items-center gap-2">
-                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="text-xs font-bold">Sạc nhanh</span>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================== MACBOOK SECTION ================== */}
-      <section id="section-laptop" className="min-h-screen flex items-center justify-center relative z-20 bg-[#050505] py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black to-[#0a0a0a]" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
-          {/* Header */}
-          <div className="flex flex-col items-center text-center mb-12 md:mb-16" data-aos="fade-up">
-            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6">
-              MacBook.<br />
-              <span className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">Sức mạnh không giới hạn.</span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl">
-              Mỏng nhẹ không tưởng. Mạnh mẽ phi thường với chip Apple M3 Series. Thời lượng pin cả ngày dài cho mọi tác vụ sáng tạo.
-            </p>
-          </div>
-
-          {/* Image with floating cards */}
-          <div className="relative" data-aos="fade-up" data-aos-delay="200">
-            <div className="relative z-10 w-full max-w-4xl mx-auto transform transition-transform hover:scale-[1.02] duration-700">
-              <img
-                alt="MacBook Pro"
-                className="w-full h-auto drop-shadow-2xl"
-                src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000&h=600&fit=crop"
-              />
-            </div>
-
-            {/* Left floating card */}
-            <div className="absolute top-0 left-0 md:-left-8 bg-white/10 backdrop-blur-xl border border-white/10 p-4 md:p-6 rounded-2xl border-l-4 border-l-purple-500 animate-[float_6s_ease-in-out_infinite] z-20 shadow-lg shadow-purple-900/20 max-w-[180px] md:max-w-[200px] hidden lg:block">
-              <h4 className="text-base md:text-lg font-bold text-white mb-1">Apple M3 Max</h4>
-              <p className="text-xs text-gray-400">Hiệu năng đồ họa nhanh hơn đến 2.5x so với M1 Max.</p>
-            </div>
-
-            {/* Right floating card */}
-            <div className="absolute bottom-10 right-0 md:-right-8 bg-white/10 backdrop-blur-xl border border-white/10 p-4 md:p-6 rounded-2xl border-r-4 border-r-pink-500 animate-[float_6s_ease-in-out_3s_infinite] z-20 shadow-lg shadow-pink-900/20 max-w-[180px] md:max-w-[200px] hidden lg:block">
-              <h4 className="text-base md:text-lg font-bold text-white mb-1">Liquid Retina XDR</h4>
-              <p className="text-xs text-gray-400">1000 nits độ sáng duy trì, 1600 nits đỉnh.</p>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div className="flex justify-center mt-12">
-            <button
-              onClick={() => navigate('/user/category/laptop')}
-              className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-all flex items-center gap-2"
-            >
-              Tìm hiểu MacBook
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </button>
-          </div>
+      {/* ================== VIDEO TRANSITION: accessories.mp4 → ACCESSORIES ================== */}
+      <section className="relative z-20 bg-black py-16 overflow-hidden">
+        <div className="relative w-full max-w-6xl mx-auto px-4">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto rounded-3xl shadow-2xl"
+            src="/videos/accessories.mp4"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none rounded-3xl" />
         </div>
       </section>
 
