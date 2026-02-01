@@ -108,20 +108,24 @@ export default function FloatingNavbar() {
                     </button>
                 </div>
             ) : (
-                // NOT LOGGED IN: Show Login | Register
+                // NOT LOGGED IN: Show Login | Register with enhanced styling
                 <div className="flex items-center gap-2 sm:gap-3">
                     <Link
                         to="/login"
-                        className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                        className="text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 whitespace-nowrap px-2 py-1"
                     >
                         Đăng nhập
                     </Link>
-                    <span className="text-white/30">|</span>
+                    <span className="text-white/20 hidden sm:inline">|</span>
                     <Link
                         to="/register"
-                        className="text-sm font-medium text-white bg-[#2997ff] hover:bg-[#2997ff]/80 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap"
+                        className="relative group text-sm font-semibold text-white px-4 py-2 rounded-full transition-all duration-300 overflow-hidden whitespace-nowrap"
                     >
-                        Đăng ký
+                        {/* Gradient background with glow effect */}
+                        <span className="absolute inset-0 bg-gradient-to-r from-[#2997ff] to-[#5AC8FA] rounded-full transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(41,151,255,0.5)]" />
+                        {/* Shine effect on hover */}
+                        <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                        <span className="relative z-10">Đăng ký</span>
                     </Link>
                 </div>
             )}
