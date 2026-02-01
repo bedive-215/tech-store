@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hồ sơ cá nhân - Tech Store Luxury</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2997ff",
+                        "background-dark": "#000000",
+                        "surface-dark": "#1d1d1f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-white/5 backdrop-blur-2xl border border-white/10;
+            }
+            .glass-pill {
+                @apply bg-black/60 backdrop-blur-md border border-white/10;
+            }
+            .text-gradient {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400;
+            }
+            .glow-icon {
+                @apply relative;
+            }
+            .glow-icon::after {
+                @apply content-[''] absolute inset-0 blur-xl opacity-40 rounded-full;
+                background: currentColor;
+            }
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: #fff;
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 70%);
+        }
+    </style>
+</head>
+<body class="bg-black text-white antialiased min-h-screen">
+<nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 glass-pill rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl">
+<a class="text-white font-semibold flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary">hexagon</span>
+</a>
+<div class="h-4 w-px bg-white/20"></div>
+<a class="text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#">Trang chủ</a>
+<a class="text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#">Cửa hàng</a>
+<div class="h-4 w-px bg-white/20"></div>
+<button class="text-gray-300 hover:text-white transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span class="absolute -top-1 -right-1 size-2 bg-primary rounded-full"></span>
+</button>
+</nav>
+<main class="max-w-6xl mx-auto px-6 pt-32 pb-24">
+<header class="flex flex-col items-center mb-20 text-center">
+<div class="relative mb-8">
+<div class="size-40 md:size-48 rounded-full p-1.5 glass-panel ring-1 ring-white/20 flex items-center justify-center overflow-hidden">
+<div class="w-full h-full rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqg7-lPEXHT87dszukxDYziMpMZxQFMwLNKmvDFA_UHCthwIWAJmWjCwThg4jDP8GCe2CzFJeTMA6AKl-x-cAHk6C6twBc57ZLxZNrlku9UTdrLUWSQIRaMeTOeHVPCyAqdPQaLEc8_SOdOh4iu68FB-3ixd3ie6IL9s6Gsx3UQ8bEBxDUuD7VoHxr2R0vF6Vh_4pu8yh9S6juAe_BjD15rWsD2dOH_Nb8Isz7Uyf32VmDwTW-2VvcnXKDqAL53q10AQwZA0k_oYE"/>
+</div>
+</div>
+<button class="absolute bottom-2 right-2 size-10 rounded-full bg-primary text-white flex items-center justify-center border-4 border-black hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2">Alexandre Nguyen</h1>
+<p class="text-gray-400 font-medium">Thành viên Platinum • Tham gia từ 2023</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<a class="group glass-panel p-8 rounded-3xl transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1 relative overflow-hidden" href="#">
+<div class="relative z-10">
+<div class="size-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-8 text-primary glow-icon">
+<span class="material-symbols-outlined text-3xl">person_edit</span>
+</div>
+<h3 class="text-2xl font-bold text-white mb-3">Thông tin cá nhân</h3>
+<p class="text-gray-400 leading-relaxed max-w-sm">Cập nhật họ tên, số điện thoại và địa chỉ email chính thức của bạn.</p>
+</div>
+<div class="absolute right-8 bottom-8 text-white/20 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-4xl">arrow_forward</span>
+</div>
+</a>
+<a class="group glass-panel p-8 rounded-3xl transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1 relative overflow-hidden" href="#">
+<div class="relative z-10">
+<div class="size-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-8 text-purple-400 glow-icon">
+<span class="material-symbols-outlined text-3xl">location_on</span>
+</div>
+<h3 class="text-2xl font-bold text-white mb-3">Sổ địa chỉ</h3>
+<p class="text-gray-400 leading-relaxed max-w-sm">Quản lý các địa chỉ giao hàng và nhận hóa đơn thanh toán.</p>
+</div>
+<div class="absolute right-8 bottom-8 text-white/20 group-hover:text-purple-400 transition-colors">
+<span class="material-symbols-outlined text-4xl">arrow_forward</span>
+</div>
+</a>
+<a class="group glass-panel p-8 rounded-3xl transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1 relative overflow-hidden" href="#">
+<div class="relative z-10">
+<div class="size-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-8 text-emerald-400 glow-icon">
+<span class="material-symbols-outlined text-3xl">package_2</span>
+</div>
+<h3 class="text-2xl font-bold text-white mb-3">Lịch sử mua hàng</h3>
+<p class="text-gray-400 leading-relaxed max-w-sm">Theo dõi đơn hàng, xem lại các hóa đơn và trạng thái vận chuyển.</p>
+</div>
+<div class="absolute right-8 bottom-8 text-white/20 group-hover:text-emerald-400 transition-colors">
+<span class="material-symbols-outlined text-4xl">arrow_forward</span>
+</div>
+</a>
+<a class="group glass-panel p-8 rounded-3xl transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1 relative overflow-hidden" href="#">
+<div class="relative z-10">
+<div class="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center mb-8 text-red-400 glow-icon">
+<span class="material-symbols-outlined text-3xl">verified_user</span>
+</div>
+<h3 class="text-2xl font-bold text-white mb-3">Bảo mật</h3>
+<p class="text-gray-400 leading-relaxed max-w-sm">Đổi mật khẩu, thiết lập xác thực 2 lớp và quản lý các thiết bị đã đăng nhập.</p>
+</div>
+<div class="absolute right-8 bottom-8 text-white/20 group-hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-4xl">arrow_forward</span>
+</div>
+</a>
+</div>
+<div class="mt-16 flex justify-center">
+<button class="flex items-center gap-3 px-8 py-4 rounded-full glass-panel hover:bg-white/10 transition-all text-gray-300 hover:text-white group">
+<span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">logout</span>
+<span class="font-semibold">Đăng xuất tài khoản</span>
+</button>
+</div>
+</main>
+<footer class="bg-black border-t border-white/10 pt-16 pb-12 text-sm text-gray-400">
+<div class="max-w-6xl mx-auto px-6">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-primary">hexagon</span>
+<span class="text-xl font-bold text-white tracking-tight">TechStore</span>
+</div>
+<div class="flex gap-8">
+<a class="hover:text-white transition-colors" href="#">Hỗ trợ</a>
+<a class="hover:text-white transition-colors" href="#">Chính sách</a>
+<a class="hover:text-white transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex gap-4">
+<a class="size-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
+<span class="font-bold text-xs uppercase">fb</span>
+</a>
+<a class="size-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
+<span class="font-bold text-xs uppercase">in</span>
+</a>
+</div>
+</div>
+<div class="text-center md:text-left border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center">
+<p>© 2024 TechStore Premium. Trải nghiệm đẳng cấp số.</p>
+<p class="mt-2 md:mt-0 text-gray-600">Việt Nam • Tiếng Việt</p>
+</div>
+</div>
+</footer>
+
+</body></html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tech Store - Luxury Scrollytelling Shop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2997ff",
+                        "background-dark": "#000000",
+                        "surface-dark": "#1d1d1f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "3xl": "2.5rem", "full": "9999px"},
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'fade-in-up': 'fadeInUp 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-white/10 backdrop-blur-xl border border-white/10;
+            }
+            .glass-pill {
+                @apply bg-black/60 backdrop-blur-md border border-white/10;
+            }
+            .text-gradient {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400;
+            }
+            .scrolly-section {
+                @apply min-h-screen flex items-center justify-center relative overflow-hidden;
+            }
+            .glow-effect {
+                @apply absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full opacity-50;
+            }
+        }html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="bg-black text-white antialiased">
+<nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 glass-pill rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl transition-all duration-300 hover:bg-black/80">
+<a class="text-white font-semibold flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary">hexagon</span>
+</a>
+<div class="h-4 w-px bg-white/20"></div>
+<a class="text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#section-phone">Điện thoại</a>
+<a class="text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#section-laptop">Laptop</a>
+<a class="text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#section-accessories">Phụ kiện</a>
+<div class="h-4 w-px bg-white/20"></div>
+<button class="text-gray-300 hover:text-white transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span class="absolute -top-1 -right-1 size-2 bg-primary rounded-full"></span>
+</button>
+</nav>
+<main class="relative">
+<section class="scrolly-section bg-black sticky top-0 z-10">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black"></div>
+<div class="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
+<span class="text-primary font-medium tracking-widest text-sm uppercase mb-4 animate-fade-in-up">Bộ Sưu Tập 2024</span>
+<h1 class="text-6xl md:text-8xl font-bold tracking-tight mb-8 text-gradient animate-fade-in-up" style="animation-delay: 0.1s;">
+                    Tuyệt tác<br/>Công nghệ.
+                </h1>
+<p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 animate-fade-in-up" style="animation-delay: 0.2s;">
+                    Khám phá sự hoàn hảo trong từng điểm ảnh, từng đường nét thiết kế. Nơi công nghệ chạm đến đỉnh cao nghệ thuật.
+                </p>
+<div class="relative w-full h-[400px] mt-10 flex items-center justify-center">
+<div class="absolute z-30 animate-float w-48 md:w-64">
+<img alt="Phone" class="w-full h-auto drop-shadow-2xl grayscale-[30%] hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDudXgHdtWjUFVskNdaJ3NX9eEMP81aat42hTnCLAkN1wujkSbXH87YpJKKNGXsZSflA2zKEhVFvHUZXYYPvmyZ7dnI8ZQyfnLyma7mL0evvIz9rEbFcfj479qwnjpUlBHtvXqYM5R19WDJXugYj2snZBbQpG-e81tVKL2JokIunhMLy2q2zzpT-xeHXHZGkk1fhRIfxKYWOjPIbtBssFSvZ9UwjYvKknIHm_U5d_4fDkW1SBhcW_5imFen6gb1kcBm9yKRZttfWUU"/>
+</div>
+<div class="absolute z-20 translate-x-32 -translate-y-10 animate-float-delayed opacity-60 blur-[1px] w-64 md:w-96">
+<img alt="Laptop" class="w-full h-auto drop-shadow-2xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCry4KRofc2Z7B5ox_MNWQWHo1BDBRv1ezQJlw2iT81VOGyog5Gf81PHky1nw9Iw4AVYI2F-cTeKP0h8B8VB-T4YSj_F7ICMLH9QCkYCfBxsf-0fwvn-33O-MFH_0B9w3A9_53Wu5-qJEKQaA8WeAkrM-HPwRuyiWRXwIFYCN-8-GxsuBzMRXH7sNl7v9FPm0e_tbQOsusFNSgo-CsKYvjDalYPz6HMVRr7x2o7Dn8FnsOtF_dAtXdhY6T4fnjXrS7cqb0nWKmuGCQ"/>
+</div>
+<div class="absolute z-20 -translate-x-32 translate-y-10 animate-float opacity-60 blur-[1px] w-40 md:w-56">
+<img alt="Headphones" class="w-full h-auto drop-shadow-2xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkZPiDT9MMj3yojZvm84jY6tpqlHe7h3GXAtzUK2M5OiMcjtRvPkZirHooIk9o_OeOVjFErHB9rHgWt89S5ymrkTh15HrXD7Dohkkl2-Fg3dtq63_ypmrnatMV7glljS-NDrI5zglOUb3W_G5NaFVwVQoiGwN8d_3myD5FKGRHvNTo5QnkC95J_hdo5hFhaY-zeusUBhIGWJtam3OJK9GDp5YSJeV9MSMqjXixKrpKR8DKqZ23oh-MRuV8XcSycYYgRiLt2nTpvWI"/>
+</div>
+</div>
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-gray-500">
+<span class="material-symbols-outlined">keyboard_arrow_down</span>
+</div>
+</div>
+</section>
+<section class="scrolly-section bg-black relative z-20" id="section-phone">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+<div class="order-2 md:order-1 space-y-8">
+<h2 class="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+<span class="text-white">iPhone Series.</span><br/>
+<span class="text-gray-500">Đẳng cấp dẫn đầu.</span>
+</h2>
+<p class="text-xl text-gray-400 font-light leading-relaxed">
+                        Khung viền Titan bền bỉ. Chip A17 Pro mạnh mẽ chưa từng có. Trải nghiệm camera vượt qua mọi giới hạn nhiếp ảnh di động.
+                    </p>
+<div class="flex items-center gap-6 pt-4">
+<div class="flex flex-col">
+<span class="text-3xl font-bold text-white">48MP</span>
+<span class="text-sm text-gray-500 uppercase tracking-wider">Camera Chính</span>
+</div>
+<div class="w-px h-12 bg-gray-800"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-bold text-white">A17 Pro</span>
+<span class="text-sm text-gray-500 uppercase tracking-wider">Chipset</span>
+</div>
+<div class="w-px h-12 bg-gray-800"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-bold text-white">29h</span>
+<span class="text-sm text-gray-500 uppercase tracking-wider">Xem Video</span>
+</div>
+</div>
+<button class="mt-8 bg-white text-black px-8 py-4 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2 group">
+                        Khám phá iPhone
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<div class="order-1 md:order-2 relative h-[600px] flex items-center justify-center">
+<div class="relative w-full max-w-md mx-auto transform transition-all duration-1000 hover:scale-105">
+<img alt="iPhone Detail" class="w-full h-auto drop-shadow-[0_20px_50px_rgba(41,151,255,0.3)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDudXgHdtWjUFVskNdaJ3NX9eEMP81aat42hTnCLAkN1wujkSbXH87YpJKKNGXsZSflA2zKEhVFvHUZXYYPvmyZ7dnI8ZQyfnLyma7mL0evvIz9rEbFcfj479qwnjpUlBHtvXqYM5R19WDJXugYj2snZBbQpG-e81tVKL2JokIunhMLy2q2zzpT-xeHXHZGkk1fhRIfxKYWOjPIbtBssFSvZ9UwjYvKknIHm_U5d_4fDkW1SBhcW_5imFen6gb1kcBm9yKRZttfWUU"/>
+<div class="absolute -right-8 top-20 glass-panel p-4 rounded-2xl animate-float-delayed hidden md:block">
+<span class="material-symbols-outlined text-yellow-400">bolt</span>
+<span class="text-xs font-bold ml-1">Sạc nhanh</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="scrolly-section bg-[#050505] relative z-20" id="section-laptop">
+<div class="absolute inset-0 bg-gradient-to-b from-black to-[#0a0a0a]"></div>
+<div class="max-w-7xl mx-auto px-6 w-full relative z-10">
+<div class="flex flex-col items-center text-center mb-16">
+<h2 class="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+                        MacBook.<br/>
+<span class="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">Sức mạnh không giới hạn.</span>
+</h2>
+<p class="text-xl text-gray-400 max-w-2xl">
+                        Mỏng nhẹ không tưởng. Mạnh mẽ phi thường với chip Apple M3 Series. Thời lượng pin cả ngày dài cho mọi tác vụ sáng tạo.
+                    </p>
+</div>
+<div class="relative">
+<div class="relative z-10 w-full max-w-4xl mx-auto transform transition-transform hover:scale-[1.02] duration-700">
+<img alt="MacBook Pro" class="w-full h-auto drop-shadow-2xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCry4KRofc2Z7B5ox_MNWQWHo1BDBRv1ezQJlw2iT81VOGyog5Gf81PHky1nw9Iw4AVYI2F-cTeKP0h8B8VB-T4YSj_F7ICMLH9QCkYCfBxsf-0fwvn-33O-MFH_0B9w3A9_53Wu5-qJEKQaA8WeAkrM-HPwRuyiWRXwIFYCN-8-GxsuBzMRXH7sNl7v9FPm0e_tbQOsusFNSgo-CsKYvjDalYPz6HMVRr7x2o7Dn8FnsOtF_dAtXdhY6T4fnjXrS7cqb0nWKmuGCQ"/>
+</div>
+<div class="absolute top-0 left-0 md:-left-12 glass-panel p-6 rounded-2xl border-l-4 border-purple-500 animate-float z-20 shadow-lg shadow-purple-900/20 max-w-[200px]">
+<h4 class="text-lg font-bold text-white mb-1">Apple M3 Max</h4>
+<p class="text-xs text-gray-400">Hiệu năng đồ họa nhanh hơn đến 2.5x so với M1 Max.</p>
+</div>
+<div class="absolute bottom-10 right-0 md:-right-12 glass-panel p-6 rounded-2xl border-r-4 border-pink-500 animate-float-delayed z-20 shadow-lg shadow-pink-900/20 max-w-[200px]">
+<h4 class="text-lg font-bold text-white mb-1">Liquid Retina XDR</h4>
+<p class="text-xs text-gray-400">1000 nits độ sáng duy trì, 1600 nits đỉnh.</p>
+</div>
+</div>
+<div class="flex justify-center mt-12">
+<button class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-all flex items-center gap-2">
+                        Tìm hiểu MacBook
+                    </button>
+</div>
+</div>
+</section>
+<section class="scrolly-section bg-[#0a0a0a] relative z-20 overflow-hidden" id="section-accessories">
+<div class="absolute inset-0">
+<div class="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-gray-900 via-black to-black opacity-80"></div>
+<div class="absolute top-1/4 left-1/4 w-64 h-64 bg-green-500/10 rounded-full blur-[80px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
+</div>
+<div class="max-w-7xl mx-auto px-6 w-full relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="relative h-[600px] w-full flex items-center justify-center">
+<div class="absolute z-20 w-64 md:w-80 animate-float">
+<img alt="AirPods" class="w-full h-auto drop-shadow-[0_35px_35px_rgba(255,255,255,0.1)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkZPiDT9MMj3yojZvm84jY6tpqlHe7h3GXAtzUK2M5OiMcjtRvPkZirHooIk9o_OeOVjFErHB9rHgWt89S5ymrkTh15HrXD7Dohkkl2-Fg3dtq63_ypmrnatMV7glljS-NDrI5zglOUb3W_G5NaFVwVQoiGwN8d_3myD5FKGRHvNTo5QnkC95J_hdo5hFhaY-zeusUBhIGWJtam3OJK9GDp5YSJeV9MSMqjXixKrpKR8DKqZ23oh-MRuV8XcSycYYgRiLt2nTpvWI"/>
+</div>
+<div class="absolute top-10 right-10 md:right-20 w-40 opacity-80 animate-float-delayed grayscale hover:grayscale-0 transition-all duration-500">
+<img alt="Stylus" class="w-full h-auto rotate-12 drop-shadow-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpbKbDd5kpHqg56F35XpN9A2r3dQX0fMeChv_Avvg3UPCYoJFDW0gnugdUL96lV9S-tMgkVqZ2uPFKE8SWvFVmjS5XOyo-H_XlfliXhTZWZkBXbMT8N3rNadaj_kw8KqpdcD0xvI2j4vTzvx8Jpe-1-CbcUpgeJp_ZYlt7qZvdBL6-sC7RmPbDHP18DXB0TkIuGtycdKyNWN9YtvzSFXqalMykao81ENmIXLL-hVBtEVtTDLYq1g55D-O4UB9_sY8gH3RKnEuk1j4"/>
+</div>
+<div class="absolute bottom-20 left-10 md:left-20 w-48 opacity-60 blur-[1px] animate-float duration-1000">
+<div class="glass-panel p-4 rounded-xl flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">keyboard</span>
+<span class="text-sm font-medium">Magic Keyboard</span>
+</div>
+</div>
+</div>
+<div class="space-y-8">
+<h2 class="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+                        Âm thanh &amp; Phụ kiện.<br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-500">Hoàn hảo từng chi tiết.</span>
+</h2>
+<p class="text-xl text-gray-400 font-light leading-relaxed border-l-2 border-green-500/50 pl-6">
+                        Nâng tầm trải nghiệm với hệ sinh thái phụ kiện cao cấp. Âm thanh không gian cá nhân hóa, kết nối liền mạch và thiết kế tinh tế.
+                    </p>
+<div class="grid grid-cols-2 gap-4 pt-4">
+<a class="group glass-panel p-6 rounded-2xl hover:bg-white/5 transition-colors" href="#">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-3xl text-gray-300 group-hover:text-white transition-colors">headphones</span>
+<span class="material-symbols-outlined text-gray-500 text-sm">arrow_outward</span>
+</div>
+<h3 class="font-bold text-lg mb-1">Âm thanh</h3>
+<p class="text-xs text-gray-500">AirPods, Sony, JBL</p>
+</a>
+<a class="group glass-panel p-6 rounded-2xl hover:bg-white/5 transition-colors" href="#">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-3xl text-gray-300 group-hover:text-white transition-colors">mouse</span>
+<span class="material-symbols-outlined text-gray-500 text-sm">arrow_outward</span>
+</div>
+<h3 class="font-bold text-lg mb-1">Phụ kiện Mac</h3>
+<p class="text-xs text-gray-500">Chuột, Phím, Trackpad</p>
+</a>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-black py-32 px-4 relative z-20">
+<div class="max-w-[1280px] mx-auto">
+<div class="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
+<div>
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-2 block">Mua sắm ngay</span>
+<h2 class="text-3xl md:text-4xl font-bold text-white">Sản phẩm nổi bật</h2>
+</div>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap">Tất cả</button>
+<button class="glass-panel text-white hover:bg-white/20 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors">iPhone</button>
+<button class="glass-panel text-white hover:bg-white/20 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors">MacBook</button>
+<button class="glass-panel text-white hover:bg-white/20 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors">iPad</button>
+<button class="glass-panel text-white hover:bg-white/20 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors">Phụ kiện</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="group relative bg-[#121212] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300">
+<div class="aspect-[4/5] bg-[#1a1a1a] p-8 flex items-center justify-center relative overflow-hidden">
+<img alt="iPhone 15 Pro" class="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDudXgHdtWjUFVskNdaJ3NX9eEMP81aat42hTnCLAkN1wujkSbXH87YpJKKNGXsZSflA2zKEhVFvHUZXYYPvmyZ7dnI8ZQyfnLyma7mL0evvIz9rEbFcfj479qwnjpUlBHtvXqYM5R19WDJXugYj2snZBbQpG-e81tVKL2JokIunhMLy2q2zzpT-xeHXHZGkk1fhRIfxKYWOjPIbtBssFSvZ9UwjYvKknIHm_U5d_4fDkW1SBhcW_5imFen6gb1kcBm9yKRZttfWUU"/>
+<div class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
+<button class="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                                     Thêm vào giỏ
+                                 </button>
+</div>
+<span class="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">-15%</span>
+</div>
+<div class="p-5">
+<h3 class="text-white font-medium text-lg mb-1 group-hover:text-primary transition-colors">iPhone 15 Pro Max</h3>
+<p class="text-gray-500 text-sm mb-3">Titan Tự Nhiên • 256GB</p>
+<div class="flex items-center justify-between">
+<span class="text-white font-bold">28.990.000₫</span>
+<span class="text-gray-600 line-through text-sm">34.990.000₫</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-[#121212] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300">
+<div class="aspect-[4/5] bg-[#1a1a1a] p-8 flex items-center justify-center relative overflow-hidden">
+<img alt="MacBook Air" class="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCry4KRofc2Z7B5ox_MNWQWHo1BDBRv1ezQJlw2iT81VOGyog5Gf81PHky1nw9Iw4AVYI2F-cTeKP0h8B8VB-T4YSj_F7ICMLH9QCkYCfBxsf-0fwvn-33O-MFH_0B9w3A9_53Wu5-qJEKQaA8WeAkrM-HPwRuyiWRXwIFYCN-8-GxsuBzMRXH7sNl7v9FPm0e_tbQOsusFNSgo-CsKYvjDalYPz6HMVRr7x2o7Dn8FnsOtF_dAtXdhY6T4fnjXrS7cqb0nWKmuGCQ"/>
+<div class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
+<button class="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                                     Thêm vào giỏ
+                                 </button>
+</div>
+</div>
+<div class="p-5">
+<h3 class="text-white font-medium text-lg mb-1 group-hover:text-primary transition-colors">MacBook Air M2</h3>
+<p class="text-gray-500 text-sm mb-3">Midnight • 8GB/256GB</p>
+<div class="flex items-center justify-between">
+<span class="text-white font-bold">26.990.000₫</span>
+<span class="text-gray-600 line-through text-sm">32.990.000₫</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-[#121212] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300">
+<div class="aspect-[4/5] bg-[#1a1a1a] p-8 flex items-center justify-center relative overflow-hidden">
+<img alt="AirPods Pro" class="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkZPiDT9MMj3yojZvm84jY6tpqlHe7h3GXAtzUK2M5OiMcjtRvPkZirHooIk9o_OeOVjFErHB9rHgWt89S5ymrkTh15HrXD7Dohkkl2-Fg3dtq63_ypmrnatMV7glljS-NDrI5zglOUb3W_G5NaFVwVQoiGwN8d_3myD5FKGRHvNTo5QnkC95J_hdo5hFhaY-zeusUBhIGWJtam3OJK9GDp5YSJeV9MSMqjXixKrpKR8DKqZ23oh-MRuV8XcSycYYgRiLt2nTpvWI"/>
+<div class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
+<button class="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                                     Thêm vào giỏ
+                                 </button>
+</div>
+<span class="absolute top-4 left-4 bg-green-500 text-black text-[10px] font-bold px-2 py-1 rounded">New</span>
+</div>
+<div class="p-5">
+<h3 class="text-white font-medium text-lg mb-1 group-hover:text-primary transition-colors">AirPods Pro 2</h3>
+<p class="text-gray-500 text-sm mb-3">MagSafe USB-C</p>
+<div class="flex items-center justify-between">
+<span class="text-white font-bold">5.890.000₫</span>
+<span class="text-gray-600 line-through text-sm">6.190.000₫</span>
+</div>
+</div>
+</div>
+<div class="group relative bg-[#121212] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300">
+<div class="aspect-[4/5] bg-[#1a1a1a] p-8 flex items-center justify-center relative overflow-hidden">
+<img alt="Galaxy S23" class="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpbKbDd5kpHqg56F35XpN9A2r3dQX0fMeChv_Avvg3UPCYoJFDW0gnugdUL96lV9S-tMgkVqZ2uPFKE8SWvFVmjS5XOyo-H_XlfliXhTZWZkBXbMT8N3rNadaj_kw8KqpdcD0xvI2j4vTzvx8Jpe-1-CbcUpgeJp_ZYlt7qZvdBL6-sC7RmPbDHP18DXB0TkIuGtycdKyNWN9YtvzSFXqalMykao81ENmIXLL-hVBtEVtTDLYq1g55D-O4UB9_sY8gH3RKnEuk1j4"/>
+<div class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
+<button class="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                                     Thêm vào giỏ
+                                 </button>
+</div>
+<span class="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">-10%</span>
+</div>
+<div class="p-5">
+<h3 class="text-white font-medium text-lg mb-1 group-hover:text-primary transition-colors">Galaxy S23 Ultra</h3>
+<p class="text-gray-500 text-sm mb-3">Phantom Black • 256GB</p>
+<div class="flex items-center justify-between">
+<span class="text-white font-bold">21.500.000₫</span>
+<span class="text-gray-600 line-through text-sm">24.990.000₫</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-16 text-center">
+<a class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1" href="#">
+                        Xem tất cả sản phẩm
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<footer class="bg-black border-t border-white/10 pt-16 pb-12 text-sm text-gray-400">
+<div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-4xl text-primary">hexagon</span>
+<span class="text-2xl font-bold text-white tracking-tight">TechStore</span>
+</div>
+<div class="flex gap-8">
+<a class="hover:text-white transition-colors" href="#">Về chúng tôi</a>
+<a class="hover:text-white transition-colors" href="#">Chính sách bảo hành</a>
+<a class="hover:text-white transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex gap-4">
+<a class="size-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
+<span class="font-bold">fb</span>
+</a>
+<a class="size-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all" href="#">
+<span class="font-bold">in</span>
+</a>
+</div>
+</div>
+<div class="text-center md:text-left border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center">
+<p>© 2024 TechStore Premium. Designed for excellence.</p>
+<p class="mt-2 md:mt-0 text-gray-600">Vietnam • English</p>
+</div>
+</div>
+</footer>
+
+</body></html>
