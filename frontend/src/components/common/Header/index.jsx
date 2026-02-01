@@ -332,8 +332,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
         </div>
       </div>
 
-      {/* Main Header - Premium Blue Gradient */}
-      <div className="py-4 shadow-lg relative bg-gradient-to-r from-[#137fec] to-[#0ea5e9]">
+      {/* Main Header - Dark Theme */}
+      <div className="py-4 shadow-lg relative bg-black border-b border-white/10">
         <div className="max-w-[1280px] mx-auto flex items-center gap-4 px-4">
           {/* Logo */}
           <div className="flex items-center">
@@ -341,8 +341,8 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
               onClick={() => navigate("/user/home")}
               className="cursor-pointer flex items-center gap-2 group"
             >
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <svg className="w-6 h-6 text-[#137fec]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:bg-white/20 transition-all">
+                <svg className="w-6 h-6 text-[#2997ff]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -377,9 +377,9 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
               <>
                 <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => { setShowCategories(false); setHoveredCategory(null); setBrands([]); }} />
 
-                <div className="absolute top-full mt-2 left-0 flex shadow-2xl rounded-2xl overflow-hidden z-50 border border-gray-100" style={{ minWidth: 920 }}>
+                <div className="absolute top-full mt-2 left-0 flex shadow-2xl rounded-2xl overflow-hidden z-50 border border-white/10 backdrop-blur-xl" style={{ minWidth: 920 }}>
                   {/* Categories List */}
-                  <div className="bg-white" style={{ width: 320, borderRight: "1px solid #E5E7EB" }}>
+                  <div className="bg-[#1a1a1a]" style={{ width: 320, borderRight: "1px solid rgba(255,255,255,0.1)" }}>
                     {loadingCategories ? (
                       <div className="p-4 flex items-center gap-2 text-gray-500">
                         <div className="w-5 h-5 border-2 border-[#137fec] border-t-transparent rounded-full animate-spin" />
@@ -397,18 +397,18 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                             onMouseEnter={() => setHoveredCategory(category)}
                             onMouseLeave={() => setHoveredCategory(prev => prev?.id === category.id ? null : prev)}
                             onClick={() => handleSelectCategoryOnly(category)}
-                            className={`w-full px-4 py-3 flex items-center gap-3 text-left transition ${isSelected ? "bg-blue-50" : isHovered ? "bg-gray-50" : "hover:bg-gray-50"
+                            className={`w-full px-4 py-3 flex items-center gap-3 text-left transition ${isSelected ? "bg-white/10" : isHovered ? "bg-white/5" : "hover:bg-white/5"
                               }`}
-                            style={{ borderLeft: isSelected ? "4px solid #137fec" : "4px solid transparent" }}
+                            style={{ borderLeft: isSelected ? "4px solid #2997ff" : "4px solid transparent" }}
                             aria-pressed={isSelected}
                           >
-                            <div className="flex items-center gap-3 text-gray-800">
-                              <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${isSelected ? 'bg-[#137fec] text-white' : 'bg-blue-50 text-[#137fec]'}`}>
+                            <div className="flex items-center gap-3 text-white">
+                              <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${isSelected ? 'bg-[#2997ff] text-white' : 'bg-white/10 text-[#2997ff]'}`}>
                                 <CategoryIcon keyName={category.slug || category.name} />
                               </div>
                               <span className="text-sm font-medium truncate">{category.name}</span>
                             </div>
-                            <svg className="h-4 w-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg className="h-4 w-4 text-gray-500 ml-auto" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M9 6l6 6-6 6" />
                             </svg>
                           </button>
@@ -418,7 +418,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
                   </div>
 
                   {/* Brands Panel */}
-                  <div className="bg-white p-6" style={{ width: 600, maxHeight: 520, overflowY: "auto" }}>
+                  <div className="bg-[#1a1a1a] p-6" style={{ width: 600, maxHeight: 520, overflowY: "auto" }}>
                     {!selectedCategory ? (
                       <div className="h-full flex flex-col items-center justify-center text-gray-400">
                         <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
