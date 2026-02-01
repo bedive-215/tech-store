@@ -295,8 +295,8 @@ export default function Home() {
             <div className="absolute z-20 w-48 md:w-72 animate-[float_6s_ease-in-out_infinite]">
               <img
                 alt="AirPods"
-                className="w-full h-auto drop-shadow-[0_35px_35px_rgba(255,255,255,0.1)]"
-                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"
+                className="w-full h-auto drop-shadow-[0_35px_35px_rgba(255,255,255,0.1)] rounded-2xl"
+                src="/images/categories/accessories.png"
               />
             </div>
           </div>
