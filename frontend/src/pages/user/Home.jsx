@@ -439,7 +439,7 @@ export default function Home() {
                       </h3>
                       <p className="text-gray-500 text-sm mb-3 line-clamp-1">{p.brand || 'Tech Store'}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-white font-bold">
+                        <span className="text-[#f5a623] font-bold">
                           {new Intl.NumberFormat('vi-VN').format(p.price)}₫
                         </span>
                         {p.original_price && p.original_price > p.price && (
