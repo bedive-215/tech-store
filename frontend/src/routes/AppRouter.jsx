@@ -37,6 +37,7 @@ import Payments from "@/pages/user/PaymentPage";
 
 // ➕ 3 trang mới
 import Category from "@/pages/user/Category";
+import CategoryPage from "@/pages/user/CategoryPage";
 import Profile from "@/pages/user/Profile";
 import Product from "@/pages/user/Product";
 
@@ -81,6 +82,7 @@ const routeConfig = [
   },
   // ➕ 3 trang mới (user)
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
+  { path: "/user/category/:slug", element: CategoryPage, layout: HomeLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
   { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },

@@ -135,7 +135,7 @@ export default function Home() {
   ];
 
   const onCategoryClick = (slug) => {
-    navigate(`/user/home?page=1&limit=20&category=${slug}`);
+    navigate(`/user/category/${slug}`);
   };
 
   /* ================== RENDER ================== */
