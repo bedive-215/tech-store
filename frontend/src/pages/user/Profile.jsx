@@ -194,7 +194,7 @@ export default function Profile() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-gray-900/50 to-transparent rounded-full blur-3xl" />
       </div>
 
-      <main className="max-w-6xl mx-auto px-6">
+      <main className="w-full max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12">
         {/* Profile Header - Centered */}
         <header className="flex flex-col items-center mb-20 text-center">
           {/* Avatar with edit button */}

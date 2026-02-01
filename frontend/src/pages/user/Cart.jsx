@@ -356,7 +356,7 @@ export default function Cart() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-purple-600/10 blur-[150px] rounded-full" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12">
         {/* Premium Header */}
         <div className="mb-10">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Giỏ hàng</h1>
