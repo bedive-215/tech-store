@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { HiOutlineStar, HiStar, HiOutlineHeart, HiHeart } from "react-icons/hi2";
 import { toast } from "react-toastify";
-import cartService from "@/services/cartService";
+import { useCart } from "@/providers/CartProvider";
 
 /**
  * ProductCard - Premium Design with Quick Add to Cart
@@ -87,6 +87,8 @@ export default function ProductCard({ product, onWishlistToggle }) {
   };
 
   /* ================= ADD TO CART ================= */
+  const { addToCart } = useCart();
+
   const handleAddToCart = async (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -102,21 +104,14 @@ export default function ProductCard({ product, onWishlistToggle }) {
     setAdding(true);
 
     try {
-      await cartService.addToCart(
-        {
-          product_id: product.product_id ?? product.id,
-          quantity: 1,
-        },
-        token
-      );
-      toast.success(`Đã thêm "${product?.name?.slice(0, 30)}..." vào giỏ hàng!`, {
-        position: "top-right",
-        autoClose: 2000,
+      await addToCart({
+        product_id: product.product_id ?? product.id,
+        quantity: 1,
       });
+      // Toast is handled by CartProvider
     } catch (err) {
       console.error("Add to cart error:", err);
-      const msg = err?.response?.data?.message ?? "Không thể thêm vào giỏ hàng";
-      toast.error(msg, { position: "top-center" });
+      // Error toast is handled by CartProvider
     } finally {
       setAdding(false);
     }
