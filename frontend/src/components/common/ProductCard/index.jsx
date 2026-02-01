@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { HiOutlineStar, HiStar, HiOutlineHeart, HiHeart } from "react-icons/hi2";
+import { toast } from "react-toastify";
+import cartService from "@/services/cartService";
 
 /**
- * ProductCard - Premium Design
+ * ProductCard - Premium Design with Quick Add to Cart
+ * - Quick add to cart button on hover
  * - Glassmorphism hover effect
  * - Modern card layout
  * - Flash Sale ribbon with animation
@@ -13,6 +16,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
   const [resolvedSrc, setResolvedSrc] = useState(FALLBACK);
   const [errored, setErrored] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   /* ================= IMAGE ================= */
   const normalizeImage = (img) => {
@@ -82,6 +86,39 @@ export default function ProductCard({ product, onWishlistToggle }) {
     onWishlistToggle?.(product);
   };
 
+  /* ================= ADD TO CART ================= */
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Check auth
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!", { position: "top-center" });
+      return;
+    }
+
+    if (adding) return;
+    setAdding(true);
+
+    try {
+      await cartService.addToCart({
+        product_id: product.product_id ?? product.id,
+        quantity: 1,
+      });
+      toast.success(`Đã thêm "${product?.name?.slice(0, 30)}..." vào giỏ hàng!`, {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    } catch (err) {
+      console.error("Add to cart error:", err);
+      const msg = err?.response?.data?.message ?? "Không thể thêm vào giỏ hàng";
+      toast.error(msg, { position: "top-center" });
+    } finally {
+      setAdding(false);
+    }
+  };
+
   /* ================= RENDER ================= */
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-gray-200 hover:border-blue-300">
@@ -118,6 +155,27 @@ export default function ProductCard({ product, onWishlistToggle }) {
             className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </div>
+
+        {/* QUICK ADD TO CART - Appears on hover */}
+        <button
+          onClick={handleAddToCart}
+          disabled={adding}
+          className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white py-2.5 text-sm font-medium translate-y-full group-hover:translate-y-0 transition-transform duration-200 flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-60"
+        >
+          {adding ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              Đang thêm...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Thêm vào giỏ
+            </>
+          )}
+        </button>
       </div>
 
       {/* INFO SECTION */}
