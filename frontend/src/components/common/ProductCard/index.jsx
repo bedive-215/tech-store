@@ -102,10 +102,13 @@ export default function ProductCard({ product, onWishlistToggle }) {
     setAdding(true);
 
     try {
-      await cartService.addToCart({
-        product_id: product.product_id ?? product.id,
-        quantity: 1,
-      });
+      await cartService.addToCart(
+        {
+          product_id: product.product_id ?? product.id,
+          quantity: 1,
+        },
+        token
+      );
       toast.success(`Đã thêm "${product?.name?.slice(0, 30)}..." vào giỏ hàng!`, {
         position: "top-right",
         autoClose: 2000,
