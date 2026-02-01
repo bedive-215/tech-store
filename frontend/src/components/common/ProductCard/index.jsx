@@ -159,27 +159,6 @@ export default function ProductCard({ product, onWishlistToggle }) {
             className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </div>
-
-        {/* QUICK ADD TO CART - Appears on hover */}
-        <button
-          onClick={handleAddToCart}
-          disabled={adding}
-          className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white py-2.5 text-sm font-medium translate-y-full group-hover:translate-y-0 transition-transform duration-200 flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-60"
-        >
-          {adding ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              Đang thêm...
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Thêm vào giỏ
-            </>
-          )}
-        </button>
       </div>
 
       {/* INFO SECTION */}
@@ -203,22 +182,40 @@ export default function ProductCard({ product, onWishlistToggle }) {
           <span className="text-[11px] text-gray-400">({reviewCount})</span>
         </div>
 
-        {/* PRICE SECTION - Prominent */}
-        <div className="mt-auto pt-2">
-          {flashSaleActive ? (
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-lg font-bold text-red-600">
-                {formatPrice(salePrice)}
-              </span>
-              <span className="text-xs text-gray-400 line-through">
+        {/* PRICE SECTION - Prominent with Cart Button */}
+        <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+          <div>
+            {flashSaleActive ? (
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-lg font-bold text-red-600">
+                  {formatPrice(salePrice)}
+                </span>
+                <span className="text-xs text-gray-400 line-through">
+                  {formatPrice(originalPrice)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-lg font-bold text-blue-600">
                 {formatPrice(originalPrice)}
               </span>
-            </div>
-          ) : (
-            <span className="text-lg font-bold text-blue-600">
-              {formatPrice(originalPrice)}
-            </span>
-          )}
+            )}
+          </div>
+
+          {/* CIRCULAR ADD TO CART BUTTON */}
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            title="Thêm vào giỏ hàng"
+          >
+            {adding ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* TAGS - Simple */}
