@@ -1,15 +1,12 @@
 // src/layouts/HomeLayout.jsx
 // Layout đặc biệt cho trang Home - full-width, không có container wrapper
+// Home page tự render floating navbar riêng nên không cần UserNavbar
 import React, { memo } from "react";
-import UserNavbar from "../components/common/Header/index";
 
 const HomeLayout = ({ children }) => {
     return (
-        <div className="min-h-screen bg-[#f6f9fc] flex flex-col">
-            {/* NAVBAR - same as UserLayout */}
-            <UserNavbar />
-
-            {/* CONTENT - Full width, no wrapper box */}
+        <div className="min-h-screen bg-black flex flex-col">
+            {/* CONTENT - Full width, no wrapper box, no header (Home has its own floating nav) */}
             <main className="flex-1 w-full">
                 {children}
             </main>

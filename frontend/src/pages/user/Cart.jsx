@@ -9,22 +9,20 @@ import { useCart } from "@/providers/CartProvider";
 
 export default function Cart() {
   const COLORS = {
-    primary: "#137fec",
-    primaryHover: "#0ea5e9",
-    primaryGradientStart: "#137fec",
-    primaryGradientEnd: "#0ea5e9",
-    secondary: "#60a5fa",
-    secondaryHover: "#3b82f6",
-    bgLight: "#FFFFFF",
-    bgDark: "#1F2937",
-    bgGrayLight: "#F3F4F6",
-    bgGrayDark: "#374151",
-    textLight: "#111827",
-    textDark: "#F9FAFB",
-    textGray: "#6B7280",
-    borderLight: "#E5E7EB",
-    borderDark: "#4B5563",
-    error: "#EF4444",
+    primary: "#2997ff",
+    primaryHover: "#40a9ff",
+    primaryGradientStart: "#2997ff",
+    primaryGradientEnd: "#5856d6",
+    secondary: "#5856d6",
+    orange: "#ff6b00",
+    bgDark: "#000000",
+    surfaceDark: "#1d1d1f",
+    cardDark: "#121212",
+    textLight: "#ffffff",
+    textGray: "#8e8e93",
+    borderDark: "rgba(255,255,255,0.1)",
+    error: "#ff453a",
+    success: "#30d158",
     white: "#FFFFFF",
     black: "#000000",
   };
@@ -351,44 +349,43 @@ export default function Cart() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
+    <div className="min-h-screen bg-black text-white pt-28 pb-12">
+      {/* Background effects */}
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-purple-600/10 blur-[150px] rounded-full" />
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Premium Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] flex items-center justify-center shadow-lg">
-              <HiOutlineShoppingCart className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-              Giỏ Hàng Của Bạn
-            </h1>
-          </div>
-          <p className="text-gray-600 ml-16">
-            {localItems.length} sản phẩm trong giỏ hàng
+        <div className="mb-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Giỏ hàng</h1>
+          <p className="text-gray-400">
+            Kiểm tra lại các tuyệt tác công nghệ của bạn trước khi thanh toán.
           </p>
         </div>
 
         {/* Loading state */}
         {(loading || loadingLocal) ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-            <div className="w-12 h-12 border-4 border-[#137fec] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl text-gray-600">Đang tải giỏ hàng...</p>
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 text-center">
+            <div className="w-12 h-12 border-4 border-[#2997ff] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-xl text-gray-400">Đang tải giỏ hàng...</p>
           </div>
         ) : localItems.length === 0 ? (
-          // Empty cart - Premium Design
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center mx-auto mb-6">
-              <Package size={48} className="text-[#137fec]" />
+          // Empty cart - Dark Premium Design
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 text-center">
+            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
+              <Package size={48} className="text-[#2997ff]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-white mb-2">
               Giỏ hàng trống
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm
             </p>
             <button
               onClick={() => navigate('/user/home')}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="px-8 py-4 rounded-full bg-gradient-to-b from-blue-400 to-blue-600 text-white font-semibold shadow-[0_10px_30px_-10px_rgba(41,151,255,0.5)] hover:from-blue-300 hover:to-blue-500 transition-all"
             >
               Khám phá sản phẩm
             </button>
@@ -404,17 +401,17 @@ export default function Cart() {
                 return (
                   <div
                     key={item.id}
-                    className="group relative bg-white rounded-2xl shadow-sm border transition-all hover:shadow-md"
+                    className="group relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl transition-all hover:bg-white/10"
                     style={{
-                      borderColor: item.selected ? COLORS.primary : COLORS.borderLight,
+                      borderColor: item.selected ? COLORS.primary : 'rgba(255,255,255,0.1)',
                       borderWidth: item.selected ? '2px' : '1px',
                       opacity: isUpdating ? 0.7 : 1,
                     }}
                   >
                     {/* Loading overlay */}
                     {isUpdating && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-2xl z-10 backdrop-blur-sm">
-                        <div className="w-8 h-8 border-3 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-3xl z-10 backdrop-blur-sm">
+                        <div className="w-8 h-8 border-3 border-[#2997ff] border-t-transparent rounded-full animate-spin" />
                       </div>
                     )}
 
@@ -430,10 +427,10 @@ export default function Cart() {
                       />
 
                       {/* Image */}
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-50 to-gray-100">
+                      <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden flex-shrink-0 bg-white/5 p-4 flex items-center justify-center">
                         <img
                           src={item.image}
-                          className="w-full h-full object-contain"
+                          className="max-w-full max-h-full object-contain"
                           alt={item.name}
                           onError={(e) => {
                             e.currentTarget.src = "/placeholder.png";
@@ -442,67 +439,50 @@ export default function Cart() {
                       </div>
 
                       {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-3 mb-2">
-                          <h3 className="font-semibold text-base sm:text-lg text-gray-900 line-clamp-2">
-                            {item.name}
-                          </h3>
-
-                          {/* Delete button */}
-                          <button
-                            onClick={() => handleRemoveItem(item)}
-                            className="flex-shrink-0 p-2 hover:bg-red-50 rounded-lg transition-colors group"
-                            style={{ color: COLORS.error }}
-                            disabled={isUpdating}
-                            aria-label={`Xóa ${item.name}`}
-                          >
-                            <HiOutlineTrash className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          </button>
-                        </div>
-
-                        <p className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent mb-2">
-                          {formatPrice(item.price)}
-                        </p>
-
-                        <p className="text-sm text-gray-500 mb-4">
-                          Còn lại: <span className="font-semibold">{item.stock}</span> sản phẩm
-                        </p>
-
-                        {/* Quantity controls - Premium Design */}
-                        <div className="flex flex-wrap items-center gap-3">
-                          <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl p-1">
+                      <div className="flex-grow space-y-2">
+                        <div className="flex justify-between items-start gap-3">
+                          <div>
+                            <span className="text-[#2997ff] text-[10px] font-bold uppercase tracking-widest mb-1 block">Sản phẩm</span>
+                            <h3 className="text-xl sm:text-2xl font-bold text-white line-clamp-2">
+                              {item.name}
+                            </h3>
+                          </div>
+                          {/* Price + Delete */}
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-white">
+                              {formatPrice(item.price)}
+                            </p>
                             <button
-                              onClick={() => handleUpdateQuantity(item, -1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              disabled={item.quantity <= 1 || isUpdating}
-                            >
-                              <Minus size={16} className="text-gray-700" />
-                            </button>
-
-                            <input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) => handleSetQuantity(item, e.target.value)}
-                              className="font-semibold w-12 text-center border-0 focus:outline-none disabled:bg-transparent"
-                              min={1}
-                              max={item.stock}
+                              onClick={() => handleRemoveItem(item)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 flex items-center gap-2 text-red-500/80 hover:text-red-400"
                               disabled={isUpdating}
-                            />
-
-                            <button
-                              onClick={() => handleUpdateQuantity(item, 1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r from-[#137fec] to-[#0ea5e9] hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              disabled={item.quantity >= item.stock || isUpdating}
                             >
-                              <Plus size={16} className="text-white" />
+                              <HiOutlineTrash className="w-4 h-4" />
+                              <span className="text-xs font-bold uppercase tracking-wider">Xóa</span>
                             </button>
                           </div>
+                        </div>
 
-                          <div className="text-sm">
-                            <span className="text-gray-600">Thành tiền: </span>
-                            <strong className="text-lg bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
-                              {formatPrice(item.price * item.quantity)}
-                            </strong>
+                        <p className="text-sm text-gray-500 mt-2">Còn lại: <span className="font-semibold">{item.stock}</span> sản phẩm</p>
+
+                        {/* Quantity controls - Dark Design */}
+                        <div className="flex items-center justify-between mt-6">
+                          <div className="flex items-center gap-2 bg-black/40 rounded-full border border-white/10 p-1">
+                            <button
+                              onClick={() => handleUpdateQuantity(item, -1)}
+                              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors disabled:opacity-50"
+                              disabled={item.quantity <= 1 || isUpdating}
+                            >
+                              <Minus size={14} className="text-white" />
+                            </button>
+                            <span className="w-8 text-center font-semibold text-white">{item.quantity}</span>
+                            <button
+                              onClick={() => handleUpdateQuantity(item, 1)}
+                              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-[#2997ff] disabled:opacity-50"
+                              disabled={item.quantity >= item.stock || isUpdating}
+                            >
+                              <Plus size={14} className="font-bold" />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -512,101 +492,74 @@ export default function Cart() {
               })}
             </div>
 
-            {/* Summary - Premium Sidebar */}
+            {/* Summary - Dark Glass Sidebar */}
             <div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-4">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
-                  <div className="w-1 h-6 bg-gradient-to-b from-[#137fec] to-[#0ea5e9] rounded-full" />
-                  Tóm Tắt Đơn Hàng
-                </h2>
+              <aside className="bg-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 sticky top-32">
+                <h2 className="text-2xl font-bold mb-8">Tổng đơn hàng</h2>
 
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-600">Sản phẩm đã chọn:</span>
-                    <span className="font-bold text-gray-900">{selectedItems.length}</span>
+                <div className="space-y-4 mb-8">
+                  <div className="flex justify-between text-gray-400 font-medium">
+                    <span>Tạm tính</span>
+                    <span>{formatPrice(totalAmount)}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-600">Tổng số lượng:</span>
-                    <span className="font-bold text-gray-900">
-                      {selectedItems.reduce((sum, it) => sum + it.quantity, 0)}
-                    </span>
+                  <div className="flex justify-between text-gray-400 font-medium">
+                    <span>Vận chuyển</span>
+                    <span className="text-green-400">Miễn phí</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-600">Tạm tính:</span>
-                    <span className="font-bold text-gray-900">{formatPrice(totalAmount)}</span>
+                  <div className="flex justify-between text-gray-400 font-medium">
+                    <span>Giảm giá</span>
+                    <span>-0₫</span>
                   </div>
-                </div>
-
-                {/* Promo Code Section */}
-                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                  <div className="flex items-center gap-2 mb-3">
-                    <HiOutlineTag className="w-5 h-5 text-[#137fec]" />
-                    <span className="font-semibold text-gray-900">Mã giảm giá</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Nhập mã giảm giá"
-                      className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-[#137fec] focus:outline-none text-sm"
-                    />
-                    <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#137fec] to-[#0ea5e9] text-white font-medium hover:shadow-md transition-all">
-                      Áp dụng
-                    </button>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-gray-100 pt-6 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Tổng cộng:</span>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
+                  <div className="h-px bg-white/10 my-6" />
+                  <div className="flex justify-between items-end">
+                    <span className="text-lg font-bold">Tổng cộng</span>
+                    <span className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-orange-500 to-red-500">
                       {formatPrice(totalAmount)}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <button
-                    onClick={handleProceedToCheckout}
-                    disabled={selectedItems.length === 0}
-                    className="w-full py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                    style={{
-                      background: `linear-gradient(135deg, ${COLORS.primaryGradientStart}, ${COLORS.primaryGradientEnd})`,
-                    }}
-                  >
-                    Tiếp Tục Thanh Toán
-                  </button>
+                {/* Promo Code */}
+                <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3 mb-6">
+                  <HiOutlineTag className="text-[#2997ff] w-5 h-5" />
+                  <input
+                    className="bg-transparent border-none focus:ring-0 text-sm flex-grow placeholder:text-gray-500 text-white"
+                    placeholder="Mã giảm giá"
+                    type="text"
+                  />
+                  <button className="text-sm font-bold text-[#2997ff] px-2">Áp dụng</button>
+                </div>
 
+                {/* Checkout Button */}
+                <button
+                  onClick={handleProceedToCheckout}
+                  disabled={selectedItems.length === 0}
+                  className="w-full bg-gradient-to-b from-blue-400 to-blue-600 shadow-[0_10px_30px_-10px_rgba(41,151,255,0.5)] hover:from-blue-300 hover:to-blue-500 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Thanh toán ngay
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                </button>
+
+                <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest mt-6">
+                  Đảm bảo thanh toán an toàn & bảo mật
+                </p>
+
+                {/* Links */}
+                <div className="mt-8 flex flex-col gap-4">
+                  <a href="/user/home" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
+                    ← Tiếp tục mua sắm
+                  </a>
                   <button
                     onClick={handleClearCart}
-                    className="w-full py-3 rounded-xl font-medium border-2 border-gray-200 hover:bg-gray-50 hover:border-red-300 text-gray-700 hover:text-red-600 transition-all"
+                    className="flex items-center gap-3 text-red-500/60 hover:text-red-400 transition-colors text-sm"
                   >
+                    <HiOutlineTrash className="w-4 h-4" />
                     Xóa toàn bộ giỏ hàng
                   </button>
-
-                  <button
-                    onClick={handleSyncCart}
-                    className="w-full py-2 rounded-lg text-sm text-gray-600 hover:text-[#137fec] hover:bg-blue-50 transition-colors"
-                  >
-                    🔄 Đồng bộ giỏ hàng
-                  </button>
                 </div>
-
-                {/* Trust Badges */}
-                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="text-emerald-500">✓</span>
-                    <span>Miễn phí vận chuyển</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="text-emerald-500">✓</span>
-                    <span>Đổi trả trong 30 ngày</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="text-emerald-500">✓</span>
-                    <span>Thanh toán an toàn</span>
-                  </div>
-                </div>
-              </div>
+              </aside>
             </div>
           </div>
         )}

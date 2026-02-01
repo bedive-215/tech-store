@@ -223,9 +223,9 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
   const badge = getStatusBadge(status);
 
   return (
-    <div className={`bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 transition-all hover:shadow-md ${status === "cancelled" ? "opacity-75 hover:opacity-100" : ""}`}>
+    <div className={`bg-[#111112] border border-white/5 rounded-2xl p-8 transition-all duration-500 hover:border-white/10 ${status === "cancelled" ? "opacity-70 hover:opacity-100" : ""}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-gray-100 dark:border-gray-700 gap-4 sm:gap-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-6 border-b border-white/5 gap-4 sm:gap-0">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <span className="font-bold text-gray-900 dark:text-white">#{order.order_id}</span>
@@ -271,17 +271,17 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
       </div>
 
       {/* Footer */}
-      <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Tổng tiền:</span>
-          <span className="text-xl font-bold text-secondary">{formatPrice(order.final_price)}</span>
+      <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6">
+        <div className="flex flex-col items-end sm:items-start">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold mb-1">Tổng cộng</span>
+          <span className="text-3xl font-semibold text-[#ff7b29] tracking-tight">{formatPrice(order.final_price)}</span>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => onOpenDetail(order.order_id)}
-            className="flex-1 sm:flex-none py-2.5 px-6 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+            className="px-6 py-3 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 text-xs font-bold hover:bg-white/10 transition-all uppercase tracking-widest"
           >
-            Xem chi tiết
+            Chi tiết đơn hàng
           </button>
           {status === "confirmed" && (
             <button
@@ -684,29 +684,14 @@ export default function Orders() {
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-background-light dark:bg-background-dark font-display transition-colors duration-300">
+    <div className="min-h-screen pt-28 pb-24 px-6 bg-black text-white font-display">
       <div className="max-w-5xl mx-auto w-full">
         {/* Header */}
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Đơn hàng của tôi</h1>
-            <p className="text-gray-500 dark:text-gray-400">Quản lý và theo dõi đơn hàng của bạn</p>
-          </div>
-          <div className="hidden sm:block">
-            <button onClick={() => navigate('/')} className="text-primary hover:text-blue-700 text-sm font-medium flex items-center gap-1">
-              <span className="material-icons-outlined text-base">home</span>
-              Tiếp tục mua sắm
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-8 overflow-hidden">
-          <div className="flex overflow-x-auto scrollbar-hide">
+        <header className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white mb-8">Đơn hàng của tôi</h1>
+          <div className="flex flex-wrap gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 w-fit rounded-full">
             {[
               { key: 'all', label: 'Tất cả', count: statusCounts.all },
-              { key: 'confirmed', label: 'Chờ xác nhận', count: statusCounts.confirmed },
-              { key: 'paid', label: 'Đã thanh toán', count: statusCounts.paid },
               { key: 'shipping', label: 'Đang giao', count: statusCounts.shipping },
               { key: 'completed', label: 'Hoàn thành', count: statusCounts.completed },
               { key: 'cancelled', label: 'Đã hủy', count: statusCounts.cancelled },
@@ -714,16 +699,16 @@ export default function Orders() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-shrink-0 px-5 py-3.5 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.key
-                  ? 'text-primary border-b-2 border-primary bg-blue-50/50 dark:bg-blue-900/20'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-primary'
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.key
+                  ? 'bg-white text-black'
+                  : 'text-gray-400 hover:text-white'
                   }`}
               >
-                {tab.label} {tab.count > 0 && <span className="ml-1 text-xs">({tab.count})</span>}
+                {tab.label}
               </button>
             ))}
           </div>
-        </div>
+        </header>
 
         {/* Orders List */}
         <div className="space-y-6">
