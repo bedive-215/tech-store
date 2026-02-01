@@ -72,22 +72,17 @@ const CartProvider = ({ children }) => {
   );
 
   // Thêm sản phẩm vào giỏ (POST /cart)
-  // payload: { product_id, quantity }
+  // payload: { product_id, quantity, product_name, image_url, stock, price }
   const addToCart = async (payload, options = {}) => {
     setLoading(true);
     setError(null);
     try {
       const token = options.token ?? getToken();
-      const response = await cartService.addToCart(payload, token);
-      // server có thể trả về giỏ hàng mới
-      const updated = normalizeCart(response.data ?? response);
-      if (updated) {
-        setCart(updated);
-      } else {
-        // nếu server trả về chỉ 1 item hoặc message, tốt nhất gọi fetchCart để đồng bộ
-        await fetchCart({ token });
-      }
-      toast.success("Thêm vào giỏ hàng thành công");
+      await cartService.addToCart(payload, token);
+      // Backend trả về { success: true, item: {...} } không phải full cart
+      // Luôn gọi fetchCart để lấy full cart với tất cả items
+      const updated = await fetchCart({ token });
+      toast.success("Thêm vào giỏ hàng thành công ✓");
       return updated;
     } catch (err) {
       const msg = err.response?.data?.message || "Thêm vào giỏ hàng thất bại";
