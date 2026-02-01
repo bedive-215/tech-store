@@ -3,10 +3,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { 
-  HiOutlineDevicePhoneMobile, 
-  HiOutlineComputerDesktop, 
-  HiOutlineSpeakerWave, 
+import {
+  HiOutlineDevicePhoneMobile,
+  HiOutlineComputerDesktop,
+  HiOutlineSpeakerWave,
   HiOutlineCpuChip,
   HiOutlineSparkles,
   HiArrowRight
@@ -84,7 +84,7 @@ export default function Home() {
 
     return img;
   };
-  
+
 
   const onProductClick = (p) => {
     const productId = getProductId(p);
@@ -100,33 +100,33 @@ export default function Home() {
 
   /* ================== CATEGORIES ================== */
   const categories = [
-    { 
-      icon: HiOutlineDevicePhoneMobile, 
-      name: "Điện Thoại", 
+    {
+      icon: HiOutlineDevicePhoneMobile,
+      name: "Điện Thoại",
       slug: "dien-thoai",
       color: "from-blue-500 to-cyan-400",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600"
     },
-    { 
-      icon: HiOutlineComputerDesktop, 
-      name: "Laptop", 
+    {
+      icon: HiOutlineComputerDesktop,
+      name: "Laptop",
       slug: "laptop",
       color: "from-purple-500 to-pink-400",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600"
     },
-    { 
-      icon: HiOutlineSpeakerWave, 
-      name: "Tai Nghe", 
+    {
+      icon: HiOutlineSpeakerWave,
+      name: "Tai Nghe",
       slug: "tai-nghe",
       color: "from-orange-500 to-amber-400",
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600"
     },
-    { 
-      icon: HiOutlineCpuChip, 
-      name: "Phụ Kiện", 
+    {
+      icon: HiOutlineCpuChip,
+      name: "Phụ Kiện",
       slug: "ban-phim-co",
       color: "from-emerald-500 to-teal-400",
       bgColor: "bg-emerald-50",
@@ -149,8 +149,8 @@ export default function Home() {
         {/* Background decorations */}
         <div className="absolute top-0 left-0 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-30 -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-100 rounded-full blur-3xl opacity-30 translate-x-1/2 translate-y-1/2" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 relative z-10">
           {/* Section Header */}
           <div className="text-center mb-10 md:mb-14" data-aos="fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#137fec]/10 text-[#137fec] rounded-full text-sm font-medium mb-4">
@@ -166,11 +166,11 @@ export default function Home() {
           </div>
 
           {/* Category Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6" data-aos="fade-up" data-aos-delay="100">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8" data-aos="fade-up" data-aos-delay="100">
             {categories.map((cat, index) => {
               const IconComponent = cat.icon;
               const isActive = activeCategory === cat.slug;
-              
+
               return (
                 <div
                   key={cat.slug}
@@ -178,8 +178,8 @@ export default function Home() {
                   className={`
                     group relative p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-3xl cursor-pointer
                     transition-all duration-500 ease-out
-                    ${isActive 
-                      ? `bg-gradient-to-br ${cat.color} shadow-xl scale-[1.02]` 
+                    ${isActive
+                      ? `bg-gradient-to-br ${cat.color} shadow-xl scale-[1.02]`
                       : 'bg-white/80 backdrop-blur-sm border border-gray-100 hover:border-transparent shadow-sm hover:shadow-xl'
                     }
                   `}
@@ -187,13 +187,13 @@ export default function Home() {
                 >
                   {/* Glassmorphism overlay on hover */}
                   <div className={`absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-br ${cat.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                  
+
                   {/* Icon Container */}
                   <div className={`
                     relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 rounded-xl sm:rounded-2xl flex items-center justify-center
                     transition-all duration-300
-                    ${isActive 
-                      ? 'bg-white/20 backdrop-blur-sm' 
+                    ${isActive
+                      ? 'bg-white/20 backdrop-blur-sm'
                       : `${cat.bgColor} group-hover:bg-white/20`
                     }
                   `}>
@@ -202,7 +202,7 @@ export default function Home() {
                       ${isActive ? 'text-white' : `${cat.iconColor} group-hover:text-white`}
                     `} />
                   </div>
-                  
+
                   {/* Category Name */}
                   <p className={`
                     relative z-10 font-semibold text-center text-sm md:text-base
@@ -230,7 +230,7 @@ export default function Home() {
 
       {/* ================== SẢN PHẨM NỔI BẬT ================== */}
       <section className="py-12 md:py-20 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-10 md:mb-14 gap-4" data-aos="fade-up">
             <div>
@@ -241,7 +241,7 @@ export default function Home() {
                 Sản Phẩm Nổi Bật
               </h2>
             </div>
-            <button 
+            <button
               onClick={() => navigate('/user/home?page=1&limit=40')}
               className="group inline-flex items-center gap-2 text-[#137fec] font-medium hover:gap-3 transition-all"
             >
@@ -274,7 +274,7 @@ export default function Home() {
 
           {/* Product Grid */}
           {!loading && !error && (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 lg:gap-6">
               {products?.length > 0 ? (
                 products.map((p, index) => {
                   const productId = getProductId(p);
@@ -325,7 +325,7 @@ export default function Home() {
 
       {/* ================== FEATURES SECTION ================== */}
       <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-r from-[#0a1628] via-[#1a365d] to-[#0a1628]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8" data-aos="fade-up">
             {[
               { icon: "🚚", title: "Giao hàng nhanh", desc: "Trong 2h nội thành" },
@@ -333,8 +333,8 @@ export default function Home() {
               { icon: "💳", title: "Thanh toán an toàn", desc: "Đa dạng phương thức" },
               { icon: "🔄", title: "Đổi trả miễn phí", desc: "Trong vòng 30 ngày" },
             ].map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="text-center group"
                 data-aos="fade-up"
                 data-aos-delay={index * 100}

@@ -94,7 +94,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
-            <p>© 2024 TechStore. All rights reserved.</p>
+            <p>© 2026 TechStore. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <span className="text-gray-400">Thanh toán:</span>
               <div className="flex gap-2">

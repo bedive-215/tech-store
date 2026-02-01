@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Layouts
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
+import HomeLayout from "@/layouts/HomeLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 
 // Auth pages
@@ -69,15 +70,15 @@ const routeConfig = [
   { path: ROUTERS.PUBLIC.PAYMENT_FAILED, element: PaymentFailed },   // /payment-failed
 
   // USER
-  { path: ROUTERS.USER.HOME, element: Home, layout: UserLayout },
+  { path: ROUTERS.USER.HOME, element: Home, layout: HomeLayout },
   { path: ROUTERS.USER.CART, element: Cart, layout: UserLayout },
   { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout },
   { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout },
-{
-  path: ROUTERS.USER.WARRANTIES,
-  element: WarrantyPage,
-  layout: UserLayout,
-},
+  {
+    path: ROUTERS.USER.WARRANTIES,
+    element: WarrantyPage,
+    layout: UserLayout,
+  },
   // ➕ 3 trang mới (user)
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
@@ -100,13 +101,13 @@ const routeConfig = [
   // ⭐⭐ Trang quản lý Flash Sale admin
   { path: ROUTERS.ADMIN.FLASH_SALES, element: FlashSaleAdminPage, layout: AdminLayout },
   // 🛡️ Trang quản lý bảo hành admin
-{
-  path: ROUTERS.ADMIN.WARRANTIES,
-  element: WarrantyManagement,
-  layout: AdminLayout,
-},
+  {
+    path: ROUTERS.ADMIN.WARRANTIES,
+    element: WarrantyManagement,
+    layout: AdminLayout,
+  },
 
-  
+
 
   // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },
@@ -122,10 +123,10 @@ const AppRouter = () => {
         // If a layout is provided, wrap the Page with it.
         const Wrapped = route.layout
           ? () => (
-              <route.layout>
-                <Page />
-              </route.layout>
-            )
+            <route.layout>
+              <Page />
+            </route.layout>
+          )
           : Page;
 
         return <Route key={route.path} path={route.path} element={<Wrapped />} />;
