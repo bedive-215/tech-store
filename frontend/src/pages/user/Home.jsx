@@ -61,7 +61,7 @@ export default function Home() {
       {/* ================== FLOATING NAVBAR ================== */}
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl transition-all duration-300 hover:bg-black/80">
         <Link to="/user/home" className="text-white font-semibold flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#2997ff]" style={{ fontFamily: 'Material Symbols Outlined' }}>hexagon</span>
+          <span className="text-xl font-bold text-[#2997ff]">Group 7</span>
         </Link>
         <div className="h-4 w-px bg-white/20" />
         <a href="#section-phone" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Điện thoại</a>
@@ -104,24 +104,24 @@ export default function Home() {
             <div className="absolute z-30 w-40 md:w-56 animate-[float_6s_ease-in-out_infinite]">
               <img
                 alt="Phone"
-                className="w-full h-auto drop-shadow-2xl grayscale-[30%] hover:grayscale-0 transition-all duration-500"
-                src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=600&fit=crop"
+                className="w-full h-auto drop-shadow-2xl rounded-2xl grayscale-[30%] hover:grayscale-0 transition-all duration-500"
+                src="/images/categories/phone.jpeg"
               />
             </div>
             {/* Laptop - Right Back */}
             <div className="absolute z-20 translate-x-24 md:translate-x-40 -translate-y-10 opacity-60 blur-[1px] w-48 md:w-72 animate-[float_6s_ease-in-out_3s_infinite]">
               <img
                 alt="Laptop"
-                className="w-full h-auto drop-shadow-2xl"
-                src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop"
+                className="w-full h-auto drop-shadow-2xl rounded-2xl"
+                src="/images/categories/laptop.jpeg"
               />
             </div>
             {/* Headphones - Left Back */}
             <div className="absolute z-20 -translate-x-20 md:-translate-x-32 translate-y-10 opacity-60 blur-[1px] w-32 md:w-48 animate-[float_6s_ease-in-out_infinite]">
               <img
                 alt="Headphones"
-                className="w-full h-auto drop-shadow-2xl"
-                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop"
+                className="w-full h-auto drop-shadow-2xl rounded-2xl"
+                src="/images/categories/accessories.png"
               />
             </div>
           </div>
@@ -132,6 +132,21 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
+        </div>
+      </section>
+
+      {/* ================== VIDEO TRANSITION SECTION ================== */}
+      <section className="relative z-20 bg-black py-0 overflow-hidden">
+        <div className="relative w-full max-w-6xl mx-auto">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto rounded-3xl shadow-2xl"
+            src="/videos/hello.mp4"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
         </div>
       </section>
 
@@ -352,8 +367,8 @@ export default function Home() {
                     }
                   }}
                   className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.key
-                      ? 'bg-white text-black'
-                      : 'bg-white/10 backdrop-blur-md border border-white/10 text-white hover:bg-white/20'
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 backdrop-blur-md border border-white/10 text-white hover:bg-white/20'
                     }`}
                 >
                   {tab.label}
