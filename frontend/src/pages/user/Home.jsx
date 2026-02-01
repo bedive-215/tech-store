@@ -86,7 +86,7 @@ export default function Home() {
       </nav>
 
       {/* ================== HERO SECTION ================== */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black sticky top-0 z-10">
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black" />
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center" data-aos="fade-up">
