@@ -1,6 +1,7 @@
 // src/components/Header.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import categoryService from "@/services/categoryService";
 import brandService from "@/services/brandService";
 
@@ -38,11 +39,11 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
     "Hỗ trợ trả góp 0%",
   ];
 
-  // Function to check auth and show alert if not logged in
+  // Function to check auth and show toast if not logged in
   const requireAuth = (callback, message = "Bạn cần đăng nhập để sử dụng tính năng này!") => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert(message);
+      toast.warning(message, { position: "top-center", autoClose: 3000 });
       navigate("/login");
       return false;
     }
