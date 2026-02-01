@@ -84,25 +84,13 @@ export default function ProductCard({ product, onWishlistToggle }) {
 
   /* ================= RENDER ================= */
   return (
-    <div className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 h-full flex flex-col border border-gray-100 hover:border-[#137fec]/20">
+    <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-gray-200 hover:border-blue-300">
 
-      {/* FLASH SALE RIBBON - Animated */}
+      {/* FLASH SALE RIBBON */}
       {flashSaleActive && (
-        <div className="absolute top-3 left-3 z-20">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 rounded-lg blur-sm opacity-75 animate-pulse" />
-            <div className="relative bg-gradient-to-r from-red-600 to-orange-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg">
-              🔥 {flashSaleName || "SALE"}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DISCOUNT BADGE */}
-      {flashSaleActive && discountPercent > 0 && (
-        <div className="absolute top-3 right-3 z-20">
-          <div className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-            -{discountPercent}%
+        <div className="absolute top-2 left-2 z-20">
+          <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow">
+            🔥 {flashSaleName || "SALE"} -{discountPercent}%
           </div>
         </div>
       )}
@@ -110,87 +98,74 @@ export default function ProductCard({ product, onWishlistToggle }) {
       {/* WISHLIST BUTTON */}
       <button
         onClick={handleWishlistClick}
-        className="absolute top-12 right-3 z-20 w-8 h-8 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:bg-white"
+        className="absolute top-2 right-2 z-20 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-50"
       >
         {isWishlisted ? (
           <HiHeart className="w-4 h-4 text-red-500" />
         ) : (
-          <HiOutlineHeart className="w-4 h-4 text-gray-600" />
+          <HiOutlineHeart className="w-4 h-4 text-gray-500" />
         )}
       </button>
 
-      {/* IMAGE SECTION */}
-      <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#137fec]/5 rounded-full" />
-        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-500/5 rounded-full" />
-
-        <div className="aspect-square w-full flex items-center justify-center relative z-10 p-4">
+      {/* IMAGE SECTION - Clean white background */}
+      <div className="relative bg-white border-b border-gray-100">
+        <div className="aspect-[4/3] w-full flex items-center justify-center p-4">
           <img
             src={resolvedSrc}
             alt={product?.name}
             onError={handleImgError}
             loading="lazy"
-            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
           />
-        </div>
-
-        {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4">
-          <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-medium px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            Xem chi tiết →
-          </span>
         </div>
       </div>
 
       {/* INFO SECTION */}
-      <div className="p-4 flex flex-col flex-1">
-        {/* PRODUCT NAME */}
-        <h3 className="text-gray-800 font-semibold text-sm sm:text-base line-clamp-2 min-h-[40px] sm:min-h-[48px] group-hover:text-[#137fec] transition-colors duration-300">
+      <div className="p-3 flex flex-col flex-1 gap-2">
+        {/* PRODUCT NAME - Bigger, cleaner */}
+        <h3 className="text-gray-900 font-medium text-[15px] leading-snug line-clamp-2 min-h-[42px] group-hover:text-blue-600 transition-colors">
           {product?.name}
         </h3>
 
-        {/* RATING */}
-        <div className="flex items-center gap-1 mt-2">
-          <div className="flex items-center">
+        {/* RATING - Compact */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((star) => (
               star <= Math.floor(rating) ? (
-                <HiStar key={star} className="w-3.5 h-3.5 text-yellow-400" />
+                <HiStar key={star} className="w-3 h-3 text-amber-400" />
               ) : (
-                <HiOutlineStar key={star} className="w-3.5 h-3.5 text-yellow-400" />
+                <HiOutlineStar key={star} className="w-3 h-3 text-amber-400" />
               )
             ))}
           </div>
-          <span className="text-xs text-gray-500">({reviewCount})</span>
+          <span className="text-[11px] text-gray-400">({reviewCount})</span>
         </div>
 
-        {/* PRICE SECTION */}
-        <div className="mt-3 min-h-[50px]">
+        {/* PRICE SECTION - Prominent */}
+        <div className="mt-auto pt-2">
           {flashSaleActive ? (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
-                  {formatPrice(salePrice)}
-                </span>
-              </div>
-              <span className="text-gray-400 text-sm line-through">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-lg font-bold text-red-600">
+                {formatPrice(salePrice)}
+              </span>
+              <span className="text-xs text-gray-400 line-through">
                 {formatPrice(originalPrice)}
               </span>
             </div>
           ) : (
-            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#137fec] to-[#0ea5e9] bg-clip-text text-transparent">
+            <span className="text-lg font-bold text-blue-600">
               {formatPrice(originalPrice)}
             </span>
           )}
         </div>
 
-        {/* TAGS/META */}
-        <div className="mt-auto pt-3 flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center text-[10px] sm:text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+        {/* TAGS - Simple */}
+        <div className="flex items-center gap-1.5 pt-1">
+          <span className="text-[10px] text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
             ✓ Chính hãng
           </span>
-          <span className="inline-flex items-center text-[10px] sm:text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-            🚚 Freeship
+          <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+            Freeship
           </span>
         </div>
       </div>
