@@ -306,9 +306,7 @@ export default function Product() {
 
 
   const goToBuy = () => {
-    if (!requireAuth(() => { }, "Bạn cần đăng nhập để mua hàng!")) {
-      return;
-    }
+    // Guest checkout allowed - no auth required
 
     const preselected = [
       {
@@ -326,9 +324,7 @@ export default function Product() {
 
   // Quantity modal handlers
   const openQtyModal = () => {
-    if (!requireAuth(() => { }, "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!")) {
-      return;
-    }
+    // Guest cart allowed - no auth required
     setQty(1);
     setQtyError("");
     setShowQtyModal(true);

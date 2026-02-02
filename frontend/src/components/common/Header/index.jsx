@@ -10,15 +10,15 @@ import { useCart } from "@/providers/CartProvider";
  * Cart Badge Component - Shows item count (max 99+)
  */
 function CartBadge() {
-  const { cart, fetchCart, getTotalQuantity } = useCart();
-  const isLoggedIn = !!localStorage.getItem("access_token");
+  const { cart, fetchCart, getTotalQuantity, isGuest } = useCart();
 
-  // Fetch cart on mount if logged in
+  // Fetch cart on mount (for logged in users)
   useEffect(() => {
-    if (isLoggedIn) {
+    // Only fetch from server if logged in
+    if (!isGuest()) {
       fetchCart().catch(() => { });
     }
-  }, [isLoggedIn]);
+  }, [isGuest]);
 
   // Calculate total quantity using provider helper or fallback
   const totalQty = React.useMemo(() => {
@@ -30,9 +30,10 @@ function CartBadge() {
   }, [cart, getTotalQuantity]);
 
   // Debug log
-  console.log("🛒 CartBadge:", { isLoggedIn, totalQty, cartItems: cart?.items?.length });
+  console.log("🛒 CartBadge:", { isGuest: isGuest(), totalQty, cartItems: cart?.items?.length });
 
-  if (!isLoggedIn || totalQty === 0) return null;
+  // Show badge for both guests and logged in users when they have items
+  if (totalQty === 0) return null;
 
   return (
     <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 shadow-lg animate-pulse">
@@ -580,7 +581,7 @@ export default function Header({ onFilter = (f) => console.log("filter", f) }) {
 
           {/* Cart Button with Badge */}
           <button
-            onClick={() => requireAuth(() => navigate("/user/cart"), "Vui lòng đăng nhập để xem giỏ hàng!")}
+            onClick={() => navigate("/user/cart")}
             className="relative flex items-center justify-center text-white font-medium w-11 h-11 rounded-xl hover:bg-white/20 transition-all border border-white/20"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
