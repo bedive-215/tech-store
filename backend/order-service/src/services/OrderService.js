@@ -329,21 +329,55 @@ const OrderService = {
 
     const items = await OrderItemRepository.findByOrder(orderId);
 
-    // Lấy thông tin của user có order này
-    const correlationId = crypto.randomUUID();
-    const dataPromise = new Promise((resolve, reject) => {
-      promiseMap.set(correlationId, resolve);
-      setTimeout(() => {
-        if (promiseMap.has(correlationId)) {
-          promiseMap.delete(correlationId);
-          reject(new Error("Product service timeout", 504));
+    let userInfo = null;
+
+    // For guest orders (user_id = 'GUEST' or null), parse guest info from shipping_address
+    if (!order.user_id || order.user_id === 'GUEST') {
+      // Try to parse guest info from shipping_address JSON
+      try {
+        const shippingData = JSON.parse(order.shipping_address || '{}');
+        if (shippingData.is_guest_order) {
+          userInfo = {
+            full_name: shippingData.guest_name || 'Khách vãng lai',
+            email: shippingData.guest_email || null,
+            phone_number: shippingData.guest_phone || null,
+            is_guest: true
+          };
         }
-      }, 5000);
-    });
+      } catch (e) {
+        // If not JSON, it's a plain address string
+        userInfo = { full_name: 'Khách vãng lai', is_guest: true };
+      }
+    } else {
+      // For logged-in users, fetch user info via RabbitMQ
+      try {
+        const correlationId = crypto.randomUUID();
+        const dataPromise = new Promise((resolve, reject) => {
+          promiseMap.set(correlationId, resolve);
+          setTimeout(() => {
+            if (promiseMap.has(correlationId)) {
+              promiseMap.delete(correlationId);
+              reject(new Error("User service timeout"));
+            }
+          }, 5000);
+        });
 
-    await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+        await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+        userInfo = await dataPromise;
+      } catch (e) {
+        console.warn('Failed to fetch user info:', e.message);
+        userInfo = null;
+      }
+    }
 
-    const userInfo = await dataPromise;
+    // Parse shipping address for response
+    let shippingAddress = order.shipping_address;
+    try {
+      const parsed = JSON.parse(order.shipping_address || '{}');
+      shippingAddress = parsed.address || order.shipping_address;
+    } catch (e) {
+      // Keep original string
+    }
 
     return {
       order_id: order.id,
@@ -360,7 +394,7 @@ const OrderService = {
         order.final_price ??
         (order.total_price - (order.discount_amount || 0)),
       status: order.status,
-      shipping_address: order.shipping_address,
+      shipping_address: shippingAddress,
     };
   },
 
