@@ -7,7 +7,7 @@ const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-100 overflow-hidden admin-light">
       {/* SIDEBAR */}
       <Sidebar active={sidebarOpen} mode="admin" />
 
