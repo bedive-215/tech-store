@@ -11,7 +11,7 @@ const promiseMap = new Map();
 
 const OrderService = {
 
-  async createOrder(userId, { items = [], coupon_code = null, shipping_address = null }) {
+  async createOrder(userId, { items = [], coupon_code = null, shipping_address = null, payment_method = null, invoice = null, guest_info = null, is_guest_order = false }) {
     if (!items.length) throw new Error('items required');
 
     const conn = await pool.getConnection();
@@ -88,14 +88,26 @@ const OrderService = {
       // Database transaction
       await conn.beginTransaction();
 
+      // For guest orders, embed guest info in shipping_address
+      let finalShippingAddress = shipping_address;
+      if (is_guest_order && guest_info) {
+        finalShippingAddress = JSON.stringify({
+          address: shipping_address,
+          guest_name: guest_info.name,
+          guest_email: guest_info.email,
+          guest_phone: guest_info.phone,
+          is_guest_order: true
+        });
+      }
+
       await OrderRepository.create(conn, {
         id: orderId,
-        user_id: userId,
+        user_id: userId || 'GUEST', // 'GUEST' for anonymous orders
         status: 'pending',
         total_price: totalPrice,
         discount_amount: discountAmount,
         final_price: finalPrice,
-        shipping_address
+        shipping_address: finalShippingAddress,
       });
 
       await OrderItemRepository.bulkCreate(

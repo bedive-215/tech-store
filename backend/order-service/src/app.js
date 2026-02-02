@@ -22,6 +22,12 @@ app.use(cors({
 }));
 
 // Routes
+const OrderController = require('./controllers/OrderController');
+
+// Guest checkout: POST /orders uses optionalAuth (allows guests)
+app.post("/api/v1/orders", authMiddleware.optionalAuth, OrderController.create);
+
+// Other order routes require authentication
 app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
 app.use("/api/v1/analytics", authMiddleware.auth, authMiddleware.checkRole('admin'), analyticsRouter);
 app.use("/api/v1/coupons", couponsRouter);

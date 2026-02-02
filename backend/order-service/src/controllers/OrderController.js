@@ -3,15 +3,29 @@ const OrderService = require('../services/OrderService');
 const OrderController = {
   async create(req, res) {
     try {
-      const userId = req.user.id || 'U-ANON';
+      // Handle both authenticated and guest users
+      const isGuest = !req.user?.id || req.user?.isGuest;
+      const userId = isGuest ? null : req.user.id;
+
       const payload = {
         items: req.body.items,
         coupon_code: req.body.coupon_code,
         shipping_address: req.body.shipping_address,
+        payment_method: req.body.payment_method,
+        invoice: req.body.invoice,
+        // Guest info from request body
+        guest_info: isGuest ? {
+          name: req.body.customer_name || req.body.guest_name,
+          email: req.body.customer_email || req.body.guest_email,
+          phone: req.body.customer_phone || req.body.guest_phone,
+        } : null,
+        is_guest_order: isGuest
       };
+
       const result = await OrderService.createOrder(userId, payload);
       return res.status(201).json(result);
     } catch (err) {
+      console.error("Create order error:", err);
       return res.status(400).json({ error: err.message });
     }
   },
@@ -20,14 +34,14 @@ const OrderController = {
     try {
       const { order_id: orderId, page, limit, status } = req.query;
       const userId = req.user.id;
-      
+
       if (orderId) {
         // Nếu có order_id => trả về chi tiết đơn
         const order = await OrderService.getOrderById(orderId);
         if (!order) return res.status(404).json({ error: "Order not found" });
         return res.json(order);
       }
-      
+
       if (!userId) {
         return res.status(400).json({ error: "user_id is required if order_id not provided" });
       }
