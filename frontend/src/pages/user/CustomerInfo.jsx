@@ -526,6 +526,23 @@ export default function CustomerInfo({
       setCreatedOrder(finalNormalized);
       setShowSuccessModal(true);
       toast.success("Đặt hàng thành công!");
+
+      // Save order ID to localStorage for guest order viewing
+      const guestOrderId = finalNormalized.order_id ?? finalNormalized.id ?? finalNormalized._id;
+      if (guestOrderId) {
+        try {
+          const existingOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
+          if (!existingOrders.includes(guestOrderId)) {
+            existingOrders.unshift(guestOrderId); // Add to beginning
+            // Keep only last 20 orders
+            const trimmedOrders = existingOrders.slice(0, 20);
+            localStorage.setItem('guest_orders', JSON.stringify(trimmedOrders));
+          }
+        } catch (e) {
+          console.warn('Failed to save guest order to localStorage:', e);
+        }
+      }
+
       if (form.paymentMethod === "cod") {
         setLoading(false);
         return;
@@ -621,7 +638,7 @@ export default function CustomerInfo({
 
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 py-8 transition-colors duration-300">
+    <div className="dark min-h-screen bg-background font-display text-gray-100 py-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Stepper */}
         <div className="mb-10 w-full max-w-4xl mx-auto">
@@ -752,8 +769,8 @@ export default function CustomerInfo({
                 <button
                   onClick={() => updateForm({ deliveryMethod: "store" })}
                   className={`flex-1 py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 ${form.deliveryMethod === "store"
-                      ? "bg-white dark:bg-gray-700 text-primary font-semibold shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    ? "bg-white dark:bg-gray-700 text-primary font-semibold shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     }`}
                 >
                   <span className="material-icons-outlined text-sm">store</span>
@@ -762,8 +779,8 @@ export default function CustomerInfo({
                 <button
                   onClick={() => updateForm({ deliveryMethod: "home" })}
                   className={`flex-1 py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 ${form.deliveryMethod === "home"
-                      ? "bg-white dark:bg-gray-700 text-primary font-semibold shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    ? "bg-white dark:bg-gray-700 text-primary font-semibold shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     }`}
                 >
                   <span className="material-icons-outlined text-sm">local_shipping</span>
@@ -872,14 +889,14 @@ export default function CustomerInfo({
                 <div
                   onClick={() => updateForm({ paymentMethod: "cod" })}
                   className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all hover:shadow-md ${form.paymentMethod === "cod"
-                      ? "border-primary bg-blue-50/50 dark:bg-primary/10"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
+                    ? "border-primary bg-blue-50/50 dark:bg-primary/10"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
                     }`}
                 >
                   <div className="flex flex-col items-center text-center gap-3">
                     <div className={`p-2 rounded-full shadow-sm ${form.paymentMethod === "cod"
-                        ? "bg-white dark:bg-gray-800 text-primary"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      ? "bg-white dark:bg-gray-800 text-primary"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                       }`}>
                       <span className="material-icons-outlined text-2xl">storefront</span>
                     </div>
@@ -896,14 +913,14 @@ export default function CustomerInfo({
                 <div
                   onClick={() => updateForm({ paymentMethod: "bank" })}
                   className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all hover:shadow-md ${form.paymentMethod === "bank"
-                      ? "border-primary bg-blue-50/50 dark:bg-primary/10"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
+                    ? "border-primary bg-blue-50/50 dark:bg-primary/10"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
                     }`}
                 >
                   <div className="flex flex-col items-center text-center gap-3">
                     <div className={`p-2 rounded-full shadow-sm ${form.paymentMethod === "bank"
-                        ? "bg-white dark:bg-gray-800 text-primary"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      ? "bg-white dark:bg-gray-800 text-primary"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                       }`}>
                       <span className="material-icons-outlined text-2xl">account_balance</span>
                     </div>
@@ -920,14 +937,14 @@ export default function CustomerInfo({
                 <div
                   onClick={() => updateForm({ paymentMethod: "momo" })}
                   className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all hover:shadow-md ${form.paymentMethod === "momo"
-                      ? "border-primary bg-blue-50/50 dark:bg-primary/10"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
+                    ? "border-primary bg-blue-50/50 dark:bg-primary/10"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
                     }`}
                 >
                   <div className="flex flex-col items-center text-center gap-3">
                     <div className={`p-2 rounded-full ${form.paymentMethod === "momo"
-                        ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600"
-                        : "bg-pink-100 dark:bg-pink-900/30 text-pink-600"
+                      ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600"
+                      : "bg-pink-100 dark:bg-pink-900/30 text-pink-600"
                       }`}>
                       <span className="material-icons-outlined text-2xl">account_balance_wallet</span>
                     </div>

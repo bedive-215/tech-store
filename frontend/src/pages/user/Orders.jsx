@@ -400,36 +400,80 @@ export default function Orders() {
       // Still loading auth, wait
       return;
     }
-    if (!user) {
-      setError("Bạn cần đăng nhập để xem đơn hàng.");
+
+    // For logged-in users, fetch from API
+    if (user) {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await orderService.listOrders({
+          user_id: user.user_id ?? user.id ?? user._id,
+        });
+
+        const raw = res.data?.data ?? res.data ?? {};
+        let list = Array.isArray(raw.orders) ? raw.orders : [];
+        const normalized = list.map(normalizeOrder);
+
+        const allIds = Array.from(new Set(normalized.flatMap(o => (o.items ?? []).map(i => i.product_id)).filter(Boolean)));
+
+        await fetchProductsByIds(allIds);
+
+        const enriched = normalized.map((order) => ({
+          ...order,
+          items: (order.items ?? []).map((it) => ({ ...it, productInfo: productCache.current[it.product_id] ?? null })),
+        }));
+
+        setOrders(enriched);
+      } catch (err) {
+        const msg = err.response?.data?.message || "Lấy danh sách đơn thất bại";
+        toast.error(msg);
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
-    setLoading(true);
-    setError(null);
 
+    // For guest users, check localStorage for order IDs
     try {
-      const res = await orderService.listOrders({
-        user_id: user.user_id ?? user.id ?? user._id,
+      const guestOrdersRaw = localStorage.getItem('guest_orders');
+      const guestOrderIds = guestOrdersRaw ? JSON.parse(guestOrdersRaw) : [];
+
+      if (!guestOrderIds.length) {
+        setError("Bạn chưa có đơn hàng nào. Đăng nhập để xem đơn hàng đã đặt trước đó.");
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      // Fetch order details for each guest order ID
+      const orderPromises = guestOrderIds.map(async (orderId) => {
+        try {
+          const res = await orderService.getOrderDetail(orderId);
+          return res.data?.data ?? res.data ?? null;
+        } catch (err) {
+          console.warn(`Failed to fetch order ${orderId}:`, err);
+          return null;
+        }
       });
 
-      const raw = res.data?.data ?? res.data ?? {};
-      let list = Array.isArray(raw.orders) ? raw.orders : [];
-      const normalized = list.map(normalizeOrder);
+      const fetchedOrders = await Promise.all(orderPromises);
+      const validOrders = fetchedOrders.filter(Boolean).map(normalizeOrder);
 
-      const allIds = Array.from(new Set(normalized.flatMap(o => (o.items ?? []).map(i => i.product_id)).filter(Boolean)));
-
+      const allIds = Array.from(new Set(validOrders.flatMap(o => (o.items ?? []).map(i => i.product_id)).filter(Boolean)));
       await fetchProductsByIds(allIds);
 
-      const enriched = normalized.map((order) => ({
+      const enriched = validOrders.map((order) => ({
         ...order,
         items: (order.items ?? []).map((it) => ({ ...it, productInfo: productCache.current[it.product_id] ?? null })),
+        isGuestOrder: true
       }));
 
       setOrders(enriched);
     } catch (err) {
-      const msg = err.response?.data?.message || "Lấy danh sách đơn thất bại";
-      toast.error(msg);
-      setError(msg);
+      setError("Không thể tải đơn hàng. Vui lòng đăng nhập để xem đầy đủ.");
     } finally {
       setLoading(false);
     }

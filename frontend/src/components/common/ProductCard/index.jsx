@@ -93,12 +93,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
     e.stopPropagation();
     e.preventDefault();
 
-    // Check auth
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!", { position: "top-center" });
-      return;
-    }
+    // Guest cart allowed - no auth required
 
     if (adding) return;
     setAdding(true);
