@@ -148,7 +148,7 @@ const [productLoading, setProductLoading] = useState(false);
   };
 
   return (
-  <div className="p-6 min-h-screen" style={{ background: COLORS.bgGrayLight }}>
+  <div className="p-6 min-h-screen admin-light">
     <div className="max-w-6xl mx-auto">
 
       {/* HEADER */}
@@ -186,7 +186,7 @@ const [productLoading, setProductLoading] = useState(false);
               value={createForm.name}
               onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
               placeholder="VD: Flash Sale Tết 2025"
-              className="p-3 rounded-xl border focus:ring"
+              className="p-3 rounded-xl border focus:ring text-gray-900 bg-white"
               style={{ borderColor: COLORS.borderLight }}
             />
           </div>
@@ -198,7 +198,7 @@ const [productLoading, setProductLoading] = useState(false);
               type="datetime-local"
               value={createForm.start_at}
               onChange={(e) => setCreateForm({ ...createForm, start_at: e.target.value })}
-              className="p-3 rounded-xl border focus:ring"
+              className="p-3 rounded-xl border focus:ring text-gray-900 bg-white"
               style={{ borderColor: COLORS.borderLight }}
             />
           </div>
@@ -210,7 +210,7 @@ const [productLoading, setProductLoading] = useState(false);
               type="datetime-local"
               value={createForm.end_at}
               onChange={(e) => setCreateForm({ ...createForm, end_at: e.target.value })}
-              className="p-3 rounded-xl border focus:ring"
+              className="p-3 rounded-xl border focus:ring text-gray-900 bg-white"
               style={{ borderColor: COLORS.borderLight }}
             />
           </div>
@@ -388,7 +388,7 @@ const [productLoading, setProductLoading] = useState(false);
     onChange={(e) =>
       setItemForm({ ...itemForm, product_id: e.target.value })
     }
-    className="p-3 border rounded-xl"
+    className="p-3 border rounded-xl text-gray-900 bg-white"
   >
     <option value="">-- Chọn sản phẩm --</option>
 
@@ -414,7 +414,7 @@ const [productLoading, setProductLoading] = useState(false);
                   type="number"
                   value={itemForm.sale_price}
                   onChange={(e) => setItemForm({ ...itemForm, sale_price: e.target.value })}
-                  className="p-3 border rounded-xl"
+                  className="p-3 border rounded-xl text-gray-900 bg-white"
                 />
               </div>
 
@@ -425,7 +425,7 @@ const [productLoading, setProductLoading] = useState(false);
                   type="number"
                   value={itemForm.stock_limit}
                   onChange={(e) => setItemForm({ ...itemForm, stock_limit: e.target.value })}
-                  className="p-3 border rounded-xl"
+                  className="p-3 border rounded-xl text-gray-900 bg-white"
                 />
               </div>
 

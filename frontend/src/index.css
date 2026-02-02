@@ -186,3 +186,46 @@ input, select, textarea {
 .animate-float-delayed {
   animation: float 6s ease-in-out 3s infinite;
 }
+
+/* =============================================
+   🏢 Admin Light Theme Override
+   Use .admin-light class on admin page containers
+   ============================================= */
+.admin-light {
+  background-color: #F3F4F6 !important;
+  color: #111827 !important;
+}
+
+.admin-light h1,
+.admin-light h2,
+.admin-light h3,
+.admin-light h4,
+.admin-light p,
+.admin-light span,
+.admin-light label,
+.admin-light div,
+.admin-light td,
+.admin-light th {
+  color: #111827;
+}
+
+.admin-light input,
+.admin-light select,
+.admin-light textarea {
+  background-color: #FFFFFF !important;
+  color: #111827 !important;
+  border-color: #D1D5DB !important;
+}
+
+.admin-light input::placeholder {
+  color: #9CA3AF !important;
+}
+
+.admin-light a {
+  color: #2563EB;
+}
+
+.admin-light a:hover {
+  color: #1D4ED8;
+}
+

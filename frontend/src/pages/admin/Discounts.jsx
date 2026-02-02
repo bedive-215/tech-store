@@ -113,7 +113,7 @@ export default function AdminCoupons() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen text-gray-900">
+    <div className="p-6 space-y-6 min-h-screen admin-light">
       <h1 className="text-3xl font-bold mb-4 text-gray-900">Quản lý mã giảm giá</h1>
 
       {/* FORM */}
@@ -127,7 +127,7 @@ export default function AdminCoupons() {
           <div>
             <label className="font-medium">Mã giảm giá</label>
             <input
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.code}
               onChange={(e) =>
                 setNewCoupon({ ...newCoupon, code: e.target.value })
@@ -139,7 +139,7 @@ export default function AdminCoupons() {
           <div>
             <label className="font-medium">Loại giảm giá</label>
             <select
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.discount_type}
               onChange={(e) =>
                 setNewCoupon({ ...newCoupon, discount_type: e.target.value })
@@ -155,7 +155,7 @@ export default function AdminCoupons() {
             <label className="font-medium">Giá trị giảm</label>
             <input
               type="number"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.discount_value}
               onChange={(e) =>
                 setNewCoupon({
@@ -171,7 +171,7 @@ export default function AdminCoupons() {
             <label className="font-medium">Giảm tối đa</label>
             <input
               type="number"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.max_discount}
               onChange={(e) =>
                 setNewCoupon({
@@ -187,7 +187,7 @@ export default function AdminCoupons() {
             <label className="font-medium">Đơn tối thiểu</label>
             <input
               type="number"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.min_order_value}
               onChange={(e) =>
                 setNewCoupon({
@@ -203,7 +203,7 @@ export default function AdminCoupons() {
             <label className="font-medium">Số lượt sử dụng</label>
             <input
               type="number"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.quantity}
               onChange={(e) =>
                 setNewCoupon({
@@ -219,7 +219,7 @@ export default function AdminCoupons() {
             <label className="font-medium">Ngày hết hạn</label>
             <input
               type="datetime-local"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
               value={newCoupon.end_at}
               onChange={(e) =>
                 setNewCoupon({ ...newCoupon, end_at: e.target.value })

@@ -121,7 +121,7 @@ export default function WarrantyManagement() {
 
   /* ================= UI ================= */
   return (
-    <div style={{ padding: 20, background: "#F3F4F6", minHeight: "100vh" }}>
+    <div className="admin-light" style={{ padding: 20, minHeight: "100vh" }}>
       <h1 style={{ fontSize: 28, fontWeight: "bold", marginBottom: 20 }}>
         Quản lý bảo hành
       </h1>
