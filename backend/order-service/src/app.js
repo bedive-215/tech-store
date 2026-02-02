@@ -30,6 +30,9 @@ app.post("/api/v1/orders", authMiddleware.optionalAuth, OrderController.create);
 // Guest order viewing: GET /orders/:id uses optionalAuth (allows guests to view their orders)
 app.get("/api/v1/orders/:id", authMiddleware.optionalAuth, OrderController.detail);
 
+// Guest order cancellation: PUT /orders/:id/cancel uses optionalAuth
+app.put("/api/v1/orders/:id/cancel", authMiddleware.optionalAuth, OrderController.cancel);
+
 // Other order routes require authentication
 app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
 app.use("/api/v1/analytics", authMiddleware.auth, authMiddleware.checkRole('admin'), analyticsRouter);
