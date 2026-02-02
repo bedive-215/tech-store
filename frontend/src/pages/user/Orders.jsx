@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { orderService } from "@/services/orderService";
 import { productService } from "@/services/productService";
 import { userService } from "@/services/userService";
+import { useProduct } from "@/providers/ProductProvider";
 import { format, isValid } from "date-fns";
 import { toast } from "react-toastify";
 
@@ -326,6 +327,9 @@ export default function Orders() {
   const [reviewInputs, setReviewInputs] = useState({});
   const [productReviews, setProductReviews] = useState({});
   const [reviewLoading, setReviewLoading] = useState(false);
+
+  // Get products from ProductProvider
+  const { products } = useProduct() || { products: [] };
 
   const productCache = React.useRef({});
 
@@ -862,11 +866,11 @@ export default function Orders() {
                             {/* Timeline dot and line */}
                             <div className="flex flex-col items-center">
                               <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isCancelled ? 'bg-gray-600' :
-                                  isDone || isActive ? 'bg-[#0a84ff]' : 'bg-gray-600'
+                                isDone || isActive ? 'bg-[#0a84ff]' : 'bg-gray-600'
                                 }`} />
                               {idx < arr.length - 1 && (
                                 <div className={`w-0.5 h-16 ${isCancelled ? 'bg-gray-700' :
-                                    isDone ? 'bg-[#0a84ff]/30' : 'bg-gray-700'
+                                  isDone ? 'bg-[#0a84ff]/30' : 'bg-gray-700'
                                   }`} />
                               )}
                             </div>
@@ -874,7 +878,7 @@ export default function Orders() {
                             {/* Content */}
                             <div className="pb-6 -mt-0.5">
                               <p className={`font-medium ${isCancelled ? 'text-gray-500' :
-                                  isDone || isActive ? 'text-white' : 'text-gray-500'
+                                isDone || isActive ? 'text-white' : 'text-gray-500'
                                 }`}>{step.label}</p>
                               {step.time && (
                                 <p className="text-gray-500 text-sm mt-0.5">{step.time}</p>
