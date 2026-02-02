@@ -357,15 +357,15 @@ export default function Login() {
                 {/* Email Input */}
                 <div className="group">
                   <label className="mb-2 block text-sm font-medium text-gray-300">Email</label>
-                  <div className="relative flex items-center rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 transition-all duration-200 focus-within:border-[#2997ff]/40 focus-within:bg-white/[0.05]">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center rounded-lg bg-black/30 px-4">
+                    <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <input
                       type="email"
                       {...register("email")}
                       placeholder="email@example.com"
-                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] autofill:bg-transparent autofill:text-white [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]"
+                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none text-[15px]"
                     />
                   </div>
                   {errors.email && (
@@ -381,20 +381,20 @@ export default function Login() {
                       Quên mật khẩu?
                     </Link>
                   </div>
-                  <div className="relative flex items-center rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 transition-all duration-200 focus-within:border-[#2997ff]/40 focus-within:bg-white/[0.05]">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center rounded-lg bg-black/30 px-4">
+                    <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     <input
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                       placeholder="••••••••"
-                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] autofill:bg-transparent autofill:text-white [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]"
+                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none text-[15px]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-gray-500 hover:text-white transition-colors"
+                      className="text-gray-500 hover:text-white transition-colors flex-shrink-0"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
