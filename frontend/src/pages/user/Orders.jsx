@@ -315,7 +315,7 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
 });
 
 export default function Orders() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
@@ -396,6 +396,10 @@ export default function Orders() {
   }, []);
 
   const fetchOrders = useCallback(async () => {
+    if (authLoading) {
+      // Still loading auth, wait
+      return;
+    }
     if (!user) {
       setError("Bạn cần đăng nhập để xem đơn hàng.");
       return;
@@ -429,7 +433,7 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }, [user, normalizeOrder, fetchProductsByIds]);
+  }, [user, authLoading, normalizeOrder, fetchProductsByIds]);
 
   const fetchOrderDetail = useCallback(async (orderId) => {
     if (!orderId) return;
