@@ -4,7 +4,7 @@ import React from "react";
 
 export default function SubscriptionPlans() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="min-h-[60vh] flex items-center justify-center bg-gray-50">
       <div className="text-center max-w-md mx-auto px-4">
         {/* Icon */}
         <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
@@ -14,17 +14,17 @@ export default function SubscriptionPlans() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">
           Gói đăng ký Premium
         </h1>
 
         {/* Description */}
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-gray-500 mb-6">
           Tính năng quản lý gói đăng ký đang được phát triển. Vui lòng quay lại sau!
         </p>
 
         {/* Coming Soon Badge */}
-        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium">
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 text-sm font-medium">
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
           Sắp ra mắt
         </span>

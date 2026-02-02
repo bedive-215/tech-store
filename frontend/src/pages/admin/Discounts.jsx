@@ -113,8 +113,8 @@ export default function AdminCoupons() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-4">Quản lý mã giảm giá</h1>
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen text-gray-900">
+      <h1 className="text-3xl font-bold mb-4 text-gray-900">Quản lý mã giảm giá</h1>
 
       {/* FORM */}
       <div className="bg-white p-6 rounded-xl shadow-md border">
