@@ -44,6 +44,7 @@ export default function Cart() {
     removeItem,
     clearCart,
     getTotalPrice,
+    isGuest,
   } = useCart();
 
   // Hàm normalize - xử lý object với numeric keys
@@ -364,6 +365,29 @@ export default function Cart() {
             Kiểm tra lại các tuyệt tác công nghệ của bạn trước khi thanh toán.
           </p>
         </div>
+
+        {/* Guest Banner - Show login suggestion for guests */}
+        {isGuest() && localItems.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-white font-medium">Bạn đang mua với tư cách khách</p>
+                <p className="text-gray-400 text-sm">Đăng nhập để lưu giỏ hàng và theo dõi đơn hàng dễ dàng hơn</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/login')}
+              className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-all border border-white/20"
+            >
+              Đăng nhập
+            </button>
+          </div>
+        )}
 
         {/* Loading state */}
         {(loading || loadingLocal) ? (

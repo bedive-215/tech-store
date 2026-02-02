@@ -5,6 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/providers/CartProvider";
 import { ROUTERS } from "@/utils/constants";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -30,6 +31,7 @@ const extraSchema = yup.object({
 export default function Login() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { mergeGuestCartToServer, guestCart } = useCart();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -79,6 +81,16 @@ export default function Login() {
         res?.user?.role || res?.role || res?.data?.user?.role || res?.data?.role;
 
       if (!role) throw new Error("Missing role in response");
+
+      // Merge guest cart if exists
+      const token = res?.access_token || res?.accessToken || localStorage.getItem("access_token");
+      if (guestCart?.items?.length > 0 && token) {
+        try {
+          await mergeGuestCartToServer(token);
+        } catch (e) {
+          console.warn("Failed to merge guest cart:", e);
+        }
+      }
 
       if (role === "admin") {
         navigate(ROUTERS.ADMIN.DASHBOARD);
