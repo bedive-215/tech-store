@@ -126,9 +126,7 @@ export default function FloatingNavbar() {
                         )}
                     </Link>
 
-                    <span className="text-white/20 hidden sm:inline">|</span>
-
-                    {/* Orders for Guests */}
+                    {/* Orders for Guests - grouped with Cart, no separator */}
                     <Link
                         to="/user/orders"
                         className={`relative transition-colors ${isActive('/user/orders') ? 'text-[#2997ff]' : 'text-gray-300 hover:text-white'}`}
@@ -139,7 +137,8 @@ export default function FloatingNavbar() {
                         </svg>
                     </Link>
 
-                    <span className="text-white/20 hidden sm:inline">|</span>
+                    {/* Separator after icons group */}
+                    <div className="h-4 w-px bg-white/20" />
 
                     <Link
                         to="/login"
