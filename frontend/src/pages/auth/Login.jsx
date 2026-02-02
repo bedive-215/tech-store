@@ -365,7 +365,7 @@ export default function Login() {
                       type="email"
                       {...register("email")}
                       placeholder="email@example.com"
-                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px]"
+                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] autofill:bg-transparent autofill:text-white [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]"
                     />
                   </div>
                   {errors.email && (
@@ -389,7 +389,7 @@ export default function Login() {
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                       placeholder="••••••••"
-                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px]"
+                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] autofill:bg-transparent autofill:text-white [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]"
                     />
                     <button
                       type="button"
