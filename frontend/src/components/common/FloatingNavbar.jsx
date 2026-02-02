@@ -126,6 +126,8 @@ export default function FloatingNavbar() {
                         )}
                     </Link>
 
+                    <span className="text-white/20 hidden sm:inline">|</span>
+
                     {/* Orders for Guests */}
                     <Link
                         to="/user/orders"
@@ -137,7 +139,7 @@ export default function FloatingNavbar() {
                         </svg>
                     </Link>
 
-                    <div className="h-4 w-px bg-white/20" />
+                    <span className="text-white/20 hidden sm:inline">|</span>
 
                     <Link
                         to="/login"
