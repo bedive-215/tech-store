@@ -365,7 +365,7 @@ export default function Login() {
                       type="email"
                       {...register("email")}
                       placeholder="email@example.com"
-                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none text-[15px]"
+                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none border-0 appearance-none text-[15px]"
                     />
                   </div>
                   {errors.email && (
@@ -389,7 +389,7 @@ export default function Login() {
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                       placeholder="••••••••"
-                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none text-[15px]"
+                      className="h-12 w-full bg-transparent px-3 text-white placeholder-gray-500 outline-none border-0 appearance-none text-[15px]"
                     />
                     <button
                       type="button"

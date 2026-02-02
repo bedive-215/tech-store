@@ -161,7 +161,7 @@ export default function RegisterPage() {
                       <input
                         {...register("full_name")}
                         placeholder="Nguyễn Văn A"
-                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 focus:outline-none focus:ring-0 text-sm"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 outline-none border-0 appearance-none text-sm"
                       />
                     </div>
                     {errors.full_name && (
@@ -179,7 +179,7 @@ export default function RegisterPage() {
                       <input
                         type="date"
                         {...register("date_of_birth")}
-                        className="h-12 w-full border-none bg-transparent px-3 text-white focus:outline-none focus:ring-0 text-sm"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white outline-none border-0 appearance-none text-sm"
                       />
                     </div>
                     {errors.date_of_birth && (
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                       <input
                         {...register("phone_number")}
                         placeholder="0912345678"
-                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 focus:outline-none focus:ring-0 text-sm"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 outline-none border-0 appearance-none text-sm"
                       />
                     </div>
                     {errors.phone_number && (
@@ -216,7 +216,7 @@ export default function RegisterPage() {
                         type="email"
                         {...register("email")}
                         placeholder="email@example.com"
-                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 focus:outline-none focus:ring-0 text-sm"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 outline-none border-0 appearance-none text-sm"
                       />
                     </div>
                     {errors.email && (
@@ -235,7 +235,7 @@ export default function RegisterPage() {
                         type={showPassword ? "text" : "password"}
                         {...register("password")}
                         placeholder="••••••••"
-                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 focus:outline-none focus:ring-0 text-sm"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 outline-none border-0 appearance-none text-sm"
                       />
                       <button
                         type="button"
@@ -302,7 +302,7 @@ export default function RegisterPage() {
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="Nhập mã 6 chữ số..."
-                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 focus:outline-none focus:ring-0 text-sm tracking-widest"
+                        className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-600 outline-none border-0 appearance-none text-sm tracking-widest"
                       />
                     </div>
                   </div>
