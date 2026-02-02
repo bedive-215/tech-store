@@ -790,7 +790,7 @@ export default function Orders() {
                   {/* Product Image - Large */}
                   {currentOrder.items?.[0] && (() => {
                     const firstItem = currentOrder.items[0];
-                    const product = products?.find(p => p.id === firstItem.product_id);
+                    const product = productCache.current[firstItem.product_id];
                     const imgSrc = product?.image || product?.images?.[0];
                     return (
                       <div className="bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-2xl p-8 mb-8 flex items-center justify-center min-h-[280px]">
@@ -816,7 +816,7 @@ export default function Orders() {
                   <div className="mb-8">
                     <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Sản phẩm</h3>
                     {currentOrder.items.map((item, idx) => {
-                      const product = products?.find(p => p.id === item.product_id);
+                      const product = productCache.current[item.product_id];
                       return (
                         <div key={item.product_id || idx} className="mb-4">
                           <h4 className="text-xl font-medium text-white mb-1">
