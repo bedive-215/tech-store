@@ -27,6 +27,9 @@ const OrderController = require('./controllers/OrderController');
 // Guest checkout: POST /orders uses optionalAuth (allows guests)
 app.post("/api/v1/orders", authMiddleware.optionalAuth, OrderController.create);
 
+// Guest order viewing: GET /orders/:id uses optionalAuth (allows guests to view their orders)
+app.get("/api/v1/orders/:id", authMiddleware.optionalAuth, OrderController.detail);
+
 // Other order routes require authentication
 app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
 app.use("/api/v1/analytics", authMiddleware.auth, authMiddleware.checkRole('admin'), analyticsRouter);
