@@ -357,7 +357,7 @@ export default function Login() {
                 {/* Email Input */}
                 <div className="group">
                   <label className="mb-2 block text-sm font-medium text-gray-300">Email</label>
-                  <div className="relative flex items-center rounded-2xl border border-white/[0.12] bg-white/[0.04] backdrop-blur-xl px-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] focus-within:border-[#2997ff]/60 focus-within:bg-white/[0.08] focus-within:shadow-[0_0_20px_rgba(41,151,255,0.2),inset_0_1px_0_0_rgba(255,255,255,0.1)] focus-within:hover:border-[#2997ff]/60 focus-within:hover:bg-white/[0.08]">
+                  <div className="relative flex items-center rounded-xl bg-[#1c1c1e] px-4 transition-all duration-200 focus-within:ring-1 focus-within:ring-[#2997ff]/50">
                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -365,7 +365,7 @@ export default function Login() {
                       type="email"
                       {...register("email")}
                       placeholder="email@example.com"
-                      className="h-14 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] font-light tracking-wide"
+                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px]"
                     />
                   </div>
                   {errors.email && (
@@ -381,7 +381,7 @@ export default function Login() {
                       Quên mật khẩu?
                     </Link>
                   </div>
-                  <div className="relative flex items-center rounded-2xl border border-white/[0.12] bg-white/[0.04] backdrop-blur-xl px-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] focus-within:border-[#2997ff]/60 focus-within:bg-white/[0.08] focus-within:shadow-[0_0_20px_rgba(41,151,255,0.2),inset_0_1px_0_0_rgba(255,255,255,0.1)] focus-within:hover:border-[#2997ff]/60 focus-within:hover:bg-white/[0.08]">
+                  <div className="relative flex items-center rounded-xl bg-[#1c1c1e] px-4 transition-all duration-200 focus-within:ring-1 focus-within:ring-[#2997ff]/50">
                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -389,7 +389,7 @@ export default function Login() {
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                       placeholder="••••••••"
-                      className="h-14 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px] font-light tracking-wide"
+                      className="h-12 w-full border-none bg-transparent px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-0 text-[15px]"
                     />
                     <button
                       type="button"
