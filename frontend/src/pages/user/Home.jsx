@@ -16,7 +16,7 @@ export default function Home() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("all");
   const { products, loading, fetchProducts } = useProduct();
-  const { getTotalQuantity } = useCart();
+  const { getTotalQuantity, addToCart } = useCart();
 
   /* ================== INIT AOS ================== */
   useEffect(() => {
@@ -448,7 +448,17 @@ export default function Home() {
                         <button
                           className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200"
                           title="Thêm vào giỏ hàng"
-                          onClick={(e) => { e.stopPropagation(); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({
+                              product_id: productId,
+                              quantity: 1,
+                              product_name: p.name,
+                              image_url: imageUrl,
+                              stock: p.stock || 999,
+                              price: p.price,
+                            });
+                          }}
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
