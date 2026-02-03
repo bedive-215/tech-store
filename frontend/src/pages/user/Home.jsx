@@ -383,47 +383,83 @@ export default function Home() {
                   <div
                     key={productId ?? index}
                     onClick={() => onProductClick(p)}
-                    className="group relative bg-[#121212] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300 cursor-pointer"
+                    className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-gray-200 hover:border-blue-300 cursor-pointer"
                   >
+                    {/* Wishlist button */}
+                    <button
+                      className="absolute top-2 right-2 z-20 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-50"
+                      onClick={(e) => { e.stopPropagation(); }}
+                    >
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                      </svg>
+                    </button>
+
+                    {/* Sale badge */}
+                    {p.flash_sale && (
+                      <span className="absolute top-2 left-2 z-20 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
+                        -{p.flash_sale.discount || 15}%
+                      </span>
+                    )}
+
                     {/* Image */}
-                    <div className="aspect-[4/5] bg-[#1a1a1a] p-6 flex items-center justify-center relative overflow-hidden">
-                      <img
-                        alt={p.name}
-                        className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
-                        src={imageUrl}
-                        onError={(e) => { e.target.src = '/default-product.png'; }}
-                      />
-
-                      {/* Hover overlay with CTA */}
-                      <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
-                        <button className="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
-                          Xem chi tiết
-                        </button>
+                    <div className="relative bg-white border-b border-gray-100">
+                      <div className="aspect-[4/3] w-full flex items-center justify-center p-4">
+                        <img
+                          alt={p.name}
+                          loading="lazy"
+                          className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          src={imageUrl}
+                          onError={(e) => { e.target.src = '/default-product.png'; }}
+                        />
                       </div>
-
-                      {/* Sale badge */}
-                      {p.flash_sale && (
-                        <span className="absolute top-4 left-4 bg-[#2997ff] text-white text-[10px] font-bold px-2 py-1 rounded">
-                          -{p.flash_sale.discount || 15}%
-                        </span>
-                      )}
                     </div>
 
                     {/* Product info */}
-                    <div className="p-5">
-                      <h3 className="text-white font-medium text-base md:text-lg mb-1 group-hover:text-[#2997ff] transition-colors line-clamp-1">
+                    <div className="p-3 flex flex-col flex-1 gap-2">
+                      <h3 className="text-gray-900 font-medium text-[15px] leading-snug line-clamp-2 min-h-[42px] group-hover:text-blue-600 transition-colors">
                         {p.name}
                       </h3>
-                      <p className="text-gray-500 text-sm mb-3 line-clamp-1">{p.brand || 'Tech Store'}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#f5a623] font-bold">
-                          {new Intl.NumberFormat('vi-VN').format(p.price)}₫
-                        </span>
-                        {p.original_price && p.original_price > p.price && (
-                          <span className="text-gray-600 line-through text-sm">
-                            {new Intl.NumberFormat('vi-VN').format(p.original_price)}₫
+
+                      {/* Ratings */}
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <svg key={star} className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                            </svg>
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-gray-400">({p.review_count || 0})</span>
+                      </div>
+
+                      {/* Price and Cart */}
+                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-lg font-bold text-blue-600">
+                            {new Intl.NumberFormat('vi-VN').format(p.price)} ₫
                           </span>
-                        )}
+                          {p.original_price && p.original_price > p.price && (
+                            <span className="block text-xs text-gray-400 line-through">
+                              {new Intl.NumberFormat('vi-VN').format(p.original_price)} ₫
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200"
+                          title="Thêm vào giỏ hàng"
+                          onClick={(e) => { e.stopPropagation(); }}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <span className="text-[10px] text-green-700 bg-green-50 px-1.5 py-0.5 rounded">✓ Chính hãng</span>
+                        <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">Freeship</span>
                       </div>
                     </div>
                   </div>
