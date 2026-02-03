@@ -397,9 +397,11 @@ export default function Home() {
 
                     {/* Sale badge */}
                     {p.flash_sale && (
-                      <span className="absolute top-2 left-2 z-20 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
-                        -{p.flash_sale.discount || 15}%
-                      </span>
+                      <div className="absolute top-2 left-2 z-20">
+                        <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow">
+                          🔥 Tết 2026 -{p.flash_sale.discount || 15}%
+                        </div>
+                      </div>
                     )}
 
                     {/* Image */}
@@ -436,14 +438,16 @@ export default function Home() {
                       {/* Price and Cart */}
                       <div className="mt-auto pt-2 flex items-center justify-between gap-2">
                         <div>
-                          <span className="text-lg font-bold text-blue-600">
-                            {new Intl.NumberFormat('vi-VN').format(p.price)} ₫
-                          </span>
-                          {p.original_price && p.original_price > p.price && (
-                            <span className="block text-xs text-gray-400 line-through">
-                              {new Intl.NumberFormat('vi-VN').format(p.original_price)} ₫
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className={`text-lg font-bold ${p.flash_sale ? 'text-red-600' : 'text-blue-600'}`}>
+                              {new Intl.NumberFormat('vi-VN').format(p.flash_sale ? (p.price * (100 - (p.flash_sale.discount || 15)) / 100) : p.price)} ₫
                             </span>
-                          )}
+                            {(p.flash_sale || (p.original_price && p.original_price > p.price)) && (
+                              <span className="text-xs text-gray-400 line-through">
+                                {new Intl.NumberFormat('vi-VN').format(p.flash_sale ? p.price : p.original_price)} ₫
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <button
                           className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200"
