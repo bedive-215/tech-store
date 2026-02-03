@@ -103,6 +103,7 @@ class ProductService {
             limit,
             offset,
             order,
+            subQuery: false,
             distinct: true
         });
 
