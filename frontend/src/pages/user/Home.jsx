@@ -399,7 +399,7 @@ export default function Home() {
                     {p.flash_sale && (
                       <div className="absolute top-2 left-2 z-20">
                         <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow">
-                          🔥 Tết 2026 -{p.flash_sale.discount || 15}%
+                          🔥 {p.flash_sale.flash_sale_name || 'Tết 2026'} -{Math.round((1 - p.flash_sale.sale_price / p.price) * 100)}%
                         </div>
                       </div>
                     )}
@@ -440,11 +440,11 @@ export default function Home() {
                         <div>
                           <div className="flex items-baseline gap-2 flex-wrap">
                             <span className={`text-lg font-bold ${p.flash_sale ? 'text-red-600' : 'text-blue-600'}`}>
-                              {new Intl.NumberFormat('vi-VN').format(p.flash_sale ? (p.price * (100 - (p.flash_sale.discount || 15)) / 100) : p.price)} ₫
+                              {new Intl.NumberFormat('vi-VN').format(p.flash_sale ? p.flash_sale.sale_price : p.price)} ₫
                             </span>
                             {(p.flash_sale || (p.original_price && p.original_price > p.price)) && (
                               <span className="text-xs text-gray-400 line-through">
-                                {new Intl.NumberFormat('vi-VN').format(p.flash_sale ? p.price : p.original_price)} ₫
+                                {new Intl.NumberFormat('vi-VN').format(p.price)} ₫
                               </span>
                             )}
                           </div>
