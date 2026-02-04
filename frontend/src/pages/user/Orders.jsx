@@ -756,7 +756,9 @@ export default function Orders() {
         files: warrantyForm.images
       };
 
-      await warrantyService.createWarranty(payload);
+      // Get token from localStorage
+      const token = localStorage.getItem('access_token');
+      await warrantyService.createWarranty(payload, token);
 
       toast.success('Đăng ký bảo hành thành công!');
       setWarrantyModalOpen(false);
