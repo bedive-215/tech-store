@@ -114,6 +114,62 @@ class ProductMediaService {
         };
     }
 
+    /**
+     * Upload image from external URL to Cloudinary
+     */
+    async uploadFromUrl(product_id, imageUrl) {
+        const product = await this.Product.findByPk(product_id);
+        if (!product) throw new AppError("Product not found", 404);
+
+        try {
+            // Import axios dynamically
+            const axios = (await import('axios')).default;
+
+            // Fetch image from URL
+            const response = await axios.get(imageUrl, {
+                responseType: 'arraybuffer',
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+
+            const buffer = Buffer.from(response.data);
+            const contentType = response.headers['content-type'] || 'image/jpeg';
+            const resourceType = contentType.includes('image') ? 'image' : 'raw';
+
+            // Upload to Cloudinary
+            const uploaded = await uploadMediaToCloudinary(buffer, resourceType, "product_media");
+
+            // Check if product has any primary image
+            const existingPrimary = await this.ProductMedia.findOne({
+                where: { product_id, is_primary: true }
+            });
+
+            // Create new media record
+            const newMedia = await this.ProductMedia.create({
+                product_id,
+                url: uploaded.url,
+                type: resourceType,
+                is_primary: !existingPrimary // Set as primary if no existing primary
+            });
+
+            return {
+                success: true,
+                message: "Image uploaded from URL successfully",
+                product_id,
+                media: {
+                    id: newMedia.id,
+                    url: newMedia.url,
+                    is_primary: newMedia.is_primary
+                }
+            };
+        } catch (error) {
+            console.error("Upload from URL error:", error.message);
+            throw new AppError("Failed to upload image from URL: " + error.message, 500);
+        }
+    }
+
 }
 
 export default new ProductMediaService();

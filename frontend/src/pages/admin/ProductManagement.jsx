@@ -248,13 +248,37 @@ export default function ProductManagement() {
         await updateProduct(editingProduct.product_id, payload, token);
         toast.success("Cập nhật sản phẩm thành công");
       } else {
-        await createProduct(payload, token);
+        const newProduct = await createProduct(payload, token);
         toast.success("Tạo sản phẩm thành công");
+
+        // If we have an AI-generated image URL, upload it to the new product
+        if (aiImageUrl && newProduct?.product?.product_id) {
+          try {
+            const uploadResponse = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL || "https://api.store.hailamdev.space"}/api/v1/products/${newProduct.product.product_id}/media/from-url`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ imageUrl: aiImageUrl })
+              }
+            );
+            if (uploadResponse.ok) {
+              toast.success("Đã upload ảnh từ AI!");
+            }
+          } catch (imgErr) {
+            console.warn("AI image upload failed:", imgErr);
+          }
+        }
       }
 
       await fetchProducts();
       setModalOpen(false);
       setSelectedFiles([]);
+      setAiImageUrl(null);
+      setSpecs("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error("Submit error:", err);
