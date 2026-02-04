@@ -55,39 +55,41 @@ CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`;
     }
 
     /**
-     * Fetch product image URL using Gemini AI to suggest a real image URL
+     * Fetch product image from Unsplash API (free tier: 50 req/hour)
      */
     async fetchProductImage(productName) {
         try {
-            // Use Gemini to find a real product image URL
-            const imagePrompt = `Bạn là chuyên gia tìm hình ảnh sản phẩm. 
-Cho sản phẩm: "${productName}"
+            // Use Unsplash API with demo access key
+            // Production: register at https://unsplash.com/developers
+            const UNSPLASH_ACCESS_KEY = "ab3411e4ac868c2646c0ed488dfd919ef612b04c264f3bc0571b0a36fa19a5b5";
 
-Hãy TRẢ VỀ MỘT URL ảnh sản phẩm THỰC TẾ từ các nguồn sau (chọn 1):
-1. cdn.tgdd.vn (Thế Giới Di Động)
-2. images.fpt.shop (FPT Shop)  
-3. cdn.shopify.com
-4. m.media-amazon.com
-5. store.storeimages.cdn-apple.com
+            // Extract brand/type for better search
+            const searchQuery = productName
+                .replace(/\d+GB|\d+TB|\d+MP|Pro|Max|Ultra|Plus/gi, '')
+                .trim();
 
-CHỈ TRẢ VỀ URL, KHÔNG CÓ TEXT KHÁC. URL phải là link trực tiếp đến file ảnh .jpg, .png hoặc .webp`;
+            const response = await fetch(
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery + ' product')}&per_page=1&orientation=squarish`,
+                {
+                    headers: {
+                        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+                    }
+                }
+            );
 
-            const result = await this.model.generateContent(imagePrompt);
-            const imageUrl = result.response.text().trim();
-
-            // Validate URL format
-            if (imageUrl.startsWith('http') && (imageUrl.includes('.jpg') || imageUrl.includes('.png') || imageUrl.includes('.webp') || imageUrl.includes('cdn'))) {
-                return imageUrl;
+            if (response.ok) {
+                const data = await response.json();
+                if (data.results && data.results.length > 0) {
+                    // Return small image URL for faster loading
+                    return data.results[0].urls.small;
+                }
             }
 
-            // Fallback: use a professional placeholder
-            const brandMatch = productName.match(/(iPhone|Samsung|MacBook|iPad|Apple|Xiaomi|Sony|JBL|Logitech|Razer)/i);
-            const brand = brandMatch ? brandMatch[1] : 'Tech';
-            return `https://placehold.co/600x600/111827/ffffff?text=${encodeURIComponent(brand)}`;
-
+            // Fallback to styled placeholder
+            return null;
         } catch (error) {
-            console.error("Image fetch error:", error);
-            return `https://placehold.co/600x600/111827/ffffff?text=Product`;
+            console.error("Unsplash fetch error:", error);
+            return null;
         }
     }
 }
