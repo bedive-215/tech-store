@@ -66,8 +66,8 @@ CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`;
             // Import cloudinary uploader
             const { uploadMediaToCloudinary } = await import('../utils/uploadMedia.js');
 
-            // Create image prompt for product
-            const imagePrompt = `Product photography of ${productName}, professional studio lighting, white background, high quality, e-commerce product photo, centered, 4k`;
+            // Create image prompt for product - specifically for electronics/tech products
+            const imagePrompt = `High-quality product photography of a ${productName} electronic device for tech store. The image should show the actual physical device (smartphone, laptop, tablet, headphones, or tech accessory). Professional studio lighting, pure white background, e-commerce style product photo. The device should be the main focus, shown at a 3/4 angle, highly detailed, photorealistic render, 4K resolution. NO landscapes, NO scenery, NO nature - ONLY the electronic device itself.`;
 
             console.log('🎨 Generating image for:', productName);
 
