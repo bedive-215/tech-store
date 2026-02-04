@@ -197,7 +197,7 @@ const ProductItem = React.memo(function ProductItem({
 });
 
 // ==== OrderRow (Stitch Design) ====
-const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel }) {
+const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel, onOpenWarranty }) {
   const item = (order.items && order.items[0]) || {};
   const product = item.productInfo;
   const avatar = product?.media?.find((m) => m.is_primary)?.url ?? product?.media?.[0]?.url ?? null;
@@ -302,7 +302,7 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
                 Đánh giá
               </button>
               <button
-                onClick={() => handleOpenWarranty(order)}
+                onClick={() => onOpenWarranty(order)}
                 className="flex-1 sm:flex-none py-2.5 px-6 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:from-green-600 hover:to-emerald-700 transition-all text-sm shadow-md shadow-green-500/20"
               >
                 Bảo hành
@@ -958,7 +958,7 @@ export default function Orders() {
                     </button>
                   )}
                 </div>
-              ) : filteredOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
+              ) : filteredOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} onOpenWarranty={handleOpenWarranty} />)
             )}
           </div>
 
