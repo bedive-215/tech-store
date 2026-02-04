@@ -20,9 +20,12 @@ export default function WarrantyManagement() {
   const [validating, setValidating] = useState(false);
   const [rejectReason, setRejectReason] = useState(null);
 
+  // Get token for API calls
+  const getToken = () => localStorage.getItem('access_token');
+
   /* ================= LOAD ================= */
   useEffect(() => {
-    fetchAllWarranties();
+    fetchAllWarranties({}, getToken());
   }, [fetchAllWarranties]);
 
   /* ================= HELPERS ================= */
@@ -69,7 +72,7 @@ export default function WarrantyManagement() {
 
       const { data } = await validateWarranty(selectedWarranty.id, {
         valid: true,
-      });
+      }, getToken());
 
       // ❌ backend trả không hợp lệ
       if (data.valid === false) {
@@ -79,13 +82,13 @@ export default function WarrantyManagement() {
         setSelectedWarranty(data.warranty);
 
         // reload bảng
-        fetchAllWarranties();
+        fetchAllWarranties({}, getToken());
         return;
       }
 
       // ✅ hợp lệ
       setSelectedWarranty(null);
-      fetchAllWarranties();
+      fetchAllWarranties({}, getToken());
     } finally {
       setValidating(false);
     }
@@ -101,11 +104,11 @@ export default function WarrantyManagement() {
 
       const { data } = await validateWarranty(selectedWarranty.id, {
         valid: false,
-      });
+      }, getToken());
 
       setRejectReason(data.reason);
       setSelectedWarranty(data.warranty);
-      fetchAllWarranties();
+      fetchAllWarranties({}, getToken());
     } finally {
       setValidating(false);
     }
@@ -114,9 +117,9 @@ export default function WarrantyManagement() {
   // ✅ UPDATE STATUS
   const handleUpdateStatus = async (status) => {
     if (!selectedWarranty) return;
-    await updateWarrantyStatus(selectedWarranty.id, { status });
+    await updateWarrantyStatus(selectedWarranty.id, { status }, getToken());
     setSelectedWarranty(null);
-    fetchAllWarranties();
+    fetchAllWarranties({}, getToken());
   };
 
   /* ================= UI ================= */
