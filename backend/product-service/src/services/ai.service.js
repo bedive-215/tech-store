@@ -6,8 +6,8 @@ class AIService {
         this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         // Text generation: gemini-2.5-flash (fast & accurate)
         this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        // Image generation: gemini-2.0-flash-exp-image-generation (experimental)
-        this.imageModel = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp-image-generation" });
+        // Image generation: nano-banana-pro-preview (Gemini 3 Pro Image)
+        this.imageModel = this.genAI.getGenerativeModel({ model: "nano-banana-pro-preview" });
     }
 
     /**
