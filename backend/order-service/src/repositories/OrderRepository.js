@@ -67,19 +67,24 @@ const OrderRepository = {
         const isDesc = sort.startsWith('-');
         const field = isDesc ? sort.substring(1) : sort;
         const direction = isDesc ? 'DESC' : 'ASC';
-        orderBy = `${field} ${direction}`;
+        // Whitelist allowed fields to prevent SQL injection
+        const allowedFields = ['created_at', 'updated_at', 'status', 'final_price', 'total_price'];
+        if (allowedFields.includes(field)) {
+          orderBy = `${field} ${direction}`;
+        }
       }
 
       if (page != null && limit != null) {
-        const limitNum = Math.max(1, Number(limit) || 10);
-        const pageNum = Math.max(1, Number(page) || 1);
+        const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
         const offsetNum = (pageNum - 1) * limitNum;
-        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ?, ?`;
-        params = [offsetNum, limitNum];
+        // Use inline values for LIMIT/OFFSET - MySQL prepared statements don't work well with placeholders for LIMIT
+        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ${offsetNum}, ${limitNum}`;
+        params = [];
       } else if (limit != null) {
-        const limitNum = Math.max(1, Number(limit) || 100);
-        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ?`;
-        params = [limitNum];
+        const limitNum = Math.max(1, parseInt(limit, 10) || 100);
+        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ${limitNum}`;
+        params = [];
       } else {
         // trả tất cả (cẩn thận nếu bảng lớn)
         sql = `SELECT * FROM orders ORDER BY ${orderBy}`;
