@@ -994,8 +994,8 @@ export default function Orders() {
                     {/* Product Image - Large */}
                     {currentOrder.items?.[0] && (() => {
                       const firstItem = currentOrder.items[0];
-                      const product = productCache.current[firstItem.product_id];
-                      const imgSrc = product?.image || product?.images?.[0];
+                      const product = firstItem.productInfo;
+                      const imgSrc = product?.media?.find((m) => m.is_primary)?.url ?? product?.media?.[0]?.url ?? null;
                       return (
                         <div className="bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-2xl p-8 mb-8 flex items-center justify-center min-h-[280px]">
                           {imgSrc ? (
