@@ -55,42 +55,20 @@ CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`;
     }
 
     /**
-     * Fetch product image from Unsplash API (free tier: 50 req/hour)
+     * Get a branded placeholder image URL
+     * Uses Picsum.photos for random tech-looking images
      */
     async fetchProductImage(productName) {
-        try {
-            // Use Unsplash API with demo access key
-            // Production: register at https://unsplash.com/developers
-            const UNSPLASH_ACCESS_KEY = "ab3411e4ac868c2646c0ed488dfd919ef612b04c264f3bc0571b0a36fa19a5b5";
+        // Use a consistent seed based on product name for reproducible images
+        const seed = productName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
 
-            // Extract brand/type for better search
-            const searchQuery = productName
-                .replace(/\d+GB|\d+TB|\d+MP|Pro|Max|Ultra|Plus/gi, '')
-                .trim();
+        // Use Picsum for random but consistent images
+        // The seed ensures same product gets same image
+        const width = 600;
+        const height = 600;
 
-            const response = await fetch(
-                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery + ' product')}&per_page=1&orientation=squarish`,
-                {
-                    headers: {
-                        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-                    }
-                }
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    // Return small image URL for faster loading
-                    return data.results[0].urls.small;
-                }
-            }
-
-            // Fallback to styled placeholder
-            return null;
-        } catch (error) {
-            console.error("Unsplash fetch error:", error);
-            return null;
-        }
+        // Return Picsum URL with seed
+        return `https://picsum.photos/seed/${seed}/${width}/${height}`;
     }
 }
 
