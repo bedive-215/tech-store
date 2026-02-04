@@ -67,7 +67,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black" />
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center pt-24" data-aos="fade-up">
-          <span className="text-[#2997ff] font-medium tracking-widest text-sm uppercase mb-4">Bộ Sưu Tập 2024</span>
+          <span className="text-[#2997ff] font-medium tracking-widest text-sm uppercase mb-4">Bộ Sưu Tập 2026 </span>
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
             Tuyệt tác<br />Công nghệ.
           </h1>
