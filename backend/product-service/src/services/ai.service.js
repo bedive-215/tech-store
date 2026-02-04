@@ -4,7 +4,10 @@ import axios from "axios";
 class AIService {
     constructor() {
         this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // Text generation: gemini-2.5-flash (fast & accurate)
         this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // Image generation: gemini-2.0-flash-exp-image-generation (experimental)
+        this.imageModel = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp-image-generation" });
     }
 
     /**
@@ -55,20 +58,46 @@ CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`;
     }
 
     /**
-     * Get a branded placeholder image URL
-     * Uses Picsum.photos for random tech-looking images
+     * Generate product image using Gemini 2.0 Flash Image Generation
+     * Then upload to Cloudinary and return URL
      */
     async fetchProductImage(productName) {
-        // Use a consistent seed based on product name for reproducible images
-        const seed = productName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+        try {
+            // Import cloudinary uploader
+            const { uploadMediaToCloudinary } = await import('../utils/uploadMedia.js');
 
-        // Use Picsum for random but consistent images
-        // The seed ensures same product gets same image
-        const width = 600;
-        const height = 600;
+            // Create image prompt for product
+            const imagePrompt = `Product photography of ${productName}, professional studio lighting, white background, high quality, e-commerce product photo, centered, 4k`;
 
-        // Return Picsum URL with seed
-        return `https://picsum.photos/seed/${seed}/${width}/${height}`;
+            // Generate image using Gemini
+            const result = await this.imageModel.generateContent(imagePrompt);
+            const response = await result.response;
+
+            // Check if image was generated
+            if (response.candidates && response.candidates[0]?.content?.parts) {
+                const part = response.candidates[0].content.parts.find(p => p.inlineData);
+
+                if (part?.inlineData) {
+                    // Convert base64 to buffer
+                    const imageBuffer = Buffer.from(part.inlineData.data, 'base64');
+
+                    // Upload to Cloudinary
+                    const uploaded = await uploadMediaToCloudinary(imageBuffer, 'image', 'ai_product_images');
+
+                    return uploaded.url;
+                }
+            }
+
+            // Fallback to Picsum if generation fails
+            const seed = productName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+            return `https://picsum.photos/seed/${seed}/600/600`;
+
+        } catch (error) {
+            console.error("Gemini image generation error:", error.message);
+            // Fallback to Picsum
+            const seed = productName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+            return `https://picsum.photos/seed/${seed}/600/600`;
+        }
     }
 }
 
