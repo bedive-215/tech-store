@@ -405,8 +405,30 @@ const OrderService = {
       rows.map(async order => {
         const items = await OrderItemRepository.findByOrder(order.id);
 
+        // Parse guest info from shipping_address if it's JSON
+        let customerName = null;
+        let customerEmail = null;
+        let customerPhone = null;
+        let shippingAddress = order.shipping_address;
+
+        try {
+          const parsed = JSON.parse(order.shipping_address);
+          if (parsed.is_guest_order) {
+            customerName = parsed.guest_name || null;
+            customerEmail = parsed.guest_email || null;
+            customerPhone = parsed.guest_phone || null;
+            shippingAddress = parsed.address || order.shipping_address;
+          }
+        } catch (e) {
+          // Not JSON, use as-is
+        }
+
         return {
           order_id: order.id,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          user_id: order.user_id || null,
           total_price: order.total_price,
           discount_amount: order.discount_amount ?? 0,
           final_price:
@@ -414,7 +436,7 @@ const OrderService = {
             (order.total_price - (order.discount_amount || 0)),
           status: order.status,
           created_at: order.created_at,
-          shipping_address: order.shipping_address,
+          shipping_address: shippingAddress,
           items: items.map(it => ({
             product_id: it.product_id,
             product_name: it.product_name ?? null,
