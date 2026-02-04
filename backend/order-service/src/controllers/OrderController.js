@@ -85,10 +85,11 @@ const OrderController = {
   async listAll(req, res) {
     try {
       // optional pagination support via query
-      const { page, limit } = req.query;
+      const { page, limit, sort } = req.query;
       const result = await OrderService.listAllOrders({
         page: page ? Number(page) : null,
-        limit: limit ? Number(limit) : null
+        limit: limit ? Number(limit) : null,
+        sort: sort || null
       });
       return res.json(result);
     } catch (err) {

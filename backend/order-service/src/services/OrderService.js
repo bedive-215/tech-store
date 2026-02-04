@@ -398,8 +398,8 @@ const OrderService = {
     };
   },
 
-  async listAllOrders({ page = null, limit = null } = {}) {
-    const { rows, total } = await OrderRepository.findAll({ page, limit });
+  async listAllOrders({ page = null, limit = null, sort = null } = {}) {
+    const { rows, total } = await OrderRepository.findAll({ page, limit, sort });
 
     const orders = await Promise.all(
       rows.map(async order => {

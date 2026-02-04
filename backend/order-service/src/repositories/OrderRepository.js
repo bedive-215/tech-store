@@ -56,24 +56,33 @@ const OrderRepository = {
     }
   },
 
-  async findAll({ page = null, limit = null } = {}) {
+  async findAll({ page = null, limit = null, sort = null } = {}) {
     try {
       let sql;
       let params = [];
+
+      // Parse sort parameter: "field" or "-field" (DESC)
+      let orderBy = 'created_at DESC';
+      if (sort) {
+        const isDesc = sort.startsWith('-');
+        const field = isDesc ? sort.substring(1) : sort;
+        const direction = isDesc ? 'DESC' : 'ASC';
+        orderBy = `${field} ${direction}`;
+      }
 
       if (page != null && limit != null) {
         const limitNum = Math.max(1, Number(limit) || 10);
         const pageNum = Math.max(1, Number(page) || 1);
         const offsetNum = (pageNum - 1) * limitNum;
-        sql = `SELECT * FROM orders ORDER BY created_at DESC LIMIT ?, ?`;
+        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ?, ?`;
         params = [offsetNum, limitNum];
       } else if (limit != null) {
         const limitNum = Math.max(1, Number(limit) || 100);
-        sql = `SELECT * FROM orders ORDER BY created_at DESC LIMIT ?`;
+        sql = `SELECT * FROM orders ORDER BY ${orderBy} LIMIT ?`;
         params = [limitNum];
       } else {
         // trả tất cả (cẩn thận nếu bảng lớn)
-        sql = `SELECT * FROM orders ORDER BY created_at DESC`;
+        sql = `SELECT * FROM orders ORDER BY ${orderBy}`;
         params = [];
       }
 
