@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { orderService } from "@/services/orderService";
 import { productService } from "@/services/productService";
 import { userService } from "@/services/userService";
+import { warrantyService } from "@/services/warrantyService";
 import { useProduct } from "@/providers/ProductProvider";
 import { format, isValid } from "date-fns";
 import { toast } from "react-toastify";
@@ -293,12 +294,20 @@ const OrderRow = React.memo(function OrderRow({ order, onOpenDetail, onCancel })
             </button>
           )}
           {status === "completed" && (
-            <button
-              onClick={() => onOpenDetail(order.order_id)}
-              className="flex-1 sm:flex-none py-2.5 px-6 rounded-xl bg-white dark:bg-gray-800 border border-primary text-primary font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-sm"
-            >
-              Đánh giá
-            </button>
+            <>
+              <button
+                onClick={() => onOpenDetail(order.order_id)}
+                className="flex-1 sm:flex-none py-2.5 px-6 rounded-xl bg-white dark:bg-gray-800 border border-primary text-primary font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-sm"
+              >
+                Đánh giá
+              </button>
+              <button
+                onClick={() => handleOpenWarranty(order)}
+                className="flex-1 sm:flex-none py-2.5 px-6 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:from-green-600 hover:to-emerald-700 transition-all text-sm shadow-md shadow-green-500/20"
+              >
+                Bảo hành
+              </button>
+            </>
           )}
           {status === "cancelled" && (
             <button
@@ -327,6 +336,16 @@ export default function Orders() {
   const [reviewInputs, setReviewInputs] = useState({});
   const [productReviews, setProductReviews] = useState({});
   const [reviewLoading, setReviewLoading] = useState(false);
+
+  // Warranty modal state
+  const [warrantyModalOpen, setWarrantyModalOpen] = useState(false);
+  const [selectedOrderForWarranty, setSelectedOrderForWarranty] = useState(null);
+  const [warrantyForm, setWarrantyForm] = useState({
+    product_id: '',
+    order_id: '',
+    issue_description: '',
+    images: []
+  });
 
   // Get products from ProductProvider
   const { products } = useProduct() || { products: [] };
@@ -702,6 +721,59 @@ export default function Orders() {
     }));
   }, []);
 
+  // Warranty handlers
+  const handleOpenWarranty = useCallback((order) => {
+    setSelectedOrderForWarranty(order);
+    setWarrantyModalOpen(true);
+    // Pre-fill form with first product
+    if (order.items?.[0]) {
+      setWarrantyForm({
+        product_id: order.items[0].product_id,
+        order_id: order.order_id,
+        issue_description: '',
+        images: []
+      });
+    }
+  }, []);
+
+  const handleSubmitWarranty = useCallback(async () => {
+    if (!user) {
+      toast.error('Bạn cần đăng nhập để đăng ký bảo hành');
+      return;
+    }
+    if (!warrantyForm.product_id || !warrantyForm.issue_description) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        order_id: warrantyForm.order_id,
+        product_id: warrantyForm.product_id,
+        issue_description: warrantyForm.issue_description,
+        files: warrantyForm.images
+      };
+
+      await warrantyService.createWarranty(payload);
+
+      toast.success('Đăng ký bảo hành thành công!');
+      setWarrantyModalOpen(false);
+      setWarrantyForm({ product_id: '', order_id: '', issue_description: '', images: [] });
+    } catch (err) {
+      console.error('Warranty submission error:', err);
+      toast.error(err.response?.data?.message || 'Đăng ký bảo hành thất bại');
+    } finally {
+      setLoading(false);
+    }
+  }, [warrantyForm, user]);
+
+  const handleScrollToReview = useCallback((orderId) => {
+    // Open detail modal which contains review form
+    fetchOrderDetail(orderId);
+  }, [fetchOrderDetail]);
+
   // Filter orders based on active tab
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -736,284 +808,368 @@ export default function Orders() {
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   return (
-    <div className="min-h-screen pt-28 pb-24 px-6 bg-black text-white font-display">
-      <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12">
-        {/* Header */}
-        <header className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white mb-8">Đơn hàng của tôi</h1>
-          <div className="flex flex-wrap gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 w-fit rounded-full">
-            {[
-              { key: 'all', label: 'Tất cả', count: statusCounts.all },
-              { key: 'shipping', label: 'Đang giao', count: statusCounts.shipping },
-              { key: 'completed', label: 'Hoàn thành', count: statusCounts.completed },
-              { key: 'cancelled', label: 'Đã hủy', count: statusCounts.cancelled },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.key
-                  ? 'bg-white text-black'
-                  : 'text-gray-400 hover:text-white'
-                  }`}
-              >
-                {tab.label}
+    <>
+      {/* Warranty Registration Modal */}
+      {warrantyModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#111112] border border-white/10 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Đăng ký bảo hành</h2>
+              <button onClick={() => setWarrantyModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                <span className="material-icons-outlined">close</span>
               </button>
-            ))}
-          </div>
-        </header>
-
-        {/* Orders List */}
-        <div className="space-y-6">
-          {loading && (
-            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-              <div className="text-gray-500 dark:text-gray-400">Đang tải đơn hàng...</div>
             </div>
-          )}
 
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-red-700 dark:text-red-300 flex items-center gap-3">
-              <span className="material-icons-outlined">error_outline</span>
-              {error}
-            </div>
-          )}
+            <div className="space-y-4">
+              {/* Product selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Sản phẩm</label>
+                <select
+                  value={warrantyForm.product_id}
+                  onChange={(e) => setWarrantyForm({ ...warrantyForm, product_id: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all"
+                >
+                  {selectedOrderForWarranty?.items?.map((item) => (
+                    <option key={item.product_id} value={item.product_id}>
+                      {item.productInfo?.name || item.product_name} (x{item.quantity})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {!loading && !error && (
-            filteredOrders.length === 0 ? (
-              <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
-                <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">
-                  {activeTab === 'cancelled' ? 'remove_shopping_cart' : 'shopping_bag'}
-                </span>
-                <h3 className="text-xl font-semibold text-gray-300 mb-2">
-                  {activeTab === 'all' && 'Chưa có đơn hàng'}
-                  {activeTab === 'confirmed' && 'Không có đơn chờ xác nhận'}
-                  {activeTab === 'paid' && 'Không có đơn đã thanh toán'}
-                  {activeTab === 'shipping' && 'Không có đơn đang giao'}
-                  {activeTab === 'completed' && 'Không có đơn hoàn thành'}
-                  {activeTab === 'cancelled' && 'Không có đơn đã hủy'}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {activeTab === 'all' ? 'Hãy khám phá các sản phẩm tuyệt vời của chúng tôi' : 'Các đơn hàng phù hợp sẽ hiển thị tại đây'}
-                </p>
-                {activeTab === 'all' && (
-                  <button
-                    onClick={() => navigate('/')}
-                    className="py-2.5 px-6 rounded-xl bg-primary text-white font-medium hover:bg-blue-600 shadow-md shadow-blue-500/20 transition-all text-sm"
-                  >
-                    Khám phá sản phẩm
-                  </button>
+              {/* Issue description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Mô tả vấn đề <span className="text-red-500">*</span></label>
+                <textarea
+                  value={warrantyForm.issue_description}
+                  onChange={(e) => setWarrantyForm({ ...warrantyForm, issue_description: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+                  rows={4}
+                  placeholder="Mô tả chi tiết vấn đề của sản phẩm..."
+                />
+              </div>
+
+              {/* Image upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Hình ảnh (tùy chọn - tối đa 5 ảnh)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files).slice(0, 5);
+                    setWarrantyForm({ ...warrantyForm, images: files });
+                  }}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer hover:file:bg-blue-600 transition-all"
+                />
+                {warrantyForm.images.length > 0 && (
+                  <p className="mt-2 text-xs text-gray-400">
+                    {warrantyForm.images.length} ảnh đã chọn
+                  </p>
                 )}
               </div>
-            ) : filteredOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
-          )}
+
+              {/* Actions */}
+              <div className="flex gap-4 pt-4">
+                <button
+                  onClick={() => setWarrantyModalOpen(false)}
+                  className="flex-1 py-3 px-6 rounded-xl bg-gray-700 text-white hover:bg-gray-600 transition-colors font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSubmitWarranty}
+                  disabled={!warrantyForm.product_id || !warrantyForm.issue_description || loading}
+                  className="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-green-500/20"
+                >
+                  {loading ? 'Đang gửi...' : 'Đăng ký bảo hành'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* MODAL - Order Detail (Redesigned) */}
-        {currentOrder && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
-            <div className="bg-[#1c1c1e] rounded-3xl shadow-2xl max-w-5xl w-full relative overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="min-h-screen pt-28 pb-24 px-6 bg-black text-white font-display">
+        <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12">
+          {/* Header */}
+          <header className="mb-12">
+            <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white mb-8">Đơn hàng của tôi</h1>
+            <div className="flex flex-wrap gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 w-fit rounded-full">
+              {[
+                { key: 'all', label: 'Tất cả', count: statusCounts.all },
+                { key: 'shipping', label: 'Đang giao', count: statusCounts.shipping },
+                { key: 'completed', label: 'Hoàn thành', count: statusCounts.completed },
+                { key: 'cancelled', label: 'Đã hủy', count: statusCounts.cancelled },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.key
+                    ? 'bg-white text-black'
+                    : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </header>
 
-              {/* Two Column Layout */}
-              <div className="flex flex-col lg:flex-row overflow-hidden flex-1">
+          {/* Orders List */}
+          <div className="space-y-6">
+            {loading && (
+              <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                <div className="text-gray-500 dark:text-gray-400">Đang tải đơn hàng...</div>
+              </div>
+            )}
 
-                {/* LEFT COLUMN - Product & Address */}
-                <div className="flex-1 p-8 overflow-y-auto border-r border-white/5">
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-red-700 dark:text-red-300 flex items-center gap-3">
+                <span className="material-icons-outlined">error_outline</span>
+                {error}
+              </div>
+            )}
 
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-8">
-                    <div>
-                      <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Chi tiết đơn hàng</h2>
-                      <p className="text-gray-500 text-sm">Mã đơn: <span className="text-gray-400 font-mono">#{currentOrder.order_id}</span></p>
-                    </div>
+            {!loading && !error && (
+              filteredOrders.length === 0 ? (
+                <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
+                  <span className="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">
+                    {activeTab === 'cancelled' ? 'remove_shopping_cart' : 'shopping_bag'}
+                  </span>
+                  <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                    {activeTab === 'all' && 'Chưa có đơn hàng'}
+                    {activeTab === 'confirmed' && 'Không có đơn chờ xác nhận'}
+                    {activeTab === 'paid' && 'Không có đơn đã thanh toán'}
+                    {activeTab === 'shipping' && 'Không có đơn đang giao'}
+                    {activeTab === 'completed' && 'Không có đơn hoàn thành'}
+                    {activeTab === 'cancelled' && 'Không có đơn đã hủy'}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    {activeTab === 'all' ? 'Hãy khám phá các sản phẩm tuyệt vời của chúng tôi' : 'Các đơn hàng phù hợp sẽ hiển thị tại đây'}
+                  </p>
+                  {activeTab === 'all' && (
                     <button
-                      className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-all"
-                      onClick={() => setCurrentOrder(null)}
+                      onClick={() => navigate('/')}
+                      className="py-2.5 px-6 rounded-xl bg-primary text-white font-medium hover:bg-blue-600 shadow-md shadow-blue-500/20 transition-all text-sm"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      Khám phá sản phẩm
                     </button>
-                  </div>
-
-                  {/* Product Image - Large */}
-                  {currentOrder.items?.[0] && (() => {
-                    const firstItem = currentOrder.items[0];
-                    const product = productCache.current[firstItem.product_id];
-                    const imgSrc = product?.image || product?.images?.[0];
-                    return (
-                      <div className="bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-2xl p-8 mb-8 flex items-center justify-center min-h-[280px]">
-                        {imgSrc ? (
-                          <img
-                            src={imgSrc}
-                            alt={product?.name || 'Product'}
-                            className="max-h-[240px] w-auto object-contain"
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                          />
-                        ) : (
-                          <div className="w-32 h-32 rounded-2xl bg-gray-700/50 flex items-center justify-center">
-                            <svg className="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-
-                  {/* Products Section */}
-                  <div className="mb-8">
-                    <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Sản phẩm</h3>
-                    {currentOrder.items.map((item, idx) => {
-                      const product = productCache.current[item.product_id];
-                      return (
-                        <div key={item.product_id || idx} className="mb-4">
-                          <h4 className="text-xl font-medium text-white mb-1">
-                            {product?.name || item.product_name || 'Sản phẩm'}
-                          </h4>
-                          <p className="text-gray-500 text-sm mb-2">Số lượng: {item.quantity?.toString().padStart(2, '0')}</p>
-                          <button className="text-[#0a84ff] text-sm font-medium hover:underline">
-                            Xem thông số kỹ thuật
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Shipping Address */}
-                  {currentOrder.shipping_address && (
-                    <div>
-                      <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Vận chuyển đến</h3>
-                      <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[#0a84ff]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="w-3.5 h-3.5 text-[#0a84ff]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-white text-sm leading-relaxed">{currentOrder.shipping_address}</p>
-                          <p className="text-gray-500 text-sm mt-2 italic">Nhận tại cửa hàng</p>
-                        </div>
-                      </div>
-                    </div>
                   )}
                 </div>
+              ) : filteredOrders.map((o) => <OrderRow key={o.order_id} order={o} onOpenDetail={fetchOrderDetail} onCancel={handleCancelOrder} />)
+            )}
+          </div>
 
-                {/* RIGHT COLUMN - Status & Payment */}
-                <div className="w-full lg:w-[320px] bg-[#1c1c1e] p-8 overflow-y-auto">
+          {/* MODAL - Order Detail (Redesigned) */}
+          {currentOrder && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+              <div className="bg-[#1c1c1e] rounded-3xl shadow-2xl max-w-5xl w-full relative overflow-hidden max-h-[90vh] flex flex-col">
 
-                  {/* Order Status Timeline - Vertical */}
-                  <div className="mb-10">
-                    <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-6">Trạng thái đơn hàng</h3>
+                {/* Two Column Layout */}
+                <div className="flex flex-col lg:flex-row overflow-hidden flex-1">
 
-                    <div className="space-y-0">
-                      {[
-                        { key: 'confirmed', label: 'Đã xác nhận', time: safeDate(currentOrder.created_at) },
-                        { key: 'paid', label: 'Đã thanh toán', time: 'Đang chờ xử lý' },
-                        { key: 'shipping', label: 'Đang giao hàng', time: 'Dự kiến 2 ngày tới' },
-                        { key: 'completed', label: 'Đã giao hàng', time: '' },
-                      ].map((step, idx, arr) => {
-                        const currentIdx = getProgressIndex(currentOrder.status);
-                        const stepIdx = PROGRESS_STEPS.indexOf(step.key);
-                        const isDone = stepIdx < currentIdx;
-                        const isActive = stepIdx === currentIdx;
-                        const isCancelled = currentOrder.status === 'cancelled';
+                  {/* LEFT COLUMN - Product & Address */}
+                  <div className="flex-1 p-8 overflow-y-auto border-r border-white/5">
 
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-8">
+                      <div>
+                        <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">Chi tiết đơn hàng</h2>
+                        <p className="text-gray-500 text-sm">Mã đơn: <span className="text-gray-400 font-mono">#{currentOrder.order_id}</span></p>
+                      </div>
+                      <button
+                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-all"
+                        onClick={() => setCurrentOrder(null)}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Product Image - Large */}
+                    {currentOrder.items?.[0] && (() => {
+                      const firstItem = currentOrder.items[0];
+                      const product = productCache.current[firstItem.product_id];
+                      const imgSrc = product?.image || product?.images?.[0];
+                      return (
+                        <div className="bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-2xl p-8 mb-8 flex items-center justify-center min-h-[280px]">
+                          {imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={product?.name || 'Product'}
+                              className="max-h-[240px] w-auto object-contain"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className="w-32 h-32 rounded-2xl bg-gray-700/50 flex items-center justify-center">
+                              <svg className="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Products Section */}
+                    <div className="mb-8">
+                      <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Sản phẩm</h3>
+                      {currentOrder.items.map((item, idx) => {
+                        const product = productCache.current[item.product_id];
                         return (
-                          <div key={step.key} className="flex items-start gap-4">
-                            {/* Timeline dot and line */}
-                            <div className="flex flex-col items-center">
-                              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isCancelled ? 'bg-gray-600' :
-                                isDone || isActive ? 'bg-[#0a84ff]' : 'bg-gray-600'
-                                }`} />
-                              {idx < arr.length - 1 && (
-                                <div className={`w-0.5 h-16 ${isCancelled ? 'bg-gray-700' :
-                                  isDone ? 'bg-[#0a84ff]/30' : 'bg-gray-700'
-                                  }`} />
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="pb-6 -mt-0.5">
-                              <p className={`font-medium ${isCancelled ? 'text-gray-500' :
-                                isDone || isActive ? 'text-white' : 'text-gray-500'
-                                }`}>{step.label}</p>
-                              {step.time && (
-                                <p className="text-gray-500 text-sm mt-0.5">{step.time}</p>
-                              )}
-                            </div>
+                          <div key={item.product_id || idx} className="mb-4">
+                            <h4 className="text-xl font-medium text-white mb-1">
+                              {product?.name || item.product_name || 'Sản phẩm'}
+                            </h4>
+                            <p className="text-gray-500 text-sm mb-2">Số lượng: {item.quantity?.toString().padStart(2, '0')}</p>
+                            <button className="text-[#0a84ff] text-sm font-medium hover:underline">
+                              Xem thông số kỹ thuật
+                            </button>
                           </div>
                         );
                       })}
                     </div>
+
+                    {/* Shipping Address */}
+                    {currentOrder.shipping_address && (
+                      <div>
+                        <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Vận chuyển đến</h3>
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-[#0a84ff]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-[#0a84ff]" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-white text-sm leading-relaxed">{currentOrder.shipping_address}</p>
+                            <p className="text-gray-500 text-sm mt-2 italic">Nhận tại cửa hàng</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Payment Summary */}
-                  <div className="border-t border-white/5 pt-6">
-                    <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Tổng thanh toán</h3>
+                  {/* RIGHT COLUMN - Status & Payment */}
+                  <div className="w-full lg:w-[320px] bg-[#1c1c1e] p-8 overflow-y-auto">
 
-                    {/* Big Price */}
-                    <div className="mb-4">
-                      <span className="text-4xl font-light text-white tracking-tight">
-                        {new Intl.NumberFormat('vi-VN').format(currentOrder.final_price || currentOrder.total_price || 0)}
-                      </span>
-                      <span className="text-2xl font-light text-white ml-1">₫</span>
-                      <p className="text-gray-500 text-sm mt-1">Đã bao gồm thuế GTGT</p>
+                    {/* Order Status Timeline - Vertical */}
+                    <div className="mb-10">
+                      <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-6">Trạng thái đơn hàng</h3>
+
+                      <div className="space-y-0">
+                        {[
+                          { key: 'confirmed', label: 'Đã xác nhận', time: safeDate(currentOrder.created_at) },
+                          { key: 'paid', label: 'Đã thanh toán', time: 'Đang chờ xử lý' },
+                          { key: 'shipping', label: 'Đang giao hàng', time: 'Dự kiến 2 ngày tới' },
+                          { key: 'completed', label: 'Đã giao hàng', time: '' },
+                        ].map((step, idx, arr) => {
+                          const currentIdx = getProgressIndex(currentOrder.status);
+                          const stepIdx = PROGRESS_STEPS.indexOf(step.key);
+                          const isDone = stepIdx < currentIdx;
+                          const isActive = stepIdx === currentIdx;
+                          const isCancelled = currentOrder.status === 'cancelled';
+
+                          return (
+                            <div key={step.key} className="flex items-start gap-4">
+                              {/* Timeline dot and line */}
+                              <div className="flex flex-col items-center">
+                                <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isCancelled ? 'bg-gray-600' :
+                                  isDone || isActive ? 'bg-[#0a84ff]' : 'bg-gray-600'
+                                  }`} />
+                                {idx < arr.length - 1 && (
+                                  <div className={`w-0.5 h-16 ${isCancelled ? 'bg-gray-700' :
+                                    isDone ? 'bg-[#0a84ff]/30' : 'bg-gray-700'
+                                    }`} />
+                                )}
+                              </div>
+
+                              {/* Content */}
+                              <div className="pb-6 -mt-0.5">
+                                <p className={`font-medium ${isCancelled ? 'text-gray-500' :
+                                  isDone || isActive ? 'text-white' : 'text-gray-500'
+                                  }`}>{step.label}</p>
+                                {step.time && (
+                                  <p className="text-gray-500 text-sm mt-0.5">{step.time}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Breakdown */}
-                    <div className="space-y-2 mb-6">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Tạm tính</span>
-                        <span className="text-white">{formatPrice(currentOrder.total_price)}</span>
+                    {/* Payment Summary */}
+                    <div className="border-t border-white/5 pt-6">
+                      <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-4">Tổng thanh toán</h3>
+
+                      {/* Big Price */}
+                      <div className="mb-4">
+                        <span className="text-4xl font-light text-white tracking-tight">
+                          {new Intl.NumberFormat('vi-VN').format(currentOrder.final_price || currentOrder.total_price || 0)}
+                        </span>
+                        <span className="text-2xl font-light text-white ml-1">₫</span>
+                        <p className="text-gray-500 text-sm mt-1">Đã bao gồm thuế GTGT</p>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Vận chuyển</span>
-                        <span className="text-[#30d158] font-medium">Miễn phí</span>
-                      </div>
-                      {Number(currentOrder.discount_amount) > 0 && (
+
+                      {/* Breakdown */}
+                      <div className="space-y-2 mb-6">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Giảm giá</span>
-                          <span className="text-[#30d158]">-{formatPrice(currentOrder.discount_amount)}</span>
+                          <span className="text-gray-500">Tạm tính</span>
+                          <span className="text-white">{formatPrice(currentOrder.total_price)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Vận chuyển</span>
+                          <span className="text-[#30d158] font-medium">Miễn phí</span>
+                        </div>
+                        {Number(currentOrder.discount_amount) > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Giảm giá</span>
+                            <span className="text-[#30d158]">-{formatPrice(currentOrder.discount_amount)}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Cancel Button */}
+                      {String(currentOrder.status).toLowerCase() === 'confirmed' && (
+                        <button
+                          onClick={() => handleCancelOrder(currentOrder.order_id)}
+                          className="w-full py-3 text-gray-400 hover:text-white border border-white/10 rounded-xl font-medium hover:bg-white/5 transition-all mb-6"
+                        >
+                          Huỷ đơn hàng
+                        </button>
+                      )}
+
+                      {/* Cancelled Banner */}
+                      {String(currentOrder.status).toLowerCase() === 'cancelled' && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+                          <p className="text-red-400 font-medium text-center">Đơn hàng đã bị huỷ</p>
+                          <button
+                            onClick={() => handleReorder(currentOrder)}
+                            disabled={loading}
+                            className="w-full mt-3 py-2.5 bg-[#0a84ff] text-white rounded-lg text-sm font-medium hover:bg-[#0a84ff]/80 transition-colors"
+                          >
+                            Mua lại
+                          </button>
                         </div>
                       )}
-                    </div>
 
-                    {/* Cancel Button */}
-                    {String(currentOrder.status).toLowerCase() === 'confirmed' && (
-                      <button
-                        onClick={() => handleCancelOrder(currentOrder.order_id)}
-                        className="w-full py-3 text-gray-400 hover:text-white border border-white/10 rounded-xl font-medium hover:bg-white/5 transition-all mb-6"
-                      >
-                        Huỷ đơn hàng
-                      </button>
-                    )}
-
-                    {/* Cancelled Banner */}
-                    {String(currentOrder.status).toLowerCase() === 'cancelled' && (
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
-                        <p className="text-red-400 font-medium text-center">Đơn hàng đã bị huỷ</p>
-                        <button
-                          onClick={() => handleReorder(currentOrder)}
-                          disabled={loading}
-                          className="w-full mt-3 py-2.5 bg-[#0a84ff] text-white rounded-lg text-sm font-medium hover:bg-[#0a84ff]/80 transition-colors"
-                        >
-                          Mua lại
-                        </button>
+                      {/* Support */}
+                      <div className="text-center">
+                        <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Cần hỗ trợ?</p>
+                        <p className="text-white font-medium">1800 123 456</p>
                       </div>
-                    )}
-
-                    {/* Support */}
-                    <div className="text-center">
-                      <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Cần hỗ trợ?</p>
-                      <p className="text-white font-medium">1800 123 456</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div >
+    </>
   );
 }
