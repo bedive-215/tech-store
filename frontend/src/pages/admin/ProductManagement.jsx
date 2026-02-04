@@ -241,6 +241,13 @@ export default function ProductManagement() {
         console.log("Payload:", payload);
       } else {
         console.log("Creating product Payload:", payload);
+        console.log("Token:", token ? "exists" : "MISSING!");
+      }
+
+      // Check token before proceeding
+      if (!token) {
+        toast.error("Bạn chưa đăng nhập! Vui lòng đăng nhập admin để tạo sản phẩm.");
+        return;
       }
 
       // If editingProduct -> update, else create
