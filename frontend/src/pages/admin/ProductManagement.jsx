@@ -32,7 +32,7 @@ import { useCategory } from "@/providers/CategoryProvider";
  */
 
 export default function ProductManagement() {
-  const { token } = useAuth();
+  const { accessToken: token } = useAuth();
 
   const {
     products,
