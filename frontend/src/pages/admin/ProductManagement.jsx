@@ -887,7 +887,40 @@ export default function ProductManagement() {
                   {isAIGenerating ? "Đang tạo nội dung..." : "✨ AI Generate - Tự động điền"}
                 </button>
                 <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", marginTop: "8px", textAlign: "center" }}>
-                  AI sẽ tự động tạo: Mô tả, Giá, Brand, Category
+                  AI sẽ tự động tạo: Mô tả, Giá, Brand, Category, Ảnh
+                </p>
+              </div>
+            )}
+
+            {/* AI Generated Image Preview */}
+            {aiImageUrl && !editingProduct && (
+              <div style={{
+                background: "#f0fdf4",
+                border: "2px solid #22c55e",
+                borderRadius: "12px",
+                padding: "12px",
+                marginBottom: "16px",
+                textAlign: "center"
+              }}>
+                <p style={{ fontSize: "12px", color: "#166534", marginBottom: "8px", fontWeight: "600" }}>
+                  🖼️ Ảnh gợi ý từ AI
+                </p>
+                <img
+                  src={aiImageUrl}
+                  alt="AI Generated"
+                  style={{
+                    maxWidth: "200px",
+                    maxHeight: "150px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd"
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <p style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>
+                  Ảnh sẽ được tải lên sau khi tạo sản phẩm
                 </p>
               </div>
             )}

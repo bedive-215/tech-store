@@ -55,22 +55,39 @@ CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`;
     }
 
     /**
-     * Fetch product image from web (using placeholder for now)
-     * Can be upgraded to use Google Custom Search API
+     * Fetch product image URL using Gemini AI to suggest a real image URL
      */
     async fetchProductImage(productName) {
-        // Simple approach: use a product image search service or placeholder
-        // For production, use Google Custom Search API or SerpAPI
-
-        const encodedName = encodeURIComponent(productName);
-
-        // Try to get image from a reliable source
-        // Using a fallback approach
         try {
-            // Option 1: Use placeholder with product name
-            return `https://placehold.co/600x400/1a1a1a/white?text=${encodedName.substring(0, 20)}`;
+            // Use Gemini to find a real product image URL
+            const imagePrompt = `Bạn là chuyên gia tìm hình ảnh sản phẩm. 
+Cho sản phẩm: "${productName}"
+
+Hãy TRẢ VỀ MỘT URL ảnh sản phẩm THỰC TẾ từ các nguồn sau (chọn 1):
+1. cdn.tgdd.vn (Thế Giới Di Động)
+2. images.fpt.shop (FPT Shop)  
+3. cdn.shopify.com
+4. m.media-amazon.com
+5. store.storeimages.cdn-apple.com
+
+CHỈ TRẢ VỀ URL, KHÔNG CÓ TEXT KHÁC. URL phải là link trực tiếp đến file ảnh .jpg, .png hoặc .webp`;
+
+            const result = await this.model.generateContent(imagePrompt);
+            const imageUrl = result.response.text().trim();
+
+            // Validate URL format
+            if (imageUrl.startsWith('http') && (imageUrl.includes('.jpg') || imageUrl.includes('.png') || imageUrl.includes('.webp') || imageUrl.includes('cdn'))) {
+                return imageUrl;
+            }
+
+            // Fallback: use a professional placeholder
+            const brandMatch = productName.match(/(iPhone|Samsung|MacBook|iPad|Apple|Xiaomi|Sony|JBL|Logitech|Razer)/i);
+            const brand = brandMatch ? brandMatch[1] : 'Tech';
+            return `https://placehold.co/600x600/111827/ffffff?text=${encodeURIComponent(brand)}`;
+
         } catch (error) {
-            return null;
+            console.error("Image fetch error:", error);
+            return `https://placehold.co/600x600/111827/ffffff?text=Product`;
         }
     }
 }
