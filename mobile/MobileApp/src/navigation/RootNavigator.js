@@ -11,6 +11,7 @@ import ForgotPassword from "../screens/auth/ForgotPassword";
 import ProductScreen from "../screens/home/ProductScreen";
 import CartScreen from "../screens/home/CartScreen";
 import OrdersScreen from "../screens/home/OrdersScreen";
+import WarrantyScreen from "../screens/home/WarrantyScreen";
 
 // User
 import CustomerInfoScreen from "../screens/home/CustomerInfoScreen";
@@ -39,6 +40,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="CustomerInfo" component={CustomerInfoScreen} />
       <Stack.Screen name="Orders" component={OrdersScreen} />
+      <Stack.Screen name="Warranty" component={WarrantyScreen} />
       
       {/* 
         Tạm thời giữ UserHome để tương thích với code cũ

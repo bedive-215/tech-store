@@ -50,6 +50,52 @@ class AuthMiddleware {
     }
   }
 
+  // Optional auth - allows both authenticated and guest users
+  async optionalAuth(req, res, next) {
+    try {
+      const authHeader = req.headers["authorization"];
+      const token = authHeader && authHeader.split(" ")[1];
+
+      if (!token) {
+        // No token = guest user
+        req.user = {
+          id: null,
+          email: null,
+          role: "guest",
+          full_name: null,
+          phone_number: null,
+          isGuest: true
+        };
+        return next();
+      }
+
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+      req.user = {
+        id: decoded.id || decoded.user_id,
+        email: decoded.email,
+        role: decoded.role,
+        full_name: decoded.full_name,
+        phone_number: decoded.phone_number,
+        isGuest: false
+      };
+
+      next();
+    } catch (err) {
+      // Invalid token = treat as guest
+      console.warn("Optional auth - invalid token, treating as guest:", err.message);
+      req.user = {
+        id: null,
+        email: null,
+        role: "guest",
+        full_name: null,
+        phone_number: null,
+        isGuest: true
+      };
+      next();
+    }
+  }
+
   checkRole(...allowedRoles) {
     return (req, res, next) => {
       if (!req.user) {

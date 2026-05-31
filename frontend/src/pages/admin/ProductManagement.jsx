@@ -9,6 +9,7 @@ import {
   Star,
   UploadCloud,
   Package,
+  Sparkles,
 } from "lucide-react";
 import { useProduct } from "@/providers/ProductProvider";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,7 +32,7 @@ import { useCategory } from "@/providers/CategoryProvider";
  */
 
 export default function ProductManagement() {
-  const { token } = useAuth();
+  const { accessToken: token } = useAuth();
 
   const {
     products,
@@ -45,8 +46,8 @@ export default function ProductManagement() {
     deleteMedia,
     loading,
   } = useProduct();
-const { brands, fetchBrands } = useBrand();
-const { categories, fetchCategories } = useCategory();
+  const { brands, fetchBrands } = useBrand();
+  const { categories, fetchCategories } = useCategory();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -67,12 +68,17 @@ const { categories, fetchCategories } = useCategory();
   const fileInputRef = useRef(null);
   const dropRef = useRef(null);
 
- useEffect(() => {
-  fetchProducts();
-  fetchBrands();      // 👈 load brand
-  fetchCategories();  // 👈 load category
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+  // AI Generate states
+  const [specs, setSpecs] = useState("");
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [aiImageUrl, setAiImageUrl] = useState(null);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchBrands();      // 👈 load brand
+    fetchCategories();  // 👈 load category
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   // Open modal to add product
@@ -88,10 +94,62 @@ const { categories, fetchCategories } = useCategory();
     });
     setMediaList([]);
     setSelectedFiles([]);
+    setSpecs("");
+    setAiImageUrl(null);
     setModalOpen(true);
   };
 
-  // Open modal to edit product, load media list
+  // AI Generate product details
+  const handleAIGenerate = async () => {
+    if (!formData.name) {
+      alert("Vui lòng nhập tên sản phẩm trước");
+      return;
+    }
+    if (!specs) {
+      alert("Vui lòng nhập cấu hình sản phẩm");
+      return;
+    }
+
+    setIsAIGenerating(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || "https://api.store.hailamdev.space"}/api/v1/products/ai/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: formData.name, specs }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const { description, suggestedPrice, brand, category, imageUrl } = result.data;
+
+        setFormData((prev) => ({
+          ...prev,
+          description: description || prev.description,
+          price: suggestedPrice || prev.price,
+          brand_name: brand || prev.brand_name,
+          category_name: category || prev.category_name,
+        }));
+
+        if (imageUrl) {
+          setAiImageUrl(imageUrl);
+        }
+
+        alert("✅ AI đã tạo nội dung thành công!");
+      } else {
+        alert("Lỗi: " + (result.message || "Không thể tạo nội dung"));
+      }
+    } catch (error) {
+      console.error("AI Generate Error:", error);
+      alert("Lỗi kết nối AI: " + error.message);
+    } finally {
+      setIsAIGenerating(false);
+    }
+  };
+
   const openEditModal = async (product) => {
     setEditingProduct(product);
     setFormData({
@@ -183,6 +241,13 @@ const { categories, fetchCategories } = useCategory();
         console.log("Payload:", payload);
       } else {
         console.log("Creating product Payload:", payload);
+        console.log("Token:", token ? "exists" : "MISSING!");
+      }
+
+      // Check token before proceeding
+      if (!token) {
+        toast.error("Bạn chưa đăng nhập! Vui lòng đăng nhập admin để tạo sản phẩm.");
+        return;
       }
 
       // If editingProduct -> update, else create
@@ -190,13 +255,37 @@ const { categories, fetchCategories } = useCategory();
         await updateProduct(editingProduct.product_id, payload, token);
         toast.success("Cập nhật sản phẩm thành công");
       } else {
-        await createProduct(payload, token);
+        const newProduct = await createProduct(payload, token);
         toast.success("Tạo sản phẩm thành công");
+
+        // If we have an AI-generated image URL, upload it to the new product
+        if (aiImageUrl && newProduct?.product?.product_id) {
+          try {
+            const uploadResponse = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL || "https://api.store.hailamdev.space"}/api/v1/products/${newProduct.product.product_id}/media/from-url`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ imageUrl: aiImageUrl })
+              }
+            );
+            if (uploadResponse.ok) {
+              toast.success("Đã upload ảnh từ AI!");
+            }
+          } catch (imgErr) {
+            console.warn("AI image upload failed:", imgErr);
+          }
+        }
       }
 
       await fetchProducts();
       setModalOpen(false);
       setSelectedFiles([]);
+      setAiImageUrl(null);
+      setSpecs("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error("Submit error:", err);
@@ -235,7 +324,7 @@ const { categories, fetchCategories } = useCategory();
     try {
       setMediaUploading(true);
       await uploadProductMedia(editingProduct.product_id, selectedFiles, token);
-      
+
       // refresh media list
       const item = await fetchProductById(editingProduct.product_id);
       const medias = item?.media ?? item?.images ?? [];
@@ -245,11 +334,11 @@ const { categories, fetchCategories } = useCategory();
         is_primary: !!(m.is_primary ?? m.isPrimary ?? m.primary),
       }));
       setMediaList(normalized);
-      
+
       // clear selected files
       setSelectedFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      
+
       toast.success("Upload ảnh thành công");
     } catch (err) {
       console.error(err);
@@ -315,10 +404,10 @@ const { categories, fetchCategories } = useCategory();
   const handleDeleteMedia = async (mediaId) => {
     if (!editingProduct) return;
     if (!window.confirm("Xác nhận xóa ảnh này?")) return;
-    
+
     try {
       await deleteMedia(editingProduct.product_id, mediaId, token);
-      
+
       // Refresh media list
       const item = await fetchProductById(editingProduct.product_id);
       const medias = item?.media ?? item?.images ?? [];
@@ -328,7 +417,7 @@ const { categories, fetchCategories } = useCategory();
         is_primary: !!(m.is_primary ?? m.isPrimary ?? m.primary),
       }));
       setMediaList(normalized);
-      
+
       toast.success("Xóa ảnh thành công");
     } catch (err) {
       console.error(err);
@@ -339,7 +428,7 @@ const { categories, fetchCategories } = useCategory();
   // Refresh media list manually
   const handleRefreshMedia = async () => {
     if (!editingProduct) return;
-    
+
     try {
       const item = await fetchProductById(editingProduct.product_id);
       const medias = item?.media ?? item?.images ?? [];
@@ -533,7 +622,7 @@ const { categories, fetchCategories } = useCategory();
   };
 
   return (
-    <div style={{ padding: "20px", background: "#F3F4F6", minHeight: "100vh" }}>
+    <div className="admin-light" style={{ padding: "20px", minHeight: "100vh" }}>
       <h1
         style={{
           fontSize: "28px",
@@ -784,7 +873,88 @@ const { categories, fetchCategories } = useCategory();
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
+              placeholder="VD: iPhone 16 Pro Max 256GB"
             />
+
+            {/* AI Generate Section - Only show for new products */}
+            {!editingProduct && (
+              <div style={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                padding: "16px",
+                borderRadius: "12px",
+                marginBottom: "16px"
+              }}>
+                <label style={{ ...label, color: "white", marginBottom: "8px" }}>
+                  🤖 Cấu hình sản phẩm (cho AI Generate)
+                </label>
+                <input
+                  style={{ ...input, marginBottom: "12px" }}
+                  value={specs}
+                  onChange={(e) => setSpecs(e.target.value)}
+                  placeholder="VD: A18 Pro, 256GB, 6.9 inch, 48MP camera"
+                />
+                <button
+                  type="button"
+                  onClick={handleAIGenerate}
+                  disabled={isAIGenerating || !formData.name || !specs}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    width: "100%",
+                    padding: "12px",
+                    background: isAIGenerating ? "#9CA3AF" : "white",
+                    color: isAIGenerating ? "white" : "#764ba2",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    cursor: isAIGenerating ? "wait" : "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <Sparkles size={18} />
+                  {isAIGenerating ? "Đang tạo nội dung..." : "✨ AI Generate - Tự động điền"}
+                </button>
+                <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", marginTop: "8px", textAlign: "center" }}>
+                  AI sẽ tự động tạo: Mô tả, Giá, Brand, Category, Ảnh
+                </p>
+              </div>
+            )}
+
+            {/* AI Generated Image Preview */}
+            {aiImageUrl && !editingProduct && (
+              <div style={{
+                background: "#f0fdf4",
+                border: "2px solid #22c55e",
+                borderRadius: "12px",
+                padding: "12px",
+                marginBottom: "16px",
+                textAlign: "center"
+              }}>
+                <p style={{ fontSize: "12px", color: "#166534", marginBottom: "8px", fontWeight: "600" }}>
+                  🖼️ Ảnh gợi ý từ AI
+                </p>
+                <img
+                  src={aiImageUrl}
+                  alt="AI Generated"
+                  style={{
+                    maxWidth: "200px",
+                    maxHeight: "150px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd"
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <p style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>
+                  Ảnh sẽ được tải lên sau khi tạo sản phẩm
+                </p>
+              </div>
+            )}
 
             <label style={label}>Giá</label>
             <input
@@ -816,37 +986,37 @@ const { categories, fetchCategories } = useCategory();
             />
 
             <label style={label}>Brand</label>
-<select
-  style={input}
-  value={formData.brand_name}
-  onChange={(e) =>
-    setFormData({ ...formData, brand_name: e.target.value })
-  }
->
-  <option value="">-- Chọn brand --</option>
-  {brands.map((b) => (
-    <option key={b.name} value={b.name}>
-      {b.name}
-    </option>
-  ))}
-</select>
+            <select
+              style={input}
+              value={formData.brand_name}
+              onChange={(e) =>
+                setFormData({ ...formData, brand_name: e.target.value })
+              }
+            >
+              <option value="">-- Chọn brand --</option>
+              {brands.map((b) => (
+                <option key={b.name} value={b.name}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
 
 
-         <label style={label}>Category</label>
-<select
-  style={input}
-  value={formData.category_name}
-  onChange={(e) =>
-    setFormData({ ...formData, category_name: e.target.value })
-  }
->
-  <option value="">-- Chọn category --</option>
-  {categories.map((c) => (
-    <option key={c.name} value={c.name}>
-      {c.name}
-    </option>
-  ))}
-</select>
+            <label style={label}>Category</label>
+            <select
+              style={input}
+              value={formData.category_name}
+              onChange={(e) =>
+                setFormData({ ...formData, category_name: e.target.value })
+              }
+            >
+              <option value="">-- Chọn category --</option>
+              {categories.map((c) => (
+                <option key={c.name} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
 
 
             {/* Nút Submit - CHỈ GỬI DATA, KHÔNG GỬI ẢNH */}
@@ -868,8 +1038,8 @@ const { categories, fetchCategories } = useCategory();
               {loading
                 ? "Đang xử lý..."
                 : editingProduct
-                ? "Cập nhật"
-                : "Thêm mới"}
+                  ? "Cập nhật"
+                  : "Thêm mới"}
             </button>
 
             {/* Upload area - CHỈ HIỂN THỊ KHI EDIT */}
@@ -968,8 +1138,8 @@ const { categories, fetchCategories } = useCategory();
                           style={{
                             background:
                               mediaUploading ||
-                              !selectedFiles ||
-                              selectedFiles.length === 0
+                                !selectedFiles ||
+                                selectedFiles.length === 0
                                 ? "#D1D5DB"
                                 : "#10B981",
                             color: "white",
@@ -978,8 +1148,8 @@ const { categories, fetchCategories } = useCategory();
                             borderRadius: 8,
                             cursor:
                               mediaUploading ||
-                              !selectedFiles ||
-                              selectedFiles.length === 0
+                                !selectedFiles ||
+                                selectedFiles.length === 0
                                 ? "not-allowed"
                                 : "pointer",
                             display: "flex",

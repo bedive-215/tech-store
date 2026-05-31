@@ -28,4 +28,12 @@ router.delete(
     productMediaController.deleteMedia
 );
 
+// Upload image from external URL (for AI-generated images)
+router.post(
+    "/:product_id/media/from-url",
+    authMiddleware.auth.bind(authMiddleware),
+    authMiddleware.checkRole("admin"),
+    productMediaController.uploadFromUrl
+);
+
 export default router;

@@ -299,7 +299,7 @@ export default function Orders() {
   }, [fullList]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 admin-light">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

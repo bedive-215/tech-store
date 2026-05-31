@@ -1,8 +1,10 @@
+// src/pages/user/Profile.jsx
+// Premium Dark Profile based on Stitch Design
 import React, { useEffect, useRef, useState } from "react";
-import { useUser } from "@/Providers/UserProvider";
-import { useAuth } from "@/hooks/useAuth"; // 👉 Thêm useAuth để dùng logout()
-import { Loader2, Camera, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useUser } from "@/providers/UserProvider";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
+import { HiOutlineUser, HiOutlineMapPin, HiOutlineShoppingBag, HiOutlineShieldCheck, HiOutlineArrowRightOnRectangle, HiOutlinePencil, HiOutlineXMark, HiOutlineCheck } from "react-icons/hi2";
 
 /* Avatar component tối ưu */
 const AvatarImage = React.memo(function AvatarImage({
@@ -49,11 +51,10 @@ export default function Profile() {
     updateMyInfo,
   } = useUser();
 
-  const { logout } = useAuth(); // 👉 lấy hàm logout từ Provider Auth
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [previewAvatar, setPreviewAvatar] = useState("/default-avatar.png");
-  const failedAvatarUrls = useRef(new Set());
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -65,7 +66,7 @@ export default function Profile() {
     avatar: null,
   });
 
-  // 🔥 Load info
+  // Load info
   useEffect(() => {
     const load = async () => {
       await fetchMyInfo();
@@ -87,7 +88,6 @@ export default function Profile() {
     }
   }, [user]);
 
-  // Avatar bị lỗi
   const handleAvatarBroken = () => {
     setPreviewAvatar("/default-avatar.png");
   };
@@ -110,7 +110,6 @@ export default function Profile() {
       await updateMyInfo(form);
       await fetchMyInfo();
       setIsEditing(false);
-      window.location.reload();
     } catch (e) {
       console.error(e);
     }
@@ -130,11 +129,10 @@ export default function Profile() {
     }
   };
 
-  // 🔥 Logout API gọi authService.logout() → xóa token → xóa user → navigate login
   const handleLogout = async () => {
     try {
-      await logout(); // gọi API + clear token + clear user
-      navigate("/login"); // chuyển sang trang login
+      await logout();
+      navigate("/login");
     } catch (e) {
       console.error(e);
     }
@@ -142,148 +140,215 @@ export default function Profile() {
 
   if (isInitialLoad && contextLoading) {
     return (
-      <div className="max-w-3xl mx-auto p-6 mt-10 flex justify-center items-center min-h-[300px]">
-        <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+      <div className="min-h-screen bg-black flex justify-center items-center">
+        <div className="w-12 h-12 border-4 border-[#2997ff] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error && !user) {
-    return <p className="text-red-500 text-center mt-10">{error}</p>;
+    return <p className="text-red-500 text-center mt-10 bg-black min-h-screen pt-32">{error}</p>;
   }
 
+  // Menu cards data
+  const menuCards = [
+    {
+      href: "#personal-info",
+      icon: HiOutlineUser,
+      iconColor: "text-[#2997ff]",
+      bgColor: "bg-[#2997ff]/10",
+      title: "Thông tin cá nhân",
+      desc: "Cập nhật họ tên, số điện thoại và địa chỉ email chính thức của bạn.",
+      onClick: () => setIsEditing(true),
+    },
+    {
+      href: "/user/addresses",
+      icon: HiOutlineMapPin,
+      iconColor: "text-purple-400",
+      bgColor: "bg-purple-500/10",
+      title: "Sổ địa chỉ",
+      desc: "Quản lý các địa chỉ giao hàng và nhận hóa đơn thanh toán.",
+    },
+    {
+      href: "/user/orders",
+      icon: HiOutlineShoppingBag,
+      iconColor: "text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      title: "Lịch sử mua hàng",
+      desc: "Theo dõi đơn hàng, xem lại các hóa đơn và trạng thái vận chuyển.",
+    },
+    {
+      href: "#security",
+      icon: HiOutlineShieldCheck,
+      iconColor: "text-red-400",
+      bgColor: "bg-red-500/10",
+      title: "Bảo mật",
+      desc: "Đổi mật khẩu, thiết lập xác thực 2 lớp và quản lý các thiết bị đã đăng nhập.",
+    },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto p-6 mt-10">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Thông tin cá nhân</h1>
-          <p className="text-gray-600 mt-2">
-            {isEditing ? "Chỉnh sửa thông tin của bạn" : "Chế độ chỉ xem"}
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600 transition"
-            >
-              Chỉnh sửa
-            </button>
-          )}
-
-          {/* 🔥 NÚT ĐĂNG XUẤT */}
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition flex items-center gap-2"
-          >
-            <LogOut size={18} />
-            Đăng xuất
-          </button>
-        </div>
+    <div className="min-h-screen bg-black text-white pt-28 pb-12">
+      {/* Background effect */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-gray-900/50 to-transparent rounded-full blur-3xl" />
       </div>
 
-      <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-200">
-        <div className="flex justify-center mb-8 relative">
-          <AvatarImage
-            src={previewAvatar}
-            alt="Avatar"
-            className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-md"
-            fallback="/default-avatar.png"
-            onBroken={handleAvatarBroken}
-          />
-
-          {isEditing && (
-            <label className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow cursor-pointer border">
-              <Camera size={18} />
-              <input type="file" accept="image/*" className="hidden" onChange={handleChooseAvatar} />
-            </label>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {/* Họ và tên */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Họ và tên</label>
-            {isEditing ? (
-              <input
-                name="full_name"
-                value={form.full_name}
-                onChange={onChangeInput}
-                className="p-3 border rounded-lg w-full"
-              />
-            ) : (
-              <p className="p-3 bg-gray-50 border rounded-lg">{form.full_name || "-"}</p>
+      <main className="w-full max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12">
+        {/* Profile Header - Centered */}
+        <header className="flex flex-col items-center mb-20 text-center">
+          {/* Avatar with edit button */}
+          <div className="relative mb-8">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full p-1.5 bg-white/5 backdrop-blur-2xl border border-white/10 ring-1 ring-white/20 flex items-center justify-center overflow-hidden">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center overflow-hidden">
+                <AvatarImage
+                  src={previewAvatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  fallback="/default-avatar.png"
+                  onBroken={handleAvatarBroken}
+                />
+              </div>
+            </div>
+            {isEditing && (
+              <label className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#2997ff] text-white flex items-center justify-center border-4 border-black hover:scale-105 transition-transform cursor-pointer">
+                <HiOutlinePencil className="w-4 h-4" />
+                <input type="file" accept="image/*" className="hidden" onChange={handleChooseAvatar} />
+              </label>
             )}
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Email</label>
-            {isEditing ? (
-              <input
-                name="email"
-                value={form.email}
-                onChange={onChangeInput}
-                className="p-3 border rounded-lg w-full"
-              />
-            ) : (
-              <p className="p-3 bg-gray-50 border rounded-lg">{form.email || "-"}</p>
-            )}
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2">
+            {form.full_name || user?.full_name || "User"}
+          </h1>
+          <p className="text-gray-400 font-medium">
+            Thành viên Platinum • Tham gia từ 2023
+          </p>
+        </header>
 
-          {/* Số điện thoại */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Số điện thoại</label>
-            {isEditing ? (
-              <input
-                name="phone_number"
-                value={form.phone_number}
-                onChange={onChangeInput}
-                className="p-3 border rounded-lg w-full"
-              />
-            ) : (
-              <p className="p-3 bg-gray-50 border rounded-lg">{form.phone_number || "-"}</p>
-            )}
-          </div>
-
-          {/* Ngày sinh */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Ngày sinh</label>
-            {isEditing ? (
-              <input
-                type="date"
-                name="date_of_birth"
-                value={form.date_of_birth}
-                onChange={onChangeInput}
-                className="p-3 border rounded-lg w-full"
-              />
-            ) : (
-              <p className="p-3 bg-gray-50 border rounded-lg">{form.date_of_birth || "-"}</p>
-            )}
-          </div>
-        </div>
-
+        {/* Edit Form Modal Overlay */}
         {isEditing && (
-          <div className="mt-8 flex justify-end gap-3">
-            <button
-              onClick={handleCancel}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
-            >
-              Hủy
-            </button>
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+            <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 max-w-lg w-full animate-fadeIn">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-bold">Chỉnh sửa thông tin</h2>
+                <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <HiOutlineXMark className="w-6 h-6" />
+                </button>
+              </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={contextLoading}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-2"
-            >
-              {contextLoading && <Loader2 size={16} className="animate-spin" />}
-              Lưu thay đổi
-            </button>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Họ và tên</label>
+                  <input
+                    name="full_name"
+                    value={form.full_name}
+                    onChange={onChangeInput}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#2997ff] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                  <input
+                    name="email"
+                    value={form.email}
+                    onChange={onChangeInput}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#2997ff] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Số điện thoại</label>
+                  <input
+                    name="phone_number"
+                    value={form.phone_number}
+                    onChange={onChangeInput}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#2997ff] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Ngày sinh</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={form.date_of_birth}
+                    onChange={onChangeInput}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#2997ff] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={contextLoading}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-300 hover:to-blue-500 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {contextLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <HiOutlineCheck className="w-5 h-5" />
+                      Lưu thay đổi
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
-      </div>
+
+        {/* Menu Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {menuCards.map((card, idx) => {
+            const Icon = card.icon;
+            const CardWrapper = card.onClick ? 'button' : Link;
+            const wrapperProps = card.onClick
+              ? { onClick: card.onClick, type: "button" }
+              : { to: card.href };
+
+            return (
+              <CardWrapper
+                key={idx}
+                {...wrapperProps}
+                className="group bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:-translate-y-1 relative overflow-hidden text-left w-full"
+              >
+                <div className="relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl ${card.bgColor} flex items-center justify-center mb-8 ${card.iconColor}`}>
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">{card.title}</h3>
+                  <p className="text-gray-400 leading-relaxed max-w-sm">{card.desc}</p>
+                </div>
+                <div className="absolute right-8 bottom-8 text-white/20 group-hover:text-white/60 transition-colors">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </CardWrapper>
+            );
+          })}
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-16 flex justify-center">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-8 py-4 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 hover:bg-white/10 transition-all text-gray-300 hover:text-white group"
+          >
+            <HiOutlineArrowRightOnRectangle className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+            <span className="font-semibold">Đăng xuất tài khoản</span>
+          </button>
+        </div>
+      </main>
     </div>
   );
 }

@@ -11,7 +11,7 @@ const promiseMap = new Map();
 
 const OrderService = {
 
-  async createOrder(userId, { items = [], coupon_code = null, shipping_address = null }) {
+  async createOrder(userId, { items = [], coupon_code = null, shipping_address = null, payment_method = null, invoice = null, guest_info = null, is_guest_order = false }) {
     if (!items.length) throw new Error('items required');
 
     const conn = await pool.getConnection();
@@ -88,14 +88,26 @@ const OrderService = {
       // Database transaction
       await conn.beginTransaction();
 
+      // For guest orders, embed guest info in shipping_address
+      let finalShippingAddress = shipping_address;
+      if (is_guest_order && guest_info) {
+        finalShippingAddress = JSON.stringify({
+          address: shipping_address,
+          guest_name: guest_info.name,
+          guest_email: guest_info.email,
+          guest_phone: guest_info.phone,
+          is_guest_order: true
+        });
+      }
+
       await OrderRepository.create(conn, {
         id: orderId,
-        user_id: userId,
+        user_id: userId || 'GUEST', // 'GUEST' for anonymous orders
         status: 'pending',
         total_price: totalPrice,
         discount_amount: discountAmount,
         final_price: finalPrice,
-        shipping_address
+        shipping_address: finalShippingAddress,
       });
 
       await OrderItemRepository.bulkCreate(
@@ -317,21 +329,55 @@ const OrderService = {
 
     const items = await OrderItemRepository.findByOrder(orderId);
 
-    // Lấy thông tin của user có order này
-    const correlationId = crypto.randomUUID();
-    const dataPromise = new Promise((resolve, reject) => {
-      promiseMap.set(correlationId, resolve);
-      setTimeout(() => {
-        if (promiseMap.has(correlationId)) {
-          promiseMap.delete(correlationId);
-          reject(new Error("Product service timeout", 504));
+    let userInfo = null;
+
+    // For guest orders (user_id = 'GUEST' or null), parse guest info from shipping_address
+    if (!order.user_id || order.user_id === 'GUEST') {
+      // Try to parse guest info from shipping_address JSON
+      try {
+        const shippingData = JSON.parse(order.shipping_address || '{}');
+        if (shippingData.is_guest_order) {
+          userInfo = {
+            full_name: shippingData.guest_name || 'Khách vãng lai',
+            email: shippingData.guest_email || null,
+            phone_number: shippingData.guest_phone || null,
+            is_guest: true
+          };
         }
-      }, 5000);
-    });
+      } catch (e) {
+        // If not JSON, it's a plain address string
+        userInfo = { full_name: 'Khách vãng lai', is_guest: true };
+      }
+    } else {
+      // For logged-in users, fetch user info via RabbitMQ
+      try {
+        const correlationId = crypto.randomUUID();
+        const dataPromise = new Promise((resolve, reject) => {
+          promiseMap.set(correlationId, resolve);
+          setTimeout(() => {
+            if (promiseMap.has(correlationId)) {
+              promiseMap.delete(correlationId);
+              reject(new Error("User service timeout"));
+            }
+          }, 5000);
+        });
 
-    await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+        await rabbitmq.publish('user_info_get', { user_id: order.user_id, correlationId });
+        userInfo = await dataPromise;
+      } catch (e) {
+        console.warn('Failed to fetch user info:', e.message);
+        userInfo = null;
+      }
+    }
 
-    const userInfo = await dataPromise;
+    // Parse shipping address for response
+    let shippingAddress = order.shipping_address;
+    try {
+      const parsed = JSON.parse(order.shipping_address || '{}');
+      shippingAddress = parsed.address || order.shipping_address;
+    } catch (e) {
+      // Keep original string
+    }
 
     return {
       order_id: order.id,
@@ -348,19 +394,41 @@ const OrderService = {
         order.final_price ??
         (order.total_price - (order.discount_amount || 0)),
       status: order.status,
-      shipping_address: order.shipping_address,
+      shipping_address: shippingAddress,
     };
   },
 
-  async listAllOrders({ page = null, limit = null } = {}) {
-    const { rows, total } = await OrderRepository.findAll({ page, limit });
+  async listAllOrders({ page = null, limit = null, sort = null } = {}) {
+    const { rows, total } = await OrderRepository.findAll({ page, limit, sort });
 
     const orders = await Promise.all(
       rows.map(async order => {
         const items = await OrderItemRepository.findByOrder(order.id);
 
+        // Parse guest info from shipping_address if it's JSON
+        let customerName = null;
+        let customerEmail = null;
+        let customerPhone = null;
+        let shippingAddress = order.shipping_address;
+
+        try {
+          const parsed = JSON.parse(order.shipping_address);
+          if (parsed.is_guest_order) {
+            customerName = parsed.guest_name || null;
+            customerEmail = parsed.guest_email || null;
+            customerPhone = parsed.guest_phone || null;
+            shippingAddress = parsed.address || order.shipping_address;
+          }
+        } catch (e) {
+          // Not JSON, use as-is
+        }
+
         return {
           order_id: order.id,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          user_id: order.user_id || null,
           total_price: order.total_price,
           discount_amount: order.discount_amount ?? 0,
           final_price:
@@ -368,7 +436,7 @@ const OrderService = {
             (order.total_price - (order.discount_amount || 0)),
           status: order.status,
           created_at: order.created_at,
-          shipping_address: order.shipping_address,
+          shipping_address: shippingAddress,
           items: items.map(it => ({
             product_id: it.product_id,
             product_name: it.product_name ?? null,

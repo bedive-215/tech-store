@@ -279,7 +279,7 @@ export default function DashboardAdmin() {
   // ====================================================
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#F3F4F6", minHeight: "100vh" }}>
+    <div className="admin-light" style={{ padding: "20px", minHeight: "100vh" }}>
       <h1 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "20px" }}>
         Admin Dashboard
       </h1>

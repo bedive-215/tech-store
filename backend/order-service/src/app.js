@@ -16,12 +16,24 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "https://store.hailamdev.space", "https://api.store.hailamdev.space"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
 // Routes
+const OrderController = require('./controllers/OrderController');
+
+// Guest checkout: POST /orders uses optionalAuth (allows guests)
+app.post("/api/v1/orders", authMiddleware.optionalAuth, OrderController.create);
+
+// Guest order viewing: GET /orders/:id uses optionalAuth (allows guests to view their orders)
+app.get("/api/v1/orders/:id", authMiddleware.optionalAuth, OrderController.detail);
+
+// Guest order cancellation: PUT /orders/:id/cancel uses optionalAuth
+app.put("/api/v1/orders/:id/cancel", authMiddleware.optionalAuth, OrderController.cancel);
+
+// Other order routes require authentication
 app.use("/api/v1/orders", authMiddleware.auth, ordersRouter);
 app.use("/api/v1/analytics", authMiddleware.auth, authMiddleware.checkRole('admin'), analyticsRouter);
 app.use("/api/v1/coupons", couponsRouter);

@@ -19,6 +19,8 @@ plugins:
     origins:
     - http://localhost:5173
     - http://localhost:8081
+    - https://store.hailamdev.space
+    - https://api.store.hailamdev.space
     preflight_continue: false
     private_network: false
   enabled: true

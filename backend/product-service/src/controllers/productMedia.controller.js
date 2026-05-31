@@ -1,7 +1,7 @@
 import productMediaService from "../services/productMedia.service.js";
 
 class ProductMediaController {
-    
+
     async uploadProductMedia(req, res, next) {
         try {
             const { product_id } = req.params;
@@ -40,6 +40,32 @@ class ProductMediaController {
             next(err);
         }
     }
+
+    /**
+     * Upload image from external URL to Cloudinary
+     * POST /products/:product_id/media/from-url
+     * Body: { imageUrl: string }
+     */
+    async uploadFromUrl(req, res, next) {
+        try {
+            const { product_id } = req.params;
+            const { imageUrl } = req.body;
+
+            if (!imageUrl) {
+                return res.status(400).json({
+                    success: false,
+                    message: "imageUrl is required"
+                });
+            }
+
+            const result = await productMediaService.uploadFromUrl(product_id, imageUrl);
+
+            res.status(201).json(result);
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 export default new ProductMediaController();
+

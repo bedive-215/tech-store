@@ -15,23 +15,23 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ===================================
 INSERT INTO users (id, full_name, email, password_hash, role, created_at, updated_at) VALUES
 -- Admin accounts
-('550e8400-e29b-41d4-a716-446655440001', 'Admin System', 'admin@tech.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'admin', '2024-01-01 08:00:00', '2024-01-01 08:00:00'),
-('550e8400-e29b-41d4-a716-446655440002', 'Nguyễn Văn Admin', 'admin.nguyen@tech.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'admin', '2024-01-05 09:00:00', '2024-01-05 09:00:00'),
+('550e8400-e29b-41d4-a716-446655440001', 'Admin System', 'admin@tech.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'admin', '2024-01-01 08:00:00', '2024-01-01 08:00:00'),
+('550e8400-e29b-41d4-a716-446655440002', 'Nguyễn Văn Admin', 'admin.nguyen@tech.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'admin', '2024-01-05 09:00:00', '2024-01-05 09:00:00'),
 
 -- Regular users
-('550e8400-e29b-41d4-a716-446655440003', 'Nguyễn Văn An', 'nguyen.van.an@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-10 10:30:00', '2024-01-10 10:30:00'),
-('550e8400-e29b-41d4-a716-446655440004', 'Trần Thị Bình', 'tran.thi.binh@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-12 11:00:00', '2024-01-12 11:00:00'),
-('550e8400-e29b-41d4-a716-446655440005', 'Lê Minh Châu', 'le.minh.chau@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-15 14:20:00', '2024-01-15 14:20:00'),
-('550e8400-e29b-41d4-a716-446655440006', 'Phạm Văn Dũng', 'pham.van.dung@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-18 16:45:00', '2024-01-18 16:45:00'),
-('550e8400-e29b-41d4-a716-446655440007', 'Hoàng Thị Em', 'hoang.thi.em@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-20 09:15:00', '2024-01-20 09:15:00'),
-('550e8400-e29b-41d4-a716-446655440008', 'Vũ Đình Phong', 'vu.dinh.phong@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-22 13:30:00', '2024-01-22 13:30:00'),
-('550e8400-e29b-41d4-a716-446655440009', 'Đỗ Thị Giang', 'do.thi.giang@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-25 10:00:00', '2024-01-25 10:00:00'),
-('550e8400-e29b-41d4-a716-446655440010', 'Bùi Văn Hùng', 'bui.van.hung@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-01-28 15:45:00', '2024-01-28 15:45:00'),
-('550e8400-e29b-41d4-a716-446655440011', 'Ngô Thị Lan', 'ngo.thi.lan@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-01 08:30:00', '2024-02-01 08:30:00'),
-('550e8400-e29b-41d4-a716-446655440012', 'Đinh Văn Khoa', 'dinh.van.khoa@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-03 11:20:00', '2024-02-03 11:20:00'),
-('550e8400-e29b-41d4-a716-446655440013', 'Trương Thị Mai', 'truong.thi.mai@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-05 14:00:00', '2024-02-05 14:00:00'),
-('550e8400-e29b-41d4-a716-446655440014', 'Lý Văn Nam', 'ly.van.nam@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-08 09:45:00', '2024-02-08 09:45:00'),
-('550e8400-e29b-41d4-a716-446655440015', 'Phan Thị Oanh', 'phan.thi.oanh@gmail.com', '$2a$12$kGLXE.s0jqyC54BMMsjfOOONz.MIVAl2UeIBiaijbo26lNSSmhp5O', 'user', '2024-02-10 16:30:00', '2024-02-10 16:30:00');
+('550e8400-e29b-41d4-a716-446655440003', 'Nguyễn Văn An', 'nguyen.van.an@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-10 10:30:00', '2024-01-10 10:30:00'),
+('550e8400-e29b-41d4-a716-446655440004', 'Trần Thị Bình', 'tran.thi.binh@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-12 11:00:00', '2024-01-12 11:00:00'),
+('550e8400-e29b-41d4-a716-446655440005', 'Lê Minh Châu', 'le.minh.chau@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-15 14:20:00', '2024-01-15 14:20:00'),
+('550e8400-e29b-41d4-a716-446655440006', 'Phạm Văn Dũng', 'pham.van.dung@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-18 16:45:00', '2024-01-18 16:45:00'),
+('550e8400-e29b-41d4-a716-446655440007', 'Hoàng Thị Em', 'hoang.thi.em@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-20 09:15:00', '2024-01-20 09:15:00'),
+('550e8400-e29b-41d4-a716-446655440008', 'Vũ Đình Phong', 'vu.dinh.phong@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-22 13:30:00', '2024-01-22 13:30:00'),
+('550e8400-e29b-41d4-a716-446655440009', 'Đỗ Thị Giang', 'do.thi.giang@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-25 10:00:00', '2024-01-25 10:00:00'),
+('550e8400-e29b-41d4-a716-446655440010', 'Bùi Văn Hùng', 'bui.van.hung@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-01-28 15:45:00', '2024-01-28 15:45:00'),
+('550e8400-e29b-41d4-a716-446655440011', 'Ngô Thị Lan', 'ngo.thi.lan@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-02-01 08:30:00', '2024-02-01 08:30:00'),
+('550e8400-e29b-41d4-a716-446655440012', 'Đinh Văn Khoa', 'dinh.van.khoa@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-02-03 11:20:00', '2024-02-03 11:20:00'),
+('550e8400-e29b-41d4-a716-446655440013', 'Trương Thị Mai', 'truong.thi.mai@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-02-05 14:00:00', '2024-02-05 14:00:00'),
+('550e8400-e29b-41d4-a716-446655440014', 'Lý Văn Nam', 'ly.van.nam@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-02-08 09:45:00', '2024-02-08 09:45:00'),
+('550e8400-e29b-41d4-a716-446655440015', 'Phan Thị Oanh', 'phan.thi.oanh@gmail.com', '$2b$12$hoycpPIW2SqyfrgjTTNToO0wdRp/olo1p3hP.LABoTTmVAtfDUs.q', 'user', '2024-02-10 16:30:00', '2024-02-10 16:30:00');
 UPDATE users SET email_verified = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440001';
 -- ===================================
 -- 2. SEED REVIEWS TABLE

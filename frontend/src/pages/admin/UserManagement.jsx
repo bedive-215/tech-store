@@ -78,7 +78,7 @@ export default function UserManagement() {
   const userCount = users.filter(u => u.role === 'user').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 admin-light">
       <div className="w-full">
         {/* Header */}
         <div className="mb-8">

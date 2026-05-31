@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Layouts
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
+import HomeLayout from "@/layouts/HomeLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 
 // Auth pages
@@ -24,6 +25,9 @@ import ProductManagementAdmin from "@/pages/admin/ProductManagement";
 
 // ⭐⭐ NEW — Flash Sale admin pages
 import FlashSaleAdminPage from "@/pages/admin/FlashSalePage";
+// ⭐⭐⭐ NEW — Warranty admin page
+import WarrantyManagement from "@/pages/admin/WarrantyManagement";
+
 
 // User pages
 import Home from "@/pages/user/Home";
@@ -33,6 +37,7 @@ import Payments from "@/pages/user/PaymentPage";
 
 // ➕ 3 trang mới
 import Category from "@/pages/user/Category";
+import CategoryPage from "@/pages/user/CategoryPage";
 import Profile from "@/pages/user/Profile";
 import Product from "@/pages/user/Product";
 
@@ -45,6 +50,8 @@ import Orders from "@/pages/user/Orders"; // /user/orders
 // Payment result pages (public)
 import PaymentSuccess from "@/pages/user/PaymentSuccess";
 import PaymentFailed from "@/pages/user/PaymentFailed";
+// ⭐ NEW — user warranty page
+import WarrantyPage from "@/pages/user/WarrantyPage";
 
 // Errors
 import NotFound from "@/pages/error/NotFound";
@@ -64,13 +71,18 @@ const routeConfig = [
   { path: ROUTERS.PUBLIC.PAYMENT_FAILED, element: PaymentFailed },   // /payment-failed
 
   // USER
-  { path: ROUTERS.USER.HOME, element: Home, layout: UserLayout },
+  { path: ROUTERS.USER.HOME, element: Home, layout: HomeLayout },
   { path: ROUTERS.USER.CART, element: Cart, layout: UserLayout },
   { path: ROUTERS.USER.DASHBOARD, element: DashboardSuser, layout: UserLayout },
   { path: ROUTERS.USER.PAYMENTS, element: Payments, layout: UserLayout },
-
+  {
+    path: ROUTERS.USER.WARRANTIES,
+    element: WarrantyPage,
+    layout: UserLayout,
+  },
   // ➕ 3 trang mới (user)
   { path: ROUTERS.USER.CATEGORY, element: Category, layout: UserLayout },
+  { path: "/user/category/:slug", element: CategoryPage, layout: HomeLayout },
   { path: ROUTERS.USER.PROFILE, element: Profile, layout: UserLayout },
   { path: ROUTERS.USER.PRODUCT, element: Product, layout: UserLayout },
   { path: ROUTERS.USER.CUSTOMER_INFO, element: CustomerInfo, layout: UserLayout },
@@ -90,6 +102,14 @@ const routeConfig = [
 
   // ⭐⭐ Trang quản lý Flash Sale admin
   { path: ROUTERS.ADMIN.FLASH_SALES, element: FlashSaleAdminPage, layout: AdminLayout },
+  // 🛡️ Trang quản lý bảo hành admin
+  {
+    path: ROUTERS.ADMIN.WARRANTIES,
+    element: WarrantyManagement,
+    layout: AdminLayout,
+  },
+
+
 
   // ERRORS
   { path: ROUTERS.PRIVATE.FORBIDDEN, element: Forbidden },
@@ -105,10 +125,10 @@ const AppRouter = () => {
         // If a layout is provided, wrap the Page with it.
         const Wrapped = route.layout
           ? () => (
-              <route.layout>
-                <Page />
-              </route.layout>
-            )
+            <route.layout>
+              <Page />
+            </route.layout>
+          )
           : Page;
 
         return <Route key={route.path} path={route.path} element={<Wrapped />} />;

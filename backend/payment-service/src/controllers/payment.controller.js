@@ -27,19 +27,21 @@ class PaymentController {
             const isSuccess = payment.status === 'success';
 
             if (payment.platform === 'web') {
+                const frontendUrl = process.env.FRONTEND_URL || 'https://store.hailamdev.space';
                 return res.redirect(
                     isSuccess
-                        ? `http://localhost:5173/payment-success?order_id=${payment.order_id}`
-                        : `http://localhost:5173/payment-failed?order_id=${payment.order_id}`
+                        ? `${frontendUrl}/payment-success?order_id=${payment.order_id}`
+                        : `${frontendUrl}/payment-failed?order_id=${payment.order_id}`
                 );
             }
 
             if (payment.platform === 'app') {
                 // console.log('Payment in app.');
+                const appUrl = process.env.APP_URL || 'http://localhost:8081';
                 return res.redirect(
                     isSuccess
-                        ? `http://localhost:8081/payment-success?order_id=${payment.order_id}`
-                        : `http://localhost:8081/payment-failed?order_id=${payment.order_id}`
+                        ? `${appUrl}/payment-success?order_id=${payment.order_id}`
+                        : `${appUrl}/payment-failed?order_id=${payment.order_id}`
                 );
             }
 
